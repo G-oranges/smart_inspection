@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -169,8 +170,27 @@ func (ctrl *TaskController) GetTaskByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"task": filteredTask})
 }
 
+// findTaskOr404 读取任务；不存在时直接写入 404 响应并返回 false。
+func (ctrl *TaskController) findTaskOr404(c *gin.Context, id string) (*model.Task, bool) {
+	task, err := ctrl.service.GetTaskWithDormIDsByID(id)
+	if err != nil || task == nil {
+		if err == nil || errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"message": "任务不存在"})
+			return nil, false
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "读取任务失败"})
+		return nil, false
+	}
+	return task, true
+}
+
 func (ctrl *TaskController) DeleteTask(c *gin.Context) {
 	id := c.Param("id")
+	// 先确认任务存在：不存在时返回 404，而不是走到后面变成 500 或误报成功
+	task, ok := ctrl.findTaskOr404(c, id)
+	if !ok {
+		return
+	}
 	scope, err := resolveDataScopeForCurrentUser(ctrl.db, c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "获取数据范围失败"})
@@ -181,9 +201,6 @@ func (ctrl *TaskController) DeleteTask(c *gin.Context) {
 		return
 	}
 
-	// 先获取任务信息用于审计日志 (使用较轻量的方法)
-	task, _ := ctrl.service.GetTaskWithDormIDsByID(id)
-
 	if err := ctrl.service.DeleteTask(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
@@ -192,10 +209,7 @@ func (ctrl *TaskController) DeleteTask(c *gin.Context) {
 	// 记录删除审计日志
 	userID, _ := c.Get("userId")
 	operatorName, _ := c.Get("fullName")
-	taskTitle := "未知任务"
-	if task != nil {
-		taskTitle = task.Title
-	}
+	taskTitle := task.Title
 	service.LogAudit(service.AuditLogParams{
 		Action:       service.AuditActionDelete,
 		Module:       service.AuditModuleTask,
@@ -212,6 +226,11 @@ func (ctrl *TaskController) DeleteTask(c *gin.Context) {
 
 func (ctrl *TaskController) UpdateTask(c *gin.Context) {
 	id := c.Param("id")
+	// 获取更新前的任务（同时用于存在性校验和审计对比；使用较轻量的方法，避免大规模关联导致占位符超限）
+	oldTask, ok := ctrl.findTaskOr404(c, id)
+	if !ok {
+		return
+	}
 	scope, err := resolveDataScopeForCurrentUser(ctrl.db, c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "获取数据范围失败"})
@@ -221,9 +240,6 @@ func (ctrl *TaskController) UpdateTask(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"message": err.Error()})
 		return
 	}
-
-	// 获取更新前的任务状态用于对比 (使用较轻量的方法，避免大规模关联导致占位符超限)
-	oldTask, _ := ctrl.service.GetTaskWithDormIDsByID(id)
 
 	var req service.UpdateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
