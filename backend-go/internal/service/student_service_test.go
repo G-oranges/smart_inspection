@@ -12,6 +12,8 @@ import (
 )
 
 func TestStudentServiceUpdateStudentSyncsUserDepartmentFromCollege(t *testing.T) {
+	// 导入学生会自动建账号，初始密码只从环境变量读取
+	t.Setenv("DEFAULT_INITIAL_PASSWORD", "TestInit#2026")
 	db := openStudentServiceTestDB(t)
 	if err := db.AutoMigrate(&model.User{}, &model.RoleEntity{}, &model.Student{}); err != nil {
 		t.Fatalf("migrate failed: %v", err)

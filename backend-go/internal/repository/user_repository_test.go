@@ -44,12 +44,12 @@ func TestFindExecutorsDoesNotRequireAvatarURLColumn(t *testing.T) {
 	}
 
 	if err := db.Table("user").Create(map[string]interface{}{
-		"id":          "executor-1",
-		"username":    "leader001",
-		"password":    "x",
-		"role":        "LEADER",
-		"fullName":    "执行人",
-		"isDisabled":  false,
+		"id":           "executor-1",
+		"username":     "leader001",
+		"password":     "x",
+		"role":         "LEADER",
+		"fullName":     "执行人",
+		"isDisabled":   false,
 		"tokenVersion": 1,
 	}).Error; err != nil {
 		t.Fatalf("seed executor: %v", err)

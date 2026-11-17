@@ -1,9 +1,13 @@
 package middleware
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -191,6 +195,103 @@ func DistributedLoginRateLimiter(drl *DistributedRateLimiter) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+// IsBlocked 只读检查：窗口内的失败次数是否已达上限（不计入新的尝试）。
+func (drl *DistributedRateLimiter) IsBlocked(identifier string) (bool, int) {
+	if drl.isUsingFallback() || utils.RedisClient == nil {
+		drl.fallback.mu.Lock()
+		defer drl.fallback.mu.Unlock()
+		info, exists := drl.fallback.attempts[identifier]
+		now := time.Now()
+		if !exists || now.After(info.resetAt) {
+			return false, 0
+		}
+		if info.count >= drl.maxAttempts {
+			return true, int(info.resetAt.Sub(now).Seconds()) + 1
+		}
+		return false, 0
+	}
+
+	ctx := context.Background()
+	windowStart := time.Now().Unix() - int64(drl.window.Seconds())
+	count, err := utils.RedisClient.ZCount(ctx, drl.getRedisKey(identifier), fmt.Sprintf("%d", windowStart), "+inf").Result()
+	if err != nil {
+		return false, 0
+	}
+	if int(count) >= drl.maxAttempts {
+		return true, int(drl.window.Seconds())
+	}
+	return false, 0
+}
+
+// LoginFailureRateLimiter 登录失败限流：只统计失败的登录，成功登录会清除该账号的失败计数。
+// accountLimiter 按 "IP + 用户名" 计数，防止针对单个账号的暴力破解；
+// ipLimiter 按 IP 计数（上限更高），防止同一来源对大量账号撒网尝试。
+// 客户端 IP 取自 gin 的 ClientIP，只有在路由上配置了受信代理时才会采信 X-Forwarded-For。
+func LoginFailureRateLimiter(accountLimiter, ipLimiter *DistributedRateLimiter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ip := c.ClientIP()
+		accountKey := ip + "|" + strings.ToLower(strings.TrimSpace(peekJSONField(c, "username")))
+
+		for _, check := range []struct {
+			limiter *DistributedRateLimiter
+			key     string
+		}{{accountLimiter, accountKey}, {ipLimiter, ip}} {
+			if blocked, retryAfter := check.limiter.IsBlocked(check.key); blocked {
+				c.Header("Retry-After", fmt.Sprintf("%d", retryAfter))
+				c.JSON(http.StatusTooManyRequests, gin.H{
+					"message":    "登录失败次数过多，请稍后再试",
+					"retryAfter": retryAfter,
+				})
+				c.Abort()
+				return
+			}
+		}
+
+		c.Next()
+
+		switch c.Writer.Status() {
+		case http.StatusUnauthorized:
+			accountLimiter.CheckLimit(accountKey)
+			ipLimiter.CheckLimit(ip)
+		case http.StatusOK:
+			accountLimiter.Reset(accountKey)
+		}
+	}
+}
+
+// SimpleRateLimiter 通用限流：每次请求都计数（用于找回密码等公开接口）。
+func SimpleRateLimiter(drl *DistributedRateLimiter, message string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		allowed, _, retryAfter := drl.CheckLimit(c.ClientIP())
+		if !allowed {
+			c.Header("Retry-After", fmt.Sprintf("%d", retryAfter))
+			c.JSON(http.StatusTooManyRequests, gin.H{"message": message, "retryAfter": retryAfter})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
+// peekJSONField 读取 JSON 请求体中的字符串字段，并把请求体还原，供后续处理器正常绑定。
+func peekJSONField(c *gin.Context, field string) string {
+	if c.Request.Body == nil {
+		return ""
+	}
+	body, err := io.ReadAll(io.LimitReader(c.Request.Body, 64<<10))
+	c.Request.Body.Close()
+	c.Request.Body = io.NopCloser(bytes.NewReader(body))
+	if err != nil {
+		return ""
+	}
+	var payload map[string]interface{}
+	if json.Unmarshal(body, &payload) != nil {
+		return ""
+	}
+	value, _ := payload[field].(string)
+	return value
 }
 
 // DistributedAPIRateLimiter 分布式 API 限流中间件

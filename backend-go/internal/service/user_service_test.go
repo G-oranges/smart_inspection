@@ -74,7 +74,7 @@ func TestUserServiceCreateUserRoleValidation(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			_, err := service.CreateUser(testCase.req)
+			_, _, err := service.CreateUser(testCase.req)
 			if err == nil || !strings.Contains(err.Error(), testCase.wantErr) {
 				t.Fatalf("expected error containing %q, got %v", testCase.wantErr, err)
 			}

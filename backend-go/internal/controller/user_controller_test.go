@@ -83,8 +83,8 @@ func (s userServiceStub) GetExecutors(page, pageSize int, keyword, role string) 
 	return nil, 0, nil
 }
 
-func (s userServiceStub) CreateUser(req service.CreateUserRequest) (*model.User, error) {
-	return nil, nil
+func (s userServiceStub) CreateUser(req service.CreateUserRequest) (*model.User, string, error) {
+	return nil, "", nil
 }
 
 func (s userServiceStub) UpdateUser(id string, req service.UpdateUserRequest) error {
@@ -95,7 +95,23 @@ func (s userServiceStub) DeleteUsers(ids []string, currentUserId string) error {
 	return nil
 }
 
-func (s userServiceStub) ResetPassword(id string) error {
+func (s userServiceStub) ResetPassword(id string) (string, error) {
+	return "", nil
+}
+
+func (s userServiceStub) AuthorizeUserCreate(op service.OperatorContext, req service.CreateUserRequest) error {
+	return nil
+}
+
+func (s userServiceStub) AuthorizeUserUpdate(op service.OperatorContext, targetID string, req service.UpdateUserRequest) error {
+	return nil
+}
+
+func (s userServiceStub) AuthorizeUserDelete(op service.OperatorContext, ids []string) error {
+	return nil
+}
+
+func (s userServiceStub) AuthorizeCredentialReset(op service.OperatorContext, targetID string) error {
 	return nil
 }
 

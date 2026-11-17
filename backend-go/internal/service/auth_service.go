@@ -1,10 +1,13 @@
 package service
 
 import (
+	"crypto/subtle"
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -69,8 +72,19 @@ func (s *authService) Login(username, password string) (string, string, *model.U
 		if redisErr == nil {
 			err = utils.ComparePasswords(tempHashed, password)
 			if err == nil {
-				// 临时密码验证成功，立即删除（单次使用）
+				// 临时密码验证成功：把它设为当前密码（这样修改密码时可作为“当前密码”填写），
+				// 使其他会话失效，并删除临时密码（单次使用）
 				isTempPwd = true
+				if updateErr := s.db.Model(&model.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
+					"password":           tempHashed,
+					"tokenVersion":       gorm.Expr("tokenVersion + 1"),
+					"mustChangePassword": true,
+				}).Error; updateErr != nil {
+					return "", "", nil, false, updateErr
+				}
+				user.Password = tempHashed
+				user.TokenVersion++
+				user.MustChangePassword = true
 				utils.DelCache("temp_pwd:" + user.ID)
 			}
 		}
@@ -78,6 +92,14 @@ func (s *authService) Login(username, password string) (string, string, *model.U
 		if err != nil {
 			return "", "", nil, false, errors.New("用户名或密码错误")
 		}
+	}
+
+	// 使用批量导入的初始密码或临时密码登录时，标记为必须修改密码（后端在修改前会限制访问）
+	if !user.MustChangePassword && (isTempPwd || utils.IsDefaultInitialPassword(password)) {
+		if err := s.db.Model(&model.User{}).Where("id = ?", user.ID).Update("mustChangePassword", true).Error; err != nil {
+			return "", "", nil, false, err
+		}
+		user.MustChangePassword = true
 	}
 
 	// 生成 Access Token（带版本号）
@@ -116,6 +138,12 @@ func (s *authService) ChangePassword(id, oldPassword, newPassword string) error 
 	if !utils.IsStrongPassword(newPassword) {
 		return errors.New("新密码不符合复杂度要求（必须包含大小写字母、数字及标点符号，且不少于 8 位）")
 	}
+	if newPassword == oldPassword {
+		return errors.New("新密码不能与当前密码相同")
+	}
+	if utils.IsDefaultInitialPassword(newPassword) {
+		return errors.New("新密码不能与系统初始密码相同")
+	}
 
 	// 哈希存储
 	hashed, err := utils.HashPassword(newPassword)
@@ -123,10 +151,11 @@ func (s *authService) ChangePassword(id, oldPassword, newPassword string) error 
 		return err
 	}
 
-	// 更新密码并递增 tokenVersion（使旧 Token 失效）
+	// 更新密码、递增 tokenVersion（使旧 Token 失效），并解除“必须修改密码”状态
 	if err := s.db.Model(&user).Updates(map[string]interface{}{
-		"password":     hashed,
-		"tokenVersion": gorm.Expr("tokenVersion + 1"),
+		"password":           hashed,
+		"tokenVersion":       gorm.Expr("tokenVersion + 1"),
+		"mustChangePassword": false,
 	}).Error; err != nil {
 		return err
 	}
@@ -217,23 +246,21 @@ func (s *authService) VerifyPassword(id, password string) (string, error) {
 	return token.SignedString(secret)
 }
 
+// recoveryUnavailableMessage 账号不存在、已禁用、未绑定邮箱时统一返回的提示，避免被用来探测账号。
+const recoveryUnavailableMessage = "无法通过邮箱找回该账号的密码，请联系管理员重置"
+
 // CheckUserEmail 检查用户绑定的邮箱，返回部分隐藏的邮箱地址
 func (s *authService) CheckUserEmail(username string) (string, error) {
 	var user model.User
 	if err := s.db.Where("username = ?", username).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", errors.New("用户名不存在")
+			return "", errors.New(recoveryUnavailableMessage)
 		}
 		return "", err
 	}
 
-	if user.IsDisabled {
-		return "", errors.New("账户已被禁用")
-	}
-
-	// 检查是否绑定了邮箱
-	if user.Email == nil || *user.Email == "" {
-		return "", errors.New("该账号未绑定邮箱，请联系管理员重置密码")
+	if user.IsDisabled || user.Email == nil || strings.TrimSpace(*user.Email) == "" {
+		return "", errors.New(recoveryUnavailableMessage)
 	}
 
 	// 返回部分隐藏的邮箱（例如：z***g@example.com）
@@ -250,6 +277,9 @@ func maskEmail(email string) string {
 
 	local := parts[0]
 	domain := parts[1]
+	if local == "" {
+		return "***@" + domain
+	}
 
 	// 本地部分隐藏处理
 	var maskedLocal string
@@ -279,28 +309,19 @@ func (s *authService) ForgotPassword(username, emailAddr string) error {
 		return errors.New("邮件服务未配置，请联系管理员")
 	}
 
-	// 根据用户名查找用户
+	// 根据用户名查找用户。账号不存在、已禁用、未绑定邮箱或邮箱不一致时，
+	// 都按“已发送”处理且不发邮件，避免通过返回信息判断账号与邮箱是否匹配。
 	var user model.User
 	if err := s.db.Where("username = ?", username).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("用户名不存在")
+			return nil
 		}
 		return err
 	}
-
-	if user.IsDisabled {
-		return errors.New("账户已被禁用，无法重置密码")
+	if user.IsDisabled || user.Email == nil || !strings.EqualFold(strings.TrimSpace(*user.Email), strings.TrimSpace(emailAddr)) {
+		return nil
 	}
-
-	// 检查用户是否绑定了邮箱
-	if user.Email == nil || *user.Email == "" {
-		return errors.New("该账号未绑定邮箱，请联系管理员重置密码")
-	}
-
-	// 验证输入的邮箱与绑定的邮箱是否一致
-	if *user.Email != emailAddr {
-		return errors.New("输入的邮箱与账号绑定的邮箱不一致")
-	}
+	emailAddr = strings.ToLower(strings.TrimSpace(emailAddr))
 
 	// 检查是否频繁请求（1分钟内只能请求一次）
 	rateLimitKey := "pwd_reset_limit:" + emailAddr
@@ -311,11 +332,13 @@ func (s *authService) ForgotPassword(username, emailAddr string) error {
 	// 生成验证码
 	code := email.GenerateVerificationCode()
 
-	// 存储到 Redis，有效期 5 分钟
+	// 存储到 Redis，有效期 5 分钟。验证码与具体用户 ID 绑定，避免同邮箱多账号时重置错人
 	cacheKey := "pwd_reset_code:" + emailAddr
-	if err := utils.SetCache(cacheKey, code, 5*time.Minute); err != nil {
+	payload, _ := json.Marshal(resetCodeEntry{UserID: user.ID, Code: code})
+	if err := utils.SetCache(cacheKey, string(payload), resetCodeTTL); err != nil {
 		return fmt.Errorf("验证码存储失败: %v", err)
 	}
+	utils.DelCache(resetAttemptsKey(emailAddr))
 
 	// 设置速率限制标记（1分钟）
 	utils.SetCache(rateLimitKey, "1", 1*time.Minute)
@@ -330,29 +353,59 @@ func (s *authService) ForgotPassword(username, emailAddr string) error {
 	return nil
 }
 
-// ResetPasswordByCode 通过验证码重置密码
+const (
+	resetCodeTTL         = 5 * time.Minute
+	maxResetCodeAttempts = 5
+)
+
+type resetCodeEntry struct {
+	UserID string `json:"userId"`
+	Code   string `json:"code"`
+}
+
+func resetAttemptsKey(emailAddr string) string { return "pwd_reset_attempts:" + emailAddr }
+
+// ResetPasswordByCode 通过验证码重置密码。验证码连续输错 5 次即作废，需要重新获取。
 func (s *authService) ResetPasswordByCode(emailAddr, code, newPassword string) error {
-	// 获取存储的验证码
+	emailAddr = strings.ToLower(strings.TrimSpace(emailAddr))
 	cacheKey := "pwd_reset_code:" + emailAddr
-	storedCode, err := utils.GetCache(cacheKey)
+	stored, err := utils.GetCache(cacheKey)
 	if err != nil {
 		return errors.New("验证码已过期或不存在，请重新获取")
 	}
-
-	// 验证码校验
-	if storedCode != code {
-		return errors.New("验证码错误")
+	var entry resetCodeEntry
+	if json.Unmarshal([]byte(stored), &entry) != nil || entry.UserID == "" {
+		utils.DelCache(cacheKey)
+		return errors.New("验证码已过期或不存在，请重新获取")
 	}
 
-	// 查找用户
-	var user model.User
-	if err := s.db.Where("email = ?", emailAddr).First(&user).Error; err != nil {
-		return errors.New("用户不存在")
+	if subtle.ConstantTimeCompare([]byte(entry.Code), []byte(strings.TrimSpace(code))) != 1 {
+		attempts := 1
+		if raw, err := utils.GetCache(resetAttemptsKey(emailAddr)); err == nil {
+			if previous, convErr := strconv.Atoi(raw); convErr == nil {
+				attempts = previous + 1
+			}
+		}
+		if attempts >= maxResetCodeAttempts {
+			utils.DelCache(cacheKey, resetAttemptsKey(emailAddr))
+			return errors.New("验证码错误次数过多，请重新获取验证码")
+		}
+		utils.SetCache(resetAttemptsKey(emailAddr), strconv.Itoa(attempts), resetCodeTTL)
+		return errors.New("验证码错误")
 	}
 
 	// 验证新密码强度
 	if !utils.IsStrongPassword(newPassword) {
 		return errors.New("新密码不符合复杂度要求（必须包含大小写字母、数字及标点符号，且不少于 8 位）")
+	}
+	if utils.IsDefaultInitialPassword(newPassword) {
+		return errors.New("新密码不能与系统初始密码相同")
+	}
+
+	var user model.User
+	if err := s.db.Where("id = ?", entry.UserID).First(&user).Error; err != nil {
+		utils.DelCache(cacheKey)
+		return errors.New("验证码已过期或不存在，请重新获取")
 	}
 
 	// 哈希存储
@@ -363,14 +416,15 @@ func (s *authService) ResetPasswordByCode(emailAddr, code, newPassword string) e
 
 	// 更新密码并递增 tokenVersion（使旧 Token 失效）
 	if err := s.db.Model(&user).Updates(map[string]interface{}{
-		"password":     hashed,
-		"tokenVersion": gorm.Expr("tokenVersion + 1"),
+		"password":           hashed,
+		"tokenVersion":       gorm.Expr("tokenVersion + 1"),
+		"mustChangePassword": false,
 	}).Error; err != nil {
 		return err
 	}
 
-	// 清理验证码、临时密码和用户状态缓存
-	utils.DelCache(cacheKey, "temp_pwd:"+user.ID, "user:status:"+user.ID)
+	// 清理验证码、错误次数、临时密码和用户状态缓存
+	utils.DelCache(cacheKey, resetAttemptsKey(emailAddr), "temp_pwd:"+user.ID, "user:status:"+user.ID)
 
 	return nil
 }

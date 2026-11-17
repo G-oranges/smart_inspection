@@ -271,6 +271,12 @@ func (r *userRepository) Delete(ids []string) error {
 		if err := tx.Exec("DELETE FROM _roleentitytouser WHERE B IN ?", ids).Error; err != nil {
 			return err
 		}
+		// 删除账号单独设置的数据范围（旧库可能还没有这张表）
+		if tx.Migrator().HasTable(&model.UserDataScope{}) {
+			if err := tx.Where("userId IN ?", ids).Delete(&model.UserDataScope{}).Error; err != nil {
+				return err
+			}
+		}
 		// 删除用户
 		if err := tx.Where("id IN ?", ids).Delete(&model.User{}).Error; err != nil {
 			return err
@@ -279,10 +285,11 @@ func (r *userRepository) Delete(ids []string) error {
 	})
 }
 
-// UpdatePassword 更新用户密码并递增 tokenVersion（使旧 Token 失效）
+// UpdatePassword 管理员重置密码：更新密码、递增 tokenVersion（使旧 Token 失效），并要求下次登录修改密码
 func (r *userRepository) UpdatePassword(id string, hashedPassword string) error {
 	return r.db.Model(&model.User{}).Where("id = ?", id).Updates(map[string]interface{}{
-		"password":     hashedPassword,
-		"tokenVersion": gorm.Expr("tokenVersion + 1"),
+		"password":           hashedPassword,
+		"tokenVersion":       gorm.Expr("tokenVersion + 1"),
+		"mustChangePassword": true,
 	}).Error
 }

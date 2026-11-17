@@ -1,14 +1,18 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/my-project/backend-go/internal/middleware"
 	"github.com/my-project/backend-go/internal/model"
 	"github.com/my-project/backend-go/internal/service"
+	"gorm.io/gorm"
 )
 
 type UserController struct {
@@ -17,6 +21,47 @@ type UserController struct {
 
 func NewUserController(service service.UserService) *UserController {
 	return &UserController{service: service}
+}
+
+// createUserResponse 保持原有用户字段平铺返回，并附带一次性初始密码。
+type createUserResponse struct {
+	*model.User
+	InitialPassword string `json:"initialPassword"`
+}
+
+// operatorFromContext 读取 AuthMiddleware / PermissionInjector 注入的当前操作者信息。
+func operatorFromContext(c *gin.Context) service.OperatorContext {
+	op := service.OperatorContext{}
+	if userID, ok := c.Get("userId"); ok {
+		op.UserID, _ = userID.(string)
+	}
+	if permissions, ok := c.Get("permissions"); ok {
+		op.Permissions, _ = permissions.([]string)
+	}
+	return op
+}
+
+// respondUserError 把服务层错误映射为 404/403/400，数据库原始报错不直接返回给前端。
+func respondUserError(c *gin.Context, err error) {
+	var forbidden *service.ForbiddenError
+	switch {
+	case errors.Is(err, service.ErrUserNotFound), errors.Is(err, gorm.ErrRecordNotFound):
+		c.JSON(http.StatusNotFound, gin.H{"message": "用户不存在"})
+	case errors.As(err, &forbidden):
+		c.JSON(http.StatusForbidden, gin.H{"message": forbidden.Error()})
+	case isDatabaseError(err):
+		log.Printf("user operation failed: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "操作失败，请稍后重试"})
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+	}
+}
+
+var databaseErrorPattern = regexp.MustCompile(`^Error \d+ \(\w+\)|SQL logic error|constraint failed`)
+
+// isDatabaseError 识别驱动层错误（如 "Error 1452 (23000): ..."），避免把 SQL 细节暴露给前端。
+func isDatabaseError(err error) bool {
+	return databaseErrorPattern.MatchString(err.Error())
 }
 
 func (ctrl *UserController) GetMe(c *gin.Context) {
@@ -39,11 +84,10 @@ func (ctrl *UserController) UpdateMe(c *gin.Context) {
 	userId, _ := c.Get("userId")
 	userIdStr := userId.(string)
 
+	// 个人资料只允许修改联系方式；部门、用户类型属于身份信息，只能由管理员修改
 	var req struct {
-		Department *string `json:"department"`
-		UserType   *string `json:"userType"`
-		Phone      *string `json:"phone"`
-		Email      *string `json:"email"`
+		Phone *string `json:"phone"`
+		Email *string `json:"email"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "参数错误"})
@@ -51,12 +95,10 @@ func (ctrl *UserController) UpdateMe(c *gin.Context) {
 	}
 
 	if err := ctrl.service.UpdateUser(userIdStr, service.UpdateUserRequest{
-		Department: req.Department,
-		UserType:   req.UserType,
-		Phone:      req.Phone,
-		Email:      req.Email,
+		Phone: req.Phone,
+		Email: req.Email,
 	}); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		respondUserError(c, err)
 		return
 	}
 
@@ -193,7 +235,7 @@ func (ctrl *UserController) GetExecutors(c *gin.Context) {
 // CreateUser 创建新用户
 func (ctrl *UserController) CreateUser(c *gin.Context) {
 	// 二次权限校验（纵深防御）
-	if !middleware.CheckPermissionInController(c, "USER_MANAGE", "ACCOUNT_MANAGE") {
+	if !middleware.CheckPermissionInController(c, "USER_MANAGE") {
 		c.JSON(http.StatusForbidden, gin.H{"message": "Forbidden: 权限不足"})
 		return
 	}
@@ -204,9 +246,14 @@ func (ctrl *UserController) CreateUser(c *gin.Context) {
 		return
 	}
 
-	user, err := ctrl.service.CreateUser(req)
+	if err := ctrl.service.AuthorizeUserCreate(operatorFromContext(c), req); err != nil {
+		respondUserError(c, err)
+		return
+	}
+
+	user, initialPassword, err := ctrl.service.CreateUser(req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		respondUserError(c, err)
 		return
 	}
 
@@ -226,13 +273,14 @@ func (ctrl *UserController) CreateUser(c *gin.Context) {
 		IPAddress:    ipAddress,
 	})
 
-	c.JSON(http.StatusOK, user)
+	// 初始密码只在本次响应中返回一次，由管理员转交给用户
+	c.JSON(http.StatusOK, createUserResponse{User: user, InitialPassword: initialPassword})
 }
 
 // UpdateUser 更新用户信息
 func (ctrl *UserController) UpdateUser(c *gin.Context) {
 	// 二次权限校验（纵深防御）
-	if !middleware.CheckPermissionInController(c, "USER_MANAGE", "ACCOUNT_MANAGE") {
+	if !middleware.CheckPermissionInController(c, "USER_MANAGE") {
 		c.JSON(http.StatusForbidden, gin.H{"message": "Forbidden: 权限不足"})
 		return
 	}
@@ -244,8 +292,12 @@ func (ctrl *UserController) UpdateUser(c *gin.Context) {
 		return
 	}
 
+	if err := ctrl.service.AuthorizeUserUpdate(operatorFromContext(c), id, req); err != nil {
+		respondUserError(c, err)
+		return
+	}
 	if err := ctrl.service.UpdateUser(id, req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		respondUserError(c, err)
 		return
 	}
 
@@ -293,7 +345,7 @@ func (ctrl *UserController) UpdateUser(c *gin.Context) {
 // DeleteUsers 批量删除用户
 func (ctrl *UserController) DeleteUsers(c *gin.Context) {
 	// 二次权限校验（纵深防御）
-	if !middleware.CheckPermissionInController(c, "USER_MANAGE", "ACCOUNT_MANAGE") {
+	if !middleware.CheckPermissionInController(c, "USER_MANAGE") {
 		c.JSON(http.StatusForbidden, gin.H{"message": "Forbidden: 权限不足"})
 		return
 	}
@@ -307,8 +359,12 @@ func (ctrl *UserController) DeleteUsers(c *gin.Context) {
 	}
 
 	currentUserId, _ := c.Get("userId")
+	if err := ctrl.service.AuthorizeUserDelete(operatorFromContext(c), req.Ids); err != nil {
+		respondUserError(c, err)
+		return
+	}
 	if err := ctrl.service.DeleteUsers(req.Ids, currentUserId.(string)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		respondUserError(c, err)
 		return
 	}
 
@@ -331,15 +387,20 @@ func (ctrl *UserController) DeleteUsers(c *gin.Context) {
 // ResetPassword 重置用户密码为初始密码
 func (ctrl *UserController) ResetPassword(c *gin.Context) {
 	// 二次权限校验（纵深防御）
-	if !middleware.CheckPermissionInController(c, "USER_MANAGE", "ACCOUNT_MANAGE") {
+	if !middleware.CheckPermissionInController(c, "USER_MANAGE") {
 		c.JSON(http.StatusForbidden, gin.H{"message": "Forbidden: 权限不足"})
 		return
 	}
 
 	id := c.Param("id")
 
-	if err := ctrl.service.ResetPassword(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	if err := ctrl.service.AuthorizeCredentialReset(operatorFromContext(c), id); err != nil {
+		respondUserError(c, err)
+		return
+	}
+	newPassword, err := ctrl.service.ResetPassword(id)
+	if err != nil {
+		respondUserError(c, err)
 		return
 	}
 
@@ -357,22 +418,29 @@ func (ctrl *UserController) ResetPassword(c *gin.Context) {
 		IPAddress:    ipAddress,
 	})
 
-	c.JSON(http.StatusOK, gin.H{"message": "密码已重置为初始值"})
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "密码已重置，用户下次登录时需修改密码",
+		"newPassword": newPassword,
+	})
 }
 
 // GenerateTemporaryPassword 生成临时密码
 func (ctrl *UserController) GenerateTemporaryPassword(c *gin.Context) {
 	// 二次权限校验（纵深防御）
-	if !middleware.CheckPermissionInController(c, "USER_MANAGE", "ACCOUNT_MANAGE") {
+	if !middleware.CheckPermissionInController(c, "USER_MANAGE") {
 		c.JSON(http.StatusForbidden, gin.H{"message": "Forbidden: 权限不足"})
 		return
 	}
 
 	id := c.Param("id")
 
+	if err := ctrl.service.AuthorizeCredentialReset(operatorFromContext(c), id); err != nil {
+		respondUserError(c, err)
+		return
+	}
 	tempPass, err := ctrl.service.GenerateTemporaryPassword(id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		respondUserError(c, err)
 		return
 	}
 

@@ -90,6 +90,7 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		"isDisabled":          user.IsDisabled,
 		"createdAt":           user.CreatedAt,
 		"isTemporaryPassword": isTempPwd,
+		"mustChangePassword":  user.MustChangePassword,
 		"department":          user.Department,
 		"userType":            user.UserType,
 		"phone":               user.Phone,
@@ -215,17 +216,18 @@ func (ctrl *AuthController) GetMe(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"user": gin.H{
-			"id":         user.ID,
-			"username":   user.Username,
-			"fullName":   user.FullName,
-			"role":       user.Role,
-			"roles":      roles,
-			"isDisabled": user.IsDisabled,
-			"createdAt":  user.CreatedAt,
-			"department": user.Department,
-			"userType":   user.UserType,
-			"phone":      user.Phone,
-			"email":      user.Email,
+			"id":                 user.ID,
+			"username":           user.Username,
+			"fullName":           user.FullName,
+			"role":               user.Role,
+			"roles":              roles,
+			"isDisabled":         user.IsDisabled,
+			"createdAt":          user.CreatedAt,
+			"mustChangePassword": user.MustChangePassword,
+			"department":         user.Department,
+			"userType":           user.UserType,
+			"phone":              user.Phone,
+			"email":              user.Email,
 		},
 	})
 }
@@ -363,7 +365,7 @@ func (ctrl *AuthController) ForgotPassword(c *gin.Context) {
 	})
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "验证码已发送到您的邮箱，请查收",
+		"message": "如果账号与邮箱匹配，验证码已发送到该邮箱，请查收",
 		"success": true,
 	})
 }

@@ -124,19 +124,23 @@ func (s *teacherService) syncUserAccountForTeacher(tx *gorm.DB, teacher *model.T
 			return err
 		}
 	} else {
-		// 创建新 User - 使用配置化的默认初始密码
-		hashedPassword, _ := utils.HashDefaultInitialPassword()
+		// 创建新 User - 使用配置化的默认初始密码；首次登录会被要求修改
+		hashedPassword, err := utils.HashDefaultInitialPassword()
+		if err != nil {
+			return err
+		}
 		user = model.User{
-			ID:           uuid.New().String(),
-			Username:     employeeNo,
-			Password:     hashedPassword,
-			FullName:     teacher.FullName,
-			Department:   teacher.Department,
-			Phone:        teacher.Mobile,
-			Role:         "COUNSELOR",
-			UserType:     ptr("TEACHER"),
-			IsDisabled:   false,
-			TokenVersion: 1, // 显式设置初始版本号
+			ID:                 uuid.New().String(),
+			Username:           employeeNo,
+			Password:           hashedPassword,
+			FullName:           teacher.FullName,
+			Department:         teacher.Department,
+			Phone:              teacher.Mobile,
+			Role:               "COUNSELOR",
+			UserType:           ptr("TEACHER"),
+			IsDisabled:         false,
+			TokenVersion:       1, // 显式设置初始版本号
+			MustChangePassword: true,
 		}
 		if err := tx.Create(&user).Error; err != nil {
 			return err

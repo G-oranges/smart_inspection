@@ -1,9 +1,10 @@
 package email
 
 import (
+	"crypto/rand"
 	"crypto/tls"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"os"
 	"strconv"
 	"strings"
@@ -110,11 +111,13 @@ func isValidEmail(email string) bool {
 		!strings.Contains(email, ">")
 }
 
-// GenerateVerificationCode 生成6位数字验证码
+// GenerateVerificationCode 生成6位数字验证码（使用加密安全随机数，避免可预测）
 func GenerateVerificationCode() string {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	code := r.Intn(900000) + 100000 // 100000 ~ 999999
-	return strconv.Itoa(code)
+	n, err := rand.Int(rand.Reader, big.NewInt(900000))
+	if err != nil {
+		panic(fmt.Sprintf("crypto/rand unavailable: %v", err))
+	}
+	return strconv.Itoa(int(n.Int64()) + 100000) // 100000 ~ 999999
 }
 
 // SendPasswordResetEmail 发送密码重置验证码邮件

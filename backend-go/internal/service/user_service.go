@@ -12,18 +12,27 @@ import (
 	"gorm.io/gorm"
 )
 
-// 注意：初始密码现在从环境变量 DEFAULT_INITIAL_PASSWORD 读取，
-// 由 utils.GetDefaultInitialPassword() 函数提供
+// 管理员新建账号和重置密码时生成一次性随机密码（仅返回一次），用户首次登录必须修改。
+// 批量导入账号仍使用环境变量 DEFAULT_INITIAL_PASSWORD，同样会在首次登录时被要求修改。
+
+const generatedPasswordLength = 12
 
 type UserService interface {
 	GetCurrentUser(id string) (*model.User, error)
 	GetUsers(page, pageSize int, filters map[string]interface{}) ([]model.User, int64, error)
 	GetExecutors(page, pageSize int, keyword, role string) ([]model.User, int64, error)
-	CreateUser(req CreateUserRequest) (*model.User, error)
+	// CreateUser 返回新账号及其一次性初始密码
+	CreateUser(req CreateUserRequest) (*model.User, string, error)
 	UpdateUser(id string, req UpdateUserRequest) error
 	DeleteUsers(ids []string, currentUserId string) error
-	ResetPassword(id string) error
+	// ResetPassword 返回新生成的一次性密码
+	ResetPassword(id string) (string, error)
 	GenerateTemporaryPassword(id string) (string, error)
+
+	AuthorizeUserCreate(op OperatorContext, req CreateUserRequest) error
+	AuthorizeUserUpdate(op OperatorContext, targetID string, req UpdateUserRequest) error
+	AuthorizeUserDelete(op OperatorContext, ids []string) error
+	AuthorizeCredentialReset(op OperatorContext, targetID string) error
 }
 
 type CreateUserRequest struct {
@@ -52,10 +61,30 @@ type UpdateUserRequest struct {
 type userService struct {
 	repo repository.UserRepository
 	db   *gorm.DB
+	// invalidatePermissions 清除指定用户的权限缓存（由 PermissionService 提供）
+	invalidatePermissions func(userIDs ...string)
 }
 
-func NewUserService(repo repository.UserRepository, db *gorm.DB) UserService {
-	return &userService{repo: repo, db: db}
+// UserServiceOption 用于注入可选依赖。
+type UserServiceOption func(*userService)
+
+// WithPermissionCacheInvalidator 让用户角色/状态变更后立即清除权限缓存。
+func WithPermissionCacheInvalidator(fn func(userIDs ...string)) UserServiceOption {
+	return func(s *userService) { s.invalidatePermissions = fn }
+}
+
+func NewUserService(repo repository.UserRepository, db *gorm.DB, opts ...UserServiceOption) UserService {
+	s := &userService{repo: repo, db: db}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
+}
+
+func (s *userService) invalidate(userIDs ...string) {
+	if s.invalidatePermissions != nil && len(userIDs) > 0 {
+		s.invalidatePermissions(userIDs...)
+	}
 }
 
 func (s *userService) GetCurrentUser(id string) (*model.User, error) {
@@ -83,66 +112,53 @@ func (s *userService) GetExecutors(page, pageSize int, keyword, role string) ([]
 }
 
 // CreateUser 创建新用户
-func (s *userService) CreateUser(req CreateUserRequest) (*model.User, error) {
+func (s *userService) CreateUser(req CreateUserRequest) (*model.User, string, error) {
 	if req.Username == "" || req.FullName == "" {
-		return nil, errors.New("用户名和姓名必填")
+		return nil, "", errors.New("用户名和姓名必填")
 	}
 	normalizedPrimaryRoleCode, validatedRoleIDs, err := s.validateAssignedRoles(req.Roles, req.Role)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// 检查用户名是否已存在
 	existing, _ := s.repo.GetByUsername(req.Username)
 	if existing != nil {
-		return nil, errors.New("用户名已存在")
+		return nil, "", errors.New("用户名已存在")
 	}
 
-	// 初始密码逻辑：root和4个种子账号除外
-	targetPassword := utils.GetDefaultInitialPassword()
-	protectedUsernames := []string{"root", "admin", "teacher", "student", "counselor"}
-	isProtected := false
-	for _, u := range protectedUsernames {
-		if req.Username == u {
-			isProtected = true
-			break
-		}
-	}
-
-	if isProtected {
-		targetPassword = req.Username // 种子账号默认密码为用户名
-	}
-
-	hashedPassword, err := utils.HashPassword(targetPassword)
+	initialPassword := utils.GenerateRandomPassword(generatedPasswordLength)
+	hashedPassword, err := utils.HashPassword(initialPassword)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	user := &model.User{
-		ID:         uuid.New().String(),
-		Username:   req.Username,
-		Password:   hashedPassword,
-		FullName:   req.FullName,
-		Email:      &req.Email,
-		Phone:      &req.Phone,
-		Department: &req.Department,
-		UserType:   &req.UserType,
-		IsDisabled: req.IsDisabled,
-		Role:       normalizedPrimaryRoleCode,
+		ID:                 uuid.New().String(),
+		Username:           req.Username,
+		Password:           hashedPassword,
+		FullName:           req.FullName,
+		Email:              &req.Email,
+		Phone:              &req.Phone,
+		Department:         &req.Department,
+		UserType:           &req.UserType,
+		IsDisabled:         req.IsDisabled,
+		Role:               normalizedPrimaryRoleCode,
+		MustChangePassword: true,
 	}
 
 	if err := s.repo.Create(user, validatedRoleIDs); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return user, nil
+	return user, initialPassword, nil
 }
 
 // UpdateUser 更新用户信息
 func (s *userService) UpdateUser(id string, req UpdateUserRequest) error {
 	currentUser, err := s.repo.GetByID(id)
 	if err != nil {
-		return err
+		return ErrUserNotFound
 	}
 
 	// 如果请求包含 isDisabled，需要检查是否实际变更
@@ -158,12 +174,14 @@ func (s *userService) UpdateUser(id string, req UpdateUserRequest) error {
 		nextPrimaryRoleCode = strings.TrimSpace(*req.Role)
 	}
 
-	nextRoleIDs := s.currentRoleIDs(currentUser)
-	if req.Roles != nil {
-		nextRoleIDs = req.Roles
-	}
-
-	if req.Role != nil || req.Roles != nil {
+	// 未提交角色字段时不改动角色关联（传 nil 给仓储层），避免编辑资料时丢失附加角色
+	var nextRoleIDs []string
+	rolesTouched := req.Role != nil || req.Roles != nil
+	if rolesTouched {
+		nextRoleIDs, _, err = s.resolveNextRoleIDs(currentUser, s.currentRoleIDs(currentUser), req)
+		if err != nil {
+			return errors.New("所选主角色不存在")
+		}
 		validatedPrimaryRoleCode, validatedRoleIDs, err := s.validateAssignedRoles(nextRoleIDs, nextPrimaryRoleCode)
 		if err != nil {
 			return err
@@ -200,7 +218,13 @@ func (s *userService) UpdateUser(id string, req UpdateUserRequest) error {
 		updates["role"] = nextPrimaryRoleCode
 	}
 
-	return s.repo.Update(id, updates, nextRoleIDs)
+	if err := s.repo.Update(id, updates, nextRoleIDs); err != nil {
+		return err
+	}
+	if rolesTouched || needIncrementTokenVersion {
+		s.invalidate(id)
+	}
+	return nil
 }
 
 // DeleteUsers 批量删除用户
@@ -216,44 +240,36 @@ func (s *userService) DeleteUsers(ids []string, currentUserId string) error {
 		}
 	}
 
-	return s.repo.Delete(ids)
-}
-
-// ResetPassword 重置用户密码为初始密码
-func (s *userService) ResetPassword(id string) error {
-	user, err := s.repo.GetByID(id)
-	if err != nil {
-		return errors.New("用户不存在")
-	}
-
-	// 初始密码逻辑：root和4个种子账号除外
-	targetPassword := utils.GetDefaultInitialPassword()
-	protectedUsernames := []string{"root", "admin", "teacher", "student", "counselor"}
-	isProtected := false
-	for _, u := range protectedUsernames {
-		if user.Username == u {
-			isProtected = true
-			break
-		}
-	}
-
-	if isProtected {
-		targetPassword = user.Username
-	}
-
-	hashedPassword, err := utils.HashPassword(targetPassword)
-	if err != nil {
+	if err := s.repo.Delete(ids); err != nil {
 		return err
 	}
+	s.invalidate(ids...)
+	return nil
+}
 
-	return s.repo.UpdatePassword(id, hashedPassword)
+// ResetPassword 为用户生成新的一次性随机密码，旧 Token 立即失效，下次登录必须修改密码。
+func (s *userService) ResetPassword(id string) (string, error) {
+	if _, err := s.repo.GetByID(id); err != nil {
+		return "", ErrUserNotFound
+	}
+
+	newPassword := utils.GenerateRandomPassword(generatedPasswordLength)
+	hashedPassword, err := utils.HashPassword(newPassword)
+	if err != nil {
+		return "", err
+	}
+	if err := s.repo.UpdatePassword(id, hashedPassword); err != nil {
+		return "", err
+	}
+	_ = utils.DelCache("temp_pwd:" + id)
+	return newPassword, nil
 }
 
 // GenerateTemporaryPassword 生成时效12h的临时密码
 func (s *userService) GenerateTemporaryPassword(id string) (string, error) {
 	_, err := s.repo.GetByID(id)
 	if err != nil {
-		return "", errors.New("用户不存在")
+		return "", ErrUserNotFound
 	}
 
 	tempPass := utils.GenerateRandomPassword(12)

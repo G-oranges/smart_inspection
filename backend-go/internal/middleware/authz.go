@@ -2,12 +2,24 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/my-project/backend-go/internal/model"
 	"github.com/my-project/backend-go/internal/service"
 	"gorm.io/gorm"
 )
+
+// passwordChangeAllowedPaths 在“必须修改密码”状态下仍允许访问的接口。
+var passwordChangeAllowedPaths = map[string]bool{
+	"GET /api/auth/me":               true,
+	"POST /api/auth/logout":          true,
+	"PUT /api/auth/change-password":  true,
+	"POST /api/auth/verify-password": true,
+	"GET /api/permissions/me":        true,
+	"GET /api/users/me":              true,
+	"GET /api/settings":              true,
+}
 
 // PermissionInjector 权限注入中间件
 // 在 AuthMiddleware 后执行，验证用户状态和 Token 版本，计算用户权限并存入上下文
@@ -50,6 +62,19 @@ func PermissionInjector(db *gorm.DB, permService *service.PermissionService) gin
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "凭证已失效，请重新登录"})
 			c.Abort()
 			return
+		}
+
+		// 使用初始密码 / 重置后的密码 / 临时密码登录的账号，修改密码前只能访问少量接口
+		if user.MustChangePassword {
+			key := c.Request.Method + " " + strings.TrimSuffix(c.Request.URL.Path, "/")
+			if !passwordChangeAllowedPaths[key] {
+				c.JSON(http.StatusForbidden, gin.H{
+					"message": "请先修改初始密码后再继续使用系统",
+					"code":    "PASSWORD_CHANGE_REQUIRED",
+				})
+				c.Abort()
+				return
+			}
 		}
 
 		// 计算用户权限（使用缓存）
