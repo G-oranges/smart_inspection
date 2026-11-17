@@ -1,0 +1,155 @@
+/* ============================================================
+   Crystal Omni — Glass Component Classes
+   核心玻璃拟态组件类，引用 tokens.css 中的 CSS 变量
+   ============================================================ */
+
+@layer components {
+
+  /* ======= 玻璃面板 (通用容器) ======= */
+  .co-glass-panel {
+    background: var(--co-glass-bg);
+    backdrop-filter: blur(var(--co-glass-blur));
+    -webkit-backdrop-filter: blur(var(--co-glass-blur));
+    border: 1px solid var(--co-glass-border);
+    box-shadow: var(--co-glass-shadow);
+    border-radius: var(--co-radius-xl);
+    transition: box-shadow var(--co-transition), background var(--co-transition);
+  }
+
+  .co-glass-panel-heavy {
+    background: var(--co-glass-bg-heavy);
+    backdrop-filter: blur(var(--co-glass-blur));
+    -webkit-backdrop-filter: blur(var(--co-glass-blur));
+    border: 1px solid var(--co-glass-border);
+    box-shadow: var(--co-glass-shadow-lg);
+    border-radius: var(--co-radius-xl);
+  }
+
+  /* ======= 玻璃输入框 ======= */
+  .co-glass-input {
+    background: var(--co-input-bg);
+    border: 1px solid transparent;
+    border-radius: var(--co-radius-md);
+    transition: all var(--co-transition);
+    color: var(--co-text);
+  }
+
+  .co-glass-input:focus-within {
+    background: var(--co-input-focus-bg);
+    border-color: var(--co-input-focus-border);
+    outline: none;
+  }
+
+  .co-glass-input::placeholder,
+  .co-glass-input input::placeholder {
+    color: var(--co-input-placeholder);
+  }
+
+  /* ======= 玻璃按钮 (默认样式) ======= */
+  .co-glass-btn {
+    background: var(--co-btn-bg);
+    border: 1px solid var(--co-btn-border);
+    border-radius: var(--co-radius-md);
+    color: var(--co-text);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--co-transition);
+  }
+
+  .co-glass-btn:hover {
+    background: var(--co-btn-hover-bg);
+    box-shadow: var(--co-btn-hover-glow);
+  }
+
+  .co-glass-btn:active {
+    transform: scale(0.97);
+  }
+
+  /* ======= 玻璃按钮 (主要操作) ======= */
+  .co-glass-btn-primary {
+    background: var(--co-btn-primary-bg);
+    border: 1px solid transparent;
+    border-radius: var(--co-radius-md);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--co-btn-primary-shadow);
+    transition: all var(--co-transition);
+  }
+
+  .co-glass-btn-primary:hover {
+    background: var(--co-primary-hover);
+    box-shadow: var(--co-btn-primary-shadow), 0 0 20px rgba(60, 131, 246, 0.3);
+  }
+
+  .co-glass-btn-primary:active {
+    transform: scale(0.97);
+    background: var(--co-primary-active);
+  }
+
+  /* ======= 玻璃卡片 ======= */
+  .co-glass-card {
+    background: var(--co-glass-bg);
+    backdrop-filter: blur(var(--co-glass-blur-sm));
+    -webkit-backdrop-filter: blur(var(--co-glass-blur-sm));
+    border: 1px solid var(--co-glass-border);
+    border-radius: var(--co-radius-xl);
+    box-shadow: var(--co-glass-shadow);
+    transition: all var(--co-transition);
+  }
+
+  .co-glass-card:hover {
+    box-shadow: var(--co-glass-shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  /* ======= 上标 Label 样式 ======= */
+  .co-label {
+    font-size: var(--co-label-size);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: var(--co-label-spacing);
+    color: var(--co-text-muted);
+  }
+
+  /* ======= 侧边栏 ======= */
+  .co-sidebar {
+    background: var(--co-sidebar-bg);
+    backdrop-filter: blur(var(--co-glass-blur));
+    -webkit-backdrop-filter: blur(var(--co-glass-blur));
+    border-right: 1px solid var(--co-glass-border);
+  }
+
+  /* ======= 顶部导航栏 ======= */
+  .co-header {
+    background: var(--co-header-bg);
+    backdrop-filter: blur(var(--co-glass-blur));
+    -webkit-backdrop-filter: blur(var(--co-glass-blur));
+    border-bottom: 1px solid var(--co-glass-border);
+  }
+
+  /* ======= 导航项状态 ======= */
+  .co-nav-item {
+    transition: all var(--co-transition-fast);
+    border-radius: var(--co-radius);
+  }
+
+  .co-nav-item:hover {
+    background: var(--co-nav-hover-bg);
+  }
+
+  .co-nav-item.active {
+    background: var(--co-nav-active-bg);
+  }
+
+  /* ======= 移动端模糊降级 ======= */
+  @supports not (backdrop-filter: blur(40px)) {
+    .co-glass-panel,
+    .co-glass-panel-heavy,
+    .co-glass-card,
+    .co-sidebar,
+    .co-header {
+      background: var(--co-glass-bg-heavy) !important;
+    }
+  }
+}

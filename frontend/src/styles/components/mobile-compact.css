@@ -1,0 +1,255 @@
+/* ============================================================
+   Mobile Compact Card Styles (Migration Override Layer)
+   移动端紧凑卡片 token 化覆盖层
+   ============================================================ */
+
+.mobile-compact-card {
+  background: var(--co-glass-bg-heavy) !important;
+  backdrop-filter: blur(var(--co-glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-sm));
+  border: 1px solid var(--co-glass-border) !important;
+  border-radius: var(--co-radius-lg) !important;
+  padding: 0.875rem 1rem !important;
+  margin-bottom: 0.75rem;
+  position: relative;
+  transition: all var(--co-transition) !important;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: var(--co-glass-shadow) !important;
+}
+
+.mobile-compact-card:active {
+  transform: scale(0.98);
+}
+
+.mobile-compact-card.selected {
+  border-color: var(--co-primary) !important;
+  background: var(--co-nav-active-bg) !important;
+  box-shadow: var(--co-btn-primary-shadow) !important;
+}
+
+.mobile-compact-card.selected::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 0.21875rem;
+  background: var(--co-primary);
+  border-radius: 0 var(--co-radius-sm) var(--co-radius-sm) 0;
+}
+
+[data-theme="dark"] .mobile-compact-card {
+  background: var(--co-glass-bg) !important;
+  border-color: var(--co-glass-border) !important;
+  box-shadow: var(--co-glass-shadow) !important;
+}
+
+[data-theme="dark"] .mobile-compact-card.selected {
+  background: var(--co-nav-active-bg) !important;
+}
+
+.compact-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.compact-header-left {
+  display: flex;
+  gap: 0.625rem;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.compact-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.compact-title {
+  font-size: calc(0.9375rem * var(--font-scale, 1));
+  font-weight: 600;
+  color: var(--co-text);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compact-subtitle {
+  font-size: calc(0.8125rem * var(--font-scale, 1));
+  color: var(--co-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compact-header-right {
+  margin-left: 0.75rem;
+}
+
+.compact-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem 0.75rem;
+}
+
+.compact-card-grid.dense {
+  gap: 0.375rem 0.75rem;
+}
+
+.compact-info-item {
+  display: flex;
+  overflow: hidden;
+}
+
+.compact-info-item.layout-column {
+  flex-direction: column;
+}
+
+.compact-info-item.layout-row {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compact-info-item.full-row {
+  grid-column: 1 / -1;
+}
+
+.compact-label {
+  font-size: calc(0.75rem * var(--font-scale, 1));
+  color: var(--co-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.0125rem;
+}
+
+.compact-value {
+  font-size: calc(0.8125rem * var(--font-scale, 1));
+  font-weight: 500;
+  color: var(--co-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 48rem) {
+  .mobile-compact-card {
+    border-radius: var(--co-radius-md) !important;
+    padding: 0.75rem !important;
+    margin-bottom: 0.625rem;
+  }
+
+  .mobile-compact-card.selected {
+    box-shadow: none !important;
+  }
+
+  .mobile-compact-card.selected::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--co-primary);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .compact-card-header {
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--co-glass-border);
+  }
+
+  [data-theme="dark"] .compact-card-header {
+    border-bottom: 1px solid var(--co-glass-border);
+  }
+
+  .compact-header-left {
+    align-items: baseline;
+    gap: 0.5rem;
+    overflow: hidden;
+  }
+
+  .compact-title {
+    font-size: calc(1rem * var(--font-scale, 1));
+    font-weight: 700;
+  }
+
+  .compact-subtitle {
+    font-size: calc(0.8125rem * var(--font-scale, 1));
+    font-family: monospace;
+  }
+
+  .compact-card-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .compact-info-item {
+    gap: 0.125rem;
+  }
+
+  .compact-label {
+    font-size: calc(0.6875rem * var(--font-scale, 1));
+    transform: scale(0.95);
+    transform-origin: left top;
+  }
+
+  .compact-value {
+    font-size: calc(0.8125rem * var(--font-scale, 1));
+  }
+}
+
+/* Mobile Card List + Compact Pagination */
+.mobile-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.mobile-card-list .mobile-list-footer {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--co-glass-border);
+  margin-top: 0.5rem;
+}
+
+.mobile-card-list .ant-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.mobile-card-list .ant-pagination-total-text {
+  font-size: 0.75rem;
+  color: var(--co-text-muted);
+}
+
+.mobile-card-list .ant-pagination-simple .ant-pagination-simple-pager {
+  margin: 0 0.25rem;
+  height: 1.5rem;
+}
+
+.mobile-card-list .ant-pagination-simple .ant-pagination-simple-pager input {
+  padding: 0 0.25rem;
+  height: 1.5rem;
+  font-size: 0.75rem;
+}
+
+.mobile-card-list .ant-pagination-prev,
+.mobile-card-list .ant-pagination-next {
+  min-width: 1.5rem;
+  height: 1.5rem;
+  line-height: 1.5rem;
+}

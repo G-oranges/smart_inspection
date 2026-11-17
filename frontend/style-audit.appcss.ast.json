@@ -1,0 +1,1859 @@
+{
+  "generatedAt": "2026-03-07T01:30:33.995Z",
+  "scope": "frontend/src/App.css custom class selectors",
+  "totalClassesInAppCss": 493,
+  "customClassCount": 365,
+  "customUsedByClassTokens": 84,
+  "customUnusedByClassTokens": 281,
+  "usedOnlyLegacyCount": 0,
+  "usedWithComponentStyleCount": 84,
+  "usedOnlyLegacy": [],
+  "usedWithComponentStyle": [
+    {
+      "className": "app-content",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "app-header",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "apple-btn-primary",
+      "files": [
+        "frontend/src/components/TableFieldSettings.jsx",
+        "frontend/src/layouts/AppLayout.jsx",
+        "frontend/src/pages/AdminSettingsPage.jsx",
+        "frontend/src/pages/BuildingManagementPage.jsx",
+        "frontend/src/pages/DormManagementPage.jsx",
+        "frontend/src/pages/ResultViewPage.jsx",
+        "frontend/src/pages/TeacherManagementPage.jsx",
+        "frontend/src/pages/audit-log/AuditLogFilters.jsx",
+        "frontend/src/pages/building/modals/BuildingFormModal.jsx",
+        "frontend/src/pages/dorm/modals/DormEditModal.jsx",
+        "frontend/src/pages/dorm/modals/DormFormModal.jsx",
+        "frontend/src/pages/occupancy/BatchCheckInModal.jsx",
+        "frontend/src/pages/occupancy/OccupancyFilters.jsx",
+        "frontend/src/pages/occupancy/OccupancyToolbar.jsx",
+        "frontend/src/pages/result/ResultFilters.jsx",
+        "frontend/src/pages/student/StudentMobileFilters.jsx",
+        "frontend/src/pages/student/StudentToolbar.jsx",
+        "frontend/src/pages/student/modals/StudentFormModal.jsx",
+        "frontend/src/pages/task-publish/TaskPreviewModal.jsx",
+        "frontend/src/pages/task-publish/TaskPublishToolbar.jsx",
+        "frontend/src/pages/task-publish/subforms/DormSelectionStep.jsx",
+        "frontend/src/pages/teacher/modals/TeacherFormModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherImportPreviewModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/button-apple.css"
+      ]
+    },
+    {
+      "className": "apple-btn-secondary",
+      "files": [
+        "frontend/src/components/TableFieldSettings.jsx",
+        "frontend/src/pages/AdminSettingsPage.jsx",
+        "frontend/src/pages/admin-settings/DisplayConfigSection.jsx",
+        "frontend/src/pages/admin-settings/ScoringContactSection.jsx",
+        "frontend/src/pages/audit-log/AuditLogFilters.jsx",
+        "frontend/src/pages/building/modals/BuildingFormModal.jsx",
+        "frontend/src/pages/dorm/modals/DormEditModal.jsx",
+        "frontend/src/pages/dorm/modals/DormFormModal.jsx",
+        "frontend/src/pages/occupancy/BatchCheckInModal.jsx",
+        "frontend/src/pages/student/modals/StudentFormModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherFormModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherImportPreviewModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/button-apple.css"
+      ]
+    },
+    {
+      "className": "apple-drawer",
+      "files": [
+        "frontend/src/layouts/AppLayout.jsx",
+        "frontend/src/pages/audit-log/AuditLogFilters.jsx",
+        "frontend/src/pages/building/modals/BuildingFormModal.jsx",
+        "frontend/src/pages/dorm/modals/DormEditModal.jsx",
+        "frontend/src/pages/dorm/modals/DormFormModal.jsx",
+        "frontend/src/pages/occupancy/BatchCheckInModal.jsx",
+        "frontend/src/pages/student/modals/StudentFormModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/action-sheet.css",
+        "frontend/src/styles/components/overlay.css"
+      ]
+    },
+    {
+      "className": "apple-form",
+      "files": [
+        "frontend/src/components/ForgotPasswordForm.jsx",
+        "frontend/src/components/LoginForm.jsx",
+        "frontend/src/pages/AdminSettingsPage.jsx",
+        "frontend/src/pages/audit-log/AuditLogFilters.jsx",
+        "frontend/src/pages/building/modals/BuildingFormModal.jsx",
+        "frontend/src/pages/dorm/modals/DormEditModal.jsx",
+        "frontend/src/pages/dorm/modals/DormFormModal.jsx",
+        "frontend/src/pages/student/modals/StudentFormModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/form-apple.css"
+      ]
+    },
+    {
+      "className": "apple-input",
+      "files": [
+        "frontend/src/components/ForgotPasswordForm.jsx",
+        "frontend/src/components/LoginForm.jsx",
+        "frontend/src/layouts/AppLayout.jsx",
+        "frontend/src/pages/BuildingSelectPage.jsx",
+        "frontend/src/pages/ResultViewPage.jsx",
+        "frontend/src/pages/RoomSelectPage.jsx",
+        "frontend/src/pages/admin-settings/DeductionConfigSection.jsx",
+        "frontend/src/pages/admin-settings/GradingRulesSection.jsx",
+        "frontend/src/pages/admin-settings/LocationConfigSection.jsx",
+        "frontend/src/pages/admin-settings/ScoringContactSection.jsx",
+        "frontend/src/pages/audit-log/AuditLogFilters.jsx",
+        "frontend/src/pages/building/modals/BuildingFormModal.jsx",
+        "frontend/src/pages/dorm/modals/DormEditModal.jsx",
+        "frontend/src/pages/dorm/modals/DormFormModal.jsx",
+        "frontend/src/pages/student/modals/StudentFormModal.jsx",
+        "frontend/src/pages/task-publish/taskPublishSchema.jsx",
+        "frontend/src/pages/teacher/modals/TeacherFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/form-apple.css",
+        "frontend/src/styles/components/form-compact.css"
+      ]
+    },
+    {
+      "className": "apple-input-ios",
+      "files": [
+        "frontend/src/pages/occupancy/BatchCheckInModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/form-apple.css"
+      ]
+    },
+    {
+      "className": "apple-input-number",
+      "files": [
+        "frontend/src/pages/admin-settings/DeductionConfigSection.jsx",
+        "frontend/src/pages/admin-settings/GradingRulesSection.jsx",
+        "frontend/src/pages/admin-settings/ScoringContactSection.jsx",
+        "frontend/src/pages/building/modals/BuildingFormModal.jsx",
+        "frontend/src/pages/dorm/modals/DormEditModal.jsx",
+        "frontend/src/pages/dorm/modals/DormFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/form-apple.css",
+        "frontend/src/styles/components/form-compact.css"
+      ]
+    },
+    {
+      "className": "apple-modal",
+      "files": [
+        "frontend/src/components/BedDetailModal.jsx",
+        "frontend/src/components/TableFieldSettings.jsx",
+        "frontend/src/components/common/ImportWizardModal.jsx",
+        "frontend/src/layouts/AppLayout.jsx",
+        "frontend/src/pages/building/modals/BuildingFormModal.jsx",
+        "frontend/src/pages/dorm/modals/DormDetailModal.jsx",
+        "frontend/src/pages/dorm/modals/DormEditModal.jsx",
+        "frontend/src/pages/dorm/modals/DormFormModal.jsx",
+        "frontend/src/pages/dorm/modals/DormImportPreviewModal.jsx",
+        "frontend/src/pages/occupancy/BatchCheckInModal.jsx",
+        "frontend/src/pages/result/modals/ResultDetailModal.jsx",
+        "frontend/src/pages/student/modals/StudentFormModal.jsx",
+        "frontend/src/pages/task-publish/TaskPreviewModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherFormModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherImportPreviewModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/overlay.css"
+      ]
+    },
+    {
+      "className": "apple-select",
+      "files": [
+        "frontend/src/components/common/ImportWizardModal.jsx",
+        "frontend/src/pages/BuildingSelectPage.jsx",
+        "frontend/src/pages/ResultViewPage.jsx",
+        "frontend/src/pages/audit-log/AuditLogFilters.jsx",
+        "frontend/src/pages/building/modals/BuildingFormModal.jsx",
+        "frontend/src/pages/dorm/modals/DormEditModal.jsx",
+        "frontend/src/pages/dorm/modals/DormFormModal.jsx",
+        "frontend/src/pages/result/ResultFilters.jsx",
+        "frontend/src/pages/student/modals/StudentFormModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/form-apple.css",
+        "frontend/src/styles/components/form-compact.css"
+      ]
+    },
+    {
+      "className": "apple-select-ios",
+      "files": [
+        "frontend/src/pages/occupancy/BatchCheckInModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherFormModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherImportPreviewModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/form-apple.css"
+      ]
+    },
+    {
+      "className": "apple-steps-horizontal",
+      "files": [
+        "frontend/src/components/ForgotPasswordForm.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/apple-utilities.css"
+      ]
+    },
+    {
+      "className": "bottom-selection-bar",
+      "files": [
+        "frontend/src/components/OccupancyHistory.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/action-sheet.css"
+      ]
+    },
+    {
+      "className": "card",
+      "files": [
+        "frontend/src/components/RoomOccupancyCard.jsx",
+        "frontend/src/pages/StudentManagementPage.jsx",
+        "frontend/src/pages/TeacherManagementPage.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/utilities.css"
+      ]
+    },
+    {
+      "className": "card-actions",
+      "files": [
+        "frontend/src/components/DormGridSelector.jsx",
+        "frontend/src/components/MobileDataCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/dorm-grid.css"
+      ]
+    },
+    {
+      "className": "card-body",
+      "files": [
+        "frontend/src/components/DormGridSelector.jsx",
+        "frontend/src/components/RoomOccupancyCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/dorm-grid.css"
+      ]
+    },
+    {
+      "className": "card-header",
+      "files": [
+        "frontend/src/components/DormGridSelector.jsx",
+        "frontend/src/components/RoomOccupancyCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/dorm-grid.css"
+      ]
+    },
+    {
+      "className": "collapse-btn",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "compact-card-grid",
+      "files": [
+        "frontend/src/components/MobileDataCard.jsx",
+        "frontend/src/components/OccupancyHistory.jsx",
+        "frontend/src/pages/audit-log/AuditLogMobileCard.jsx",
+        "frontend/src/pages/building/BuildingMobileCard.jsx",
+        "frontend/src/pages/dorm/DormMobileCard.jsx",
+        "frontend/src/pages/occupancy/OccupancyMobileCard.jsx",
+        "frontend/src/pages/student/StudentMobileCard.jsx",
+        "frontend/src/pages/task-publish/TaskPublishMobileCard.jsx",
+        "frontend/src/pages/teacher/TeacherMobileCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/mobile-compact.css"
+      ]
+    },
+    {
+      "className": "compact-card-header",
+      "files": [
+        "frontend/src/components/MobileDataCard.jsx",
+        "frontend/src/components/OccupancyHistory.jsx",
+        "frontend/src/pages/audit-log/AuditLogMobileCard.jsx",
+        "frontend/src/pages/building/BuildingMobileCard.jsx",
+        "frontend/src/pages/dorm/DormMobileCard.jsx",
+        "frontend/src/pages/occupancy/OccupancyMobileCard.jsx",
+        "frontend/src/pages/student/StudentMobileCard.jsx",
+        "frontend/src/pages/task-publish/TaskPublishMobileCard.jsx",
+        "frontend/src/pages/teacher/TeacherMobileCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/mobile-compact.css"
+      ]
+    },
+    {
+      "className": "compact-header-left",
+      "files": [
+        "frontend/src/components/MobileDataCard.jsx",
+        "frontend/src/components/OccupancyHistory.jsx",
+        "frontend/src/pages/audit-log/AuditLogMobileCard.jsx",
+        "frontend/src/pages/building/BuildingMobileCard.jsx",
+        "frontend/src/pages/dorm/DormMobileCard.jsx",
+        "frontend/src/pages/occupancy/OccupancyMobileCard.jsx",
+        "frontend/src/pages/student/StudentMobileCard.jsx",
+        "frontend/src/pages/task-publish/TaskPublishMobileCard.jsx",
+        "frontend/src/pages/teacher/TeacherMobileCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/mobile-compact.css"
+      ]
+    },
+    {
+      "className": "compact-info-item",
+      "files": [
+        "frontend/src/components/MobileDataCard.jsx",
+        "frontend/src/components/OccupancyHistory.jsx",
+        "frontend/src/pages/audit-log/AuditLogMobileCard.jsx",
+        "frontend/src/pages/building/BuildingMobileCard.jsx",
+        "frontend/src/pages/dorm/DormMobileCard.jsx",
+        "frontend/src/pages/occupancy/OccupancyMobileCard.jsx",
+        "frontend/src/pages/student/StudentMobileCard.jsx",
+        "frontend/src/pages/task-publish/TaskPublishMobileCard.jsx",
+        "frontend/src/pages/teacher/TeacherMobileCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/mobile-compact.css"
+      ]
+    },
+    {
+      "className": "compact-label",
+      "files": [
+        "frontend/src/components/MobileDataCard.jsx",
+        "frontend/src/components/OccupancyHistory.jsx",
+        "frontend/src/pages/audit-log/AuditLogMobileCard.jsx",
+        "frontend/src/pages/building/BuildingMobileCard.jsx",
+        "frontend/src/pages/dorm/DormMobileCard.jsx",
+        "frontend/src/pages/occupancy/OccupancyMobileCard.jsx",
+        "frontend/src/pages/student/StudentMobileCard.jsx",
+        "frontend/src/pages/task-publish/TaskPublishMobileCard.jsx",
+        "frontend/src/pages/teacher/TeacherMobileCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/mobile-compact.css"
+      ]
+    },
+    {
+      "className": "compact-subtitle",
+      "files": [
+        "frontend/src/components/MobileDataCard.jsx",
+        "frontend/src/components/OccupancyHistory.jsx",
+        "frontend/src/pages/audit-log/AuditLogMobileCard.jsx",
+        "frontend/src/pages/building/BuildingMobileCard.jsx",
+        "frontend/src/pages/dorm/DormMobileCard.jsx",
+        "frontend/src/pages/occupancy/OccupancyMobileCard.jsx",
+        "frontend/src/pages/student/StudentMobileCard.jsx",
+        "frontend/src/pages/task-publish/TaskPublishMobileCard.jsx",
+        "frontend/src/pages/teacher/TeacherMobileCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/mobile-compact.css"
+      ]
+    },
+    {
+      "className": "compact-title",
+      "files": [
+        "frontend/src/components/MobileDataCard.jsx",
+        "frontend/src/components/OccupancyHistory.jsx",
+        "frontend/src/pages/audit-log/AuditLogMobileCard.jsx",
+        "frontend/src/pages/building/BuildingMobileCard.jsx",
+        "frontend/src/pages/dorm/DormMobileCard.jsx",
+        "frontend/src/pages/occupancy/OccupancyMobileCard.jsx",
+        "frontend/src/pages/student/StudentMobileCard.jsx",
+        "frontend/src/pages/task-publish/TaskPublishMobileCard.jsx",
+        "frontend/src/pages/teacher/TeacherMobileCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/mobile-compact.css"
+      ]
+    },
+    {
+      "className": "compact-title-group",
+      "files": [
+        "frontend/src/components/MobileDataCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/mobile-compact.css"
+      ]
+    },
+    {
+      "className": "compact-value",
+      "files": [
+        "frontend/src/components/MobileDataCard.jsx",
+        "frontend/src/components/OccupancyHistory.jsx",
+        "frontend/src/pages/audit-log/AuditLogMobileCard.jsx",
+        "frontend/src/pages/building/BuildingMobileCard.jsx",
+        "frontend/src/pages/dorm/DormMobileCard.jsx",
+        "frontend/src/pages/occupancy/OccupancyMobileCard.jsx",
+        "frontend/src/pages/student/StudentMobileCard.jsx",
+        "frontend/src/pages/task-publish/TaskPublishMobileCard.jsx",
+        "frontend/src/pages/teacher/TeacherMobileCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/mobile-compact.css"
+      ]
+    },
+    {
+      "className": "control-card",
+      "files": [
+        "frontend/src/pages/AccountPermissionPage.jsx",
+        "frontend/src/pages/account-permission/BatchAuthSection.jsx",
+        "frontend/src/pages/account-permission/MonitorSetupSection.jsx",
+        "frontend/src/pages/account-permission/PermissionMatrix.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "custom-select-container",
+      "files": [
+        "frontend/src/components/CustomSelect.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/custom-select.css"
+      ]
+    },
+    {
+      "className": "custom-select-option",
+      "files": [
+        "frontend/src/components/CustomSelect.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/custom-select.css"
+      ]
+    },
+    {
+      "className": "custom-select-options",
+      "files": [
+        "frontend/src/components/CustomSelect.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/custom-select.css"
+      ]
+    },
+    {
+      "className": "custom-select-trigger",
+      "files": [
+        "frontend/src/components/CustomSelect.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/custom-select.css"
+      ]
+    },
+    {
+      "className": "deduction-item-row",
+      "files": [
+        "frontend/src/pages/admin-settings/DeductionConfigSection.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/utilities.css"
+      ]
+    },
+    {
+      "className": "error",
+      "files": [
+        "frontend/src/pages/AccountPermissionPage.jsx",
+        "frontend/src/pages/account-permission/UserFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "field-block",
+      "files": [
+        "frontend/src/pages/account-permission/UserFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "field-label",
+      "files": [
+        "frontend/src/pages/account-permission/UserFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "filter-bar",
+      "files": [
+        "frontend/src/components/OccupancyHistory.jsx",
+        "frontend/src/pages/AccountPermissionPage.jsx",
+        "frontend/src/pages/audit-log/AuditLogFilters.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/filter-panel.css"
+      ]
+    },
+    {
+      "className": "flex-row",
+      "files": [
+        "frontend/src/pages/BuildingManagementPage.jsx",
+        "frontend/src/pages/DormManagementPage.jsx",
+        "frontend/src/pages/TeacherManagementPage.jsx",
+        "frontend/src/pages/occupancy/OccupancyFilters.jsx",
+        "frontend/src/pages/occupancy/OccupancyToolbar.jsx",
+        "frontend/src/pages/result/ResultFilters.jsx",
+        "frontend/src/pages/student/StudentToolbar.jsx",
+        "frontend/src/pages/task-publish/TaskPublishToolbar.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/utilities.css"
+      ]
+    },
+    {
+      "className": "full-row",
+      "files": [
+        "frontend/src/components/MobileDataCard.jsx",
+        "frontend/src/pages/account-permission/UserFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "glass-card",
+      "files": [
+        "frontend/src/components/CustomSelect.jsx",
+        "frontend/src/pages/AccountPermissionPage.jsx",
+        "frontend/src/pages/account-permission/BatchAuthSection.jsx",
+        "frontend/src/pages/account-permission/MonitorSetupSection.jsx",
+        "frontend/src/pages/account-permission/PermissionMatrix.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/glass-legacy.css"
+      ]
+    },
+    {
+      "className": "glass-menu",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "glass-modal",
+      "files": [
+        "frontend/src/components/BedDetailModal.jsx",
+        "frontend/src/components/TableFieldSettings.jsx",
+        "frontend/src/pages/building/modals/BuildingDetailModal.jsx",
+        "frontend/src/pages/building/modals/BuildingFormModal.jsx",
+        "frontend/src/pages/building/modals/BuildingImportPreviewModal.jsx",
+        "frontend/src/pages/dorm/modals/DormDetailModal.jsx",
+        "frontend/src/pages/dorm/modals/DormEditModal.jsx",
+        "frontend/src/pages/dorm/modals/DormFormModal.jsx",
+        "frontend/src/pages/dorm/modals/DormImportPreviewModal.jsx",
+        "frontend/src/pages/occupancy/BatchCheckInModal.jsx",
+        "frontend/src/pages/student/modals/StudentDetailModal.jsx",
+        "frontend/src/pages/student/modals/StudentFormModal.jsx",
+        "frontend/src/pages/student/modals/StudentImportPreviewModal.jsx",
+        "frontend/src/pages/task-publish/TaskPreviewModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherFormModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherImportPreviewModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/overlay.css"
+      ]
+    },
+    {
+      "className": "glass-sidebar",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "glass-table",
+      "files": [
+        "frontend/src/pages/account-permission/BatchAuthSection.jsx",
+        "frontend/src/pages/account-permission/PermissionMatrix.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/table-macos.css"
+      ]
+    },
+    {
+      "className": "header-left",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "header-right",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "hero-hint",
+      "files": [
+        "frontend/src/pages/AccountPermissionPage.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "hover-lift",
+      "files": [
+        "frontend/src/components/MobileDataCard.jsx",
+        "frontend/src/pages/result-entry/ResultEntryLayout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/utilities.css"
+      ]
+    },
+    {
+      "className": "ios-inset-grouped",
+      "files": [
+        "frontend/src/pages/BuildingSelectPage.jsx",
+        "frontend/src/pages/DormManagementPage.jsx",
+        "frontend/src/pages/FloorSelectPage.jsx",
+        "frontend/src/pages/ResultViewPage.jsx",
+        "frontend/src/pages/RoomSelectPage.jsx",
+        "frontend/src/pages/account-permission/UserMobileCard.jsx",
+        "frontend/src/pages/result-entry/ResultEntryLayout.jsx",
+        "frontend/src/pages/result-entry/modals/MembersModal.jsx",
+        "frontend/src/pages/result/ResultMobileCard.jsx",
+        "frontend/src/pages/task-publish/subforms/ExecutorSelectionStep.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/apple-utilities.css"
+      ]
+    },
+    {
+      "className": "ios-inset-grouped-drawer",
+      "files": [
+        "frontend/src/pages/occupancy/BatchCheckInModal.jsx",
+        "frontend/src/pages/teacher/modals/TeacherFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/overlay.css"
+      ]
+    },
+    {
+      "className": "loading-screen",
+      "files": [
+        "frontend/src/App.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "logout-btn",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "mobile-card-list",
+      "files": [
+        "frontend/src/components/ResponsiveDataView.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/mobile-compact.css"
+      ]
+    },
+    {
+      "className": "mobile-compact-card",
+      "files": [
+        "frontend/src/components/MobileDataCard.jsx",
+        "frontend/src/components/OccupancyHistory.jsx",
+        "frontend/src/pages/account-permission/UserMobileCard.jsx",
+        "frontend/src/pages/audit-log/AuditLogMobileCard.jsx",
+        "frontend/src/pages/building/BuildingMobileCard.jsx",
+        "frontend/src/pages/dorm/DormMobileCard.jsx",
+        "frontend/src/pages/occupancy/OccupancyMobileCard.jsx",
+        "frontend/src/pages/student/StudentMobileCard.jsx",
+        "frontend/src/pages/task-publish/TaskPublishMobileCard.jsx",
+        "frontend/src/pages/teacher/TeacherMobileCard.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/mobile-compact.css"
+      ]
+    },
+    {
+      "className": "mobile-drawer",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "mobile-list-footer",
+      "files": [
+        "frontend/src/components/ResponsiveDataView.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/mobile-compact.css"
+      ]
+    },
+    {
+      "className": "mobile-role-btn",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "modal-form",
+      "files": [
+        "frontend/src/pages/account-permission/UserFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "modal-grid",
+      "files": [
+        "frontend/src/pages/account-permission/UserFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "muted",
+      "files": [
+        "frontend/src/components/CustomSelect.jsx",
+        "frontend/src/components/DormGridSelector.jsx",
+        "frontend/src/pages/AccountPermissionPage.jsx",
+        "frontend/src/pages/account-permission/PermissionMatrix.jsx",
+        "frontend/src/pages/account-permission/UserFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/font-scale.css"
+      ]
+    },
+    {
+      "className": "option-label",
+      "files": [
+        "frontend/src/components/CustomSelect.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/custom-select.css"
+      ]
+    },
+    {
+      "className": "profile-drawer-right",
+      "files": [
+        "frontend/src/layouts/AppLayout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/overlay.css"
+      ]
+    },
+    {
+      "className": "section-header",
+      "files": [
+        "frontend/src/pages/account-permission/PermissionMatrix.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "section-title",
+      "files": [
+        "frontend/src/pages/AccountPermissionPage.jsx",
+        "frontend/src/pages/account-permission/BatchAuthSection.jsx",
+        "frontend/src/pages/account-permission/MonitorSetupSection.jsx",
+        "frontend/src/pages/account-permission/PermissionMatrix.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "select-arrow",
+      "files": [
+        "frontend/src/components/CustomSelect.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/custom-select.css"
+      ]
+    },
+    {
+      "className": "select-icon",
+      "files": [
+        "frontend/src/components/CustomSelect.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/custom-select.css"
+      ]
+    },
+    {
+      "className": "select-value",
+      "files": [
+        "frontend/src/components/CustomSelect.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/custom-select.css"
+      ]
+    },
+    {
+      "className": "selection-info",
+      "files": [
+        "frontend/src/components/OccupancyHistory.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/action-sheet.css",
+        "frontend/src/styles/components/font-scale.css"
+      ]
+    },
+    {
+      "className": "sider-brand",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "slider",
+      "files": [
+        "frontend/src/pages/account-permission/UserColumns.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "stack",
+      "files": [
+        "frontend/src/pages/account-permission/UserFormModal.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "stat-icon-bg",
+      "files": [
+        "frontend/src/pages/admin-settings/DisplayConfigSection.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/stats.css"
+      ]
+    },
+    {
+      "className": "switch",
+      "files": [
+        "frontend/src/pages/account-permission/UserColumns.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/account-permission.css"
+      ]
+    },
+    {
+      "className": "table-card",
+      "files": [
+        "frontend/src/pages/AccountPermissionPage.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/table-layout.css"
+      ]
+    },
+    {
+      "className": "table-head",
+      "files": [
+        "frontend/src/pages/AccountPermissionPage.jsx",
+        "frontend/src/pages/BuildingManagementPage.jsx",
+        "frontend/src/pages/DormManagementPage.jsx",
+        "frontend/src/pages/OccupancyManagementPage.jsx",
+        "frontend/src/pages/ResultViewPage.jsx",
+        "frontend/src/pages/StudentManagementPage.jsx",
+        "frontend/src/pages/TaskPublishPage.jsx",
+        "frontend/src/pages/TeacherManagementPage.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/table-layout.css"
+      ]
+    },
+    {
+      "className": "table-head-actions",
+      "files": [
+        "frontend/src/pages/AccountPermissionPage.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/table-layout.css"
+      ]
+    },
+    {
+      "className": "table-wrapper",
+      "files": [
+        "frontend/src/pages/AccountPermissionPage.jsx",
+        "frontend/src/pages/BuildingManagementPage.jsx",
+        "frontend/src/pages/DormManagementPage.jsx",
+        "frontend/src/pages/ResultViewPage.jsx",
+        "frontend/src/pages/StudentManagementPage.jsx",
+        "frontend/src/pages/TaskPublishPage.jsx",
+        "frontend/src/pages/TeacherManagementPage.jsx",
+        "frontend/src/pages/account-permission/BatchAuthSection.jsx",
+        "frontend/src/pages/account-permission/PermissionMatrix.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/table-layout.css"
+      ]
+    },
+    {
+      "className": "title-dropdown-arrow",
+      "files": [
+        "frontend/src/components/common/TitleDropdown.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/title-dropdown.css"
+      ]
+    },
+    {
+      "className": "title-dropdown-open",
+      "files": [
+        "frontend/src/components/common/TitleDropdown.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/title-dropdown.css"
+      ]
+    },
+    {
+      "className": "title-dropdown-trigger",
+      "files": [
+        "frontend/src/components/common/TitleDropdown.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/title-dropdown.css"
+      ]
+    },
+    {
+      "className": "user-info",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "user-name",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    },
+    {
+      "className": "user-role",
+      "files": [
+        "frontend/src/components/Layout.jsx"
+      ],
+      "componentStyleHits": [
+        "frontend/src/styles/components/app-shell.css"
+      ]
+    }
+  ],
+  "unused": [
+    {
+      "className": "action-bar"
+    },
+    {
+      "className": "action-tile"
+    },
+    {
+      "className": "action-tile-grid"
+    },
+    {
+      "className": "actions"
+    },
+    {
+      "className": "actions-row"
+    },
+    {
+      "className": "anticon"
+    },
+    {
+      "className": "anticon-check"
+    },
+    {
+      "className": "anticon-close-circle"
+    },
+    {
+      "className": "anticon-exclamation-circle"
+    },
+    {
+      "className": "anticon-search"
+    },
+    {
+      "className": "app-container-responsive"
+    },
+    {
+      "className": "apple-dropdown"
+    },
+    {
+      "className": "apple-popover-glass"
+    },
+    {
+      "className": "auto-responsive-grid"
+    },
+    {
+      "className": "badge"
+    },
+    {
+      "className": "btn-inline-text"
+    },
+    {
+      "className": "btn-secondary"
+    },
+    {
+      "className": "building-card"
+    },
+    {
+      "className": "capacity-meter"
+    },
+    {
+      "className": "capsule-row"
+    },
+    {
+      "className": "capsule-select"
+    },
+    {
+      "className": "capsule-stepper"
+    },
+    {
+      "className": "card-field"
+    },
+    {
+      "className": "card-header-left"
+    },
+    {
+      "className": "card-header-right"
+    },
+    {
+      "className": "card-subtitle"
+    },
+    {
+      "className": "card-title"
+    },
+    {
+      "className": "card-title-group"
+    },
+    {
+      "className": "checkbox"
+    },
+    {
+      "className": "close-btn"
+    },
+    {
+      "className": "compact-header-row"
+    },
+    {
+      "className": "compact-nav-header"
+    },
+    {
+      "className": "content"
+    },
+    {
+      "className": "dashboard-page"
+    },
+    {
+      "className": "dashboard-score-content"
+    },
+    {
+      "className": "deduction-actions"
+    },
+    {
+      "className": "deduction-capsule"
+    },
+    {
+      "className": "deduction-footer"
+    },
+    {
+      "className": "deduction-grid"
+    },
+    {
+      "className": "deduction-info"
+    },
+    {
+      "className": "deduction-item"
+    },
+    {
+      "className": "deduction-list"
+    },
+    {
+      "className": "deduction-meta"
+    },
+    {
+      "className": "deduction-name"
+    },
+    {
+      "className": "deduction-row"
+    },
+    {
+      "className": "deduction-select-wrapper"
+    },
+    {
+      "className": "desktop-actions"
+    },
+    {
+      "className": "desktop-only-submit-area"
+    },
+    {
+      "className": "detail-card"
+    },
+    {
+      "className": "divider"
+    },
+    {
+      "className": "dot"
+    },
+    {
+      "className": "drag-handle"
+    },
+    {
+      "className": "drawer"
+    },
+    {
+      "className": "drawer-header"
+    },
+    {
+      "className": "entry-form"
+    },
+    {
+      "className": "entry-grid"
+    },
+    {
+      "className": "entry-grid-layout"
+    },
+    {
+      "className": "entry-layout"
+    },
+    {
+      "className": "entry-left"
+    },
+    {
+      "className": "entry-right"
+    },
+    {
+      "className": "error-bar"
+    },
+    {
+      "className": "executor-tags"
+    },
+    {
+      "className": "eyebrow"
+    },
+    {
+      "className": "fab-button"
+    },
+    {
+      "className": "field"
+    },
+    {
+      "className": "field-inline"
+    },
+    {
+      "className": "field-key"
+    },
+    {
+      "className": "field-label-input"
+    },
+    {
+      "className": "field-settings-card"
+    },
+    {
+      "className": "field-settings-head"
+    },
+    {
+      "className": "field-settings-list"
+    },
+    {
+      "className": "field-settings-row"
+    },
+    {
+      "className": "field-toggle"
+    },
+    {
+      "className": "field-value"
+    },
+    {
+      "className": "fill"
+    },
+    {
+      "className": "filter-grid"
+    },
+    {
+      "className": "filters"
+    },
+    {
+      "className": "floor-grid"
+    },
+    {
+      "className": "floor-number"
+    },
+    {
+      "className": "footer-hint"
+    },
+    {
+      "className": "footer-inner"
+    },
+    {
+      "className": "forgot-header"
+    },
+    {
+      "className": "forgot-header-left"
+    },
+    {
+      "className": "forgot-header-right"
+    },
+    {
+      "className": "forgot-password-card"
+    },
+    {
+      "className": "forgot-password-link"
+    },
+    {
+      "className": "forgot-password-steps"
+    },
+    {
+      "className": "forgot-tips"
+    },
+    {
+      "className": "form-actions"
+    },
+    {
+      "className": "form-card"
+    },
+    {
+      "className": "form-section-card"
+    },
+    {
+      "className": "form-section-title"
+    },
+    {
+      "className": "gap-lg"
+    },
+    {
+      "className": "ghost-link"
+    },
+    {
+      "className": "glass-btn"
+    },
+    {
+      "className": "glass-btn-gradient"
+    },
+    {
+      "className": "glass-btn-rect"
+    },
+    {
+      "className": "glass-list"
+    },
+    {
+      "className": "glass-list-item"
+    },
+    {
+      "className": "glass-pagination"
+    },
+    {
+      "className": "glass-photo-wall"
+    },
+    {
+      "className": "glass-score"
+    },
+    {
+      "className": "glass-select"
+    },
+    {
+      "className": "glass-upload"
+    },
+    {
+      "className": "grid-two"
+    },
+    {
+      "className": "hero-actions"
+    },
+    {
+      "className": "hero-card"
+    },
+    {
+      "className": "hero-copy"
+    },
+    {
+      "className": "hero-eyebrow"
+    },
+    {
+      "className": "hero-header-row"
+    },
+    {
+      "className": "hero-highlight"
+    },
+    {
+      "className": "hero-meta-row"
+    },
+    {
+      "className": "hero-pill"
+    },
+    {
+      "className": "hero-row-primary"
+    },
+    {
+      "className": "hero-shell"
+    },
+    {
+      "className": "hero-subtitle"
+    },
+    {
+      "className": "hero-title"
+    },
+    {
+      "className": "icon-box"
+    },
+    {
+      "className": "icon-only"
+    },
+    {
+      "className": "import-btn"
+    },
+    {
+      "className": "import-errors"
+    },
+    {
+      "className": "info-card"
+    },
+    {
+      "className": "info-column"
+    },
+    {
+      "className": "info-tags"
+    },
+    {
+      "className": "inline-actions"
+    },
+    {
+      "className": "inline-hints"
+    },
+    {
+      "className": "input-icon"
+    },
+    {
+      "className": "input-shell"
+    },
+    {
+      "className": "ios-title-dropdown"
+    },
+    {
+      "className": "jump-form"
+    },
+    {
+      "className": "layout"
+    },
+    {
+      "className": "left-column"
+    },
+    {
+      "className": "list"
+    },
+    {
+      "className": "location-placeholder"
+    },
+    {
+      "className": "location-tags"
+    },
+    {
+      "className": "login-brand"
+    },
+    {
+      "className": "login-card"
+    },
+    {
+      "className": "login-container"
+    },
+    {
+      "className": "login-copyright"
+    },
+    {
+      "className": "login-error"
+    },
+    {
+      "className": "login-footer"
+    },
+    {
+      "className": "login-form"
+    },
+    {
+      "className": "login-logo"
+    },
+    {
+      "className": "login-submit-btn"
+    },
+    {
+      "className": "login-subtitle"
+    },
+    {
+      "className": "login-theme-toggle"
+    },
+    {
+      "className": "login-title"
+    },
+    {
+      "className": "main"
+    },
+    {
+      "className": "member-table"
+    },
+    {
+      "className": "menu-btn"
+    },
+    {
+      "className": "meta-divider"
+    },
+    {
+      "className": "meta-tags"
+    },
+    {
+      "className": "meta-text"
+    },
+    {
+      "className": "meta-text-group"
+    },
+    {
+      "className": "mobile-action-buttons"
+    },
+    {
+      "className": "mobile-data-card"
+    },
+    {
+      "className": "mobile-sticky-footer"
+    },
+    {
+      "className": "mobile-submit-btn"
+    },
+    {
+      "className": "modal"
+    },
+    {
+      "className": "modal-actions"
+    },
+    {
+      "className": "modal-card"
+    },
+    {
+      "className": "modal-footer"
+    },
+    {
+      "className": "modal-overlay"
+    },
+    {
+      "className": "modern-table"
+    },
+    {
+      "className": "multi-select-dropdown"
+    },
+    {
+      "className": "multi-select-filter"
+    },
+    {
+      "className": "num"
+    },
+    {
+      "className": "page-content"
+    },
+    {
+      "className": "page-shell"
+    },
+    {
+      "className": "photo-card"
+    },
+    {
+      "className": "photo-grid"
+    },
+    {
+      "className": "photo-img"
+    },
+    {
+      "className": "photo-item"
+    },
+    {
+      "className": "photo-link"
+    },
+    {
+      "className": "photo-list"
+    },
+    {
+      "className": "photo-preview-grid"
+    },
+    {
+      "className": "photo-preview-list"
+    },
+    {
+      "className": "photo-preview-section"
+    },
+    {
+      "className": "photo-remove"
+    },
+    {
+      "className": "photo-thumb"
+    },
+    {
+      "className": "photo-thumb-link"
+    },
+    {
+      "className": "photo-thumb-wrapper"
+    },
+    {
+      "className": "photo-wall"
+    },
+    {
+      "className": "photo-wall-head"
+    },
+    {
+      "className": "pill"
+    },
+    {
+      "className": "pill-dot"
+    },
+    {
+      "className": "pill-success"
+    },
+    {
+      "className": "pill-warning"
+    },
+    {
+      "className": "premium-glass"
+    },
+    {
+      "className": "premium-glass-panel"
+    },
+    {
+      "className": "process-card"
+    },
+    {
+      "className": "process-card-grid"
+    },
+    {
+      "className": "quick-deduction-card"
+    },
+    {
+      "className": "rect-tag"
+    },
+    {
+      "className": "reorder-buttons"
+    },
+    {
+      "className": "restricted-edit-notice"
+    },
+    {
+      "className": "result-entry"
+    },
+    {
+      "className": "result-hero"
+    },
+    {
+      "className": "right-column"
+    },
+    {
+      "className": "room-building"
+    },
+    {
+      "className": "room-card"
+    },
+    {
+      "className": "room-card-body"
+    },
+    {
+      "className": "room-card-compact"
+    },
+    {
+      "className": "room-dot"
+    },
+    {
+      "className": "room-glass"
+    },
+    {
+      "className": "room-glass-main"
+    },
+    {
+      "className": "room-hint"
+    },
+    {
+      "className": "room-id"
+    },
+    {
+      "className": "room-info-card"
+    },
+    {
+      "className": "room-info-label"
+    },
+    {
+      "className": "room-info-row"
+    },
+    {
+      "className": "room-info-value"
+    },
+    {
+      "className": "room-meta"
+    },
+    {
+      "className": "room-number"
+    },
+    {
+      "className": "room-room"
+    },
+    {
+      "className": "room-selection-grid"
+    },
+    {
+      "className": "room-side"
+    },
+    {
+      "className": "room-status"
+    },
+    {
+      "className": "rule-list"
+    },
+    {
+      "className": "score-base-control"
+    },
+    {
+      "className": "score-base-label"
+    },
+    {
+      "className": "score-card"
+    },
+    {
+      "className": "score-controls"
+    },
+    {
+      "className": "score-dashboard-wrapper"
+    },
+    {
+      "className": "score-display"
+    },
+    {
+      "className": "score-edit-row"
+    },
+    {
+      "className": "score-grade"
+    },
+    {
+      "className": "score-hint"
+    },
+    {
+      "className": "score-input"
+    },
+    {
+      "className": "score-label"
+    },
+    {
+      "className": "score-meta-row"
+    },
+    {
+      "className": "score-number"
+    },
+    {
+      "className": "score-shell"
+    },
+    {
+      "className": "score-suffix"
+    },
+    {
+      "className": "score-value"
+    },
+    {
+      "className": "section-subtitle"
+    },
+    {
+      "className": "selected-tags"
+    },
+    {
+      "className": "selection-actions"
+    },
+    {
+      "className": "selection-row"
+    },
+    {
+      "className": "sidebar"
+    },
+    {
+      "className": "sidebar-overlay"
+    },
+    {
+      "className": "simplified-score"
+    },
+    {
+      "className": "slider-scale"
+    },
+    {
+      "className": "slider-wrap"
+    },
+    {
+      "className": "stat-card"
+    },
+    {
+      "className": "stat-content-wrapper"
+    },
+    {
+      "className": "stat-hint"
+    },
+    {
+      "className": "stat-label"
+    },
+    {
+      "className": "stat-label-premium"
+    },
+    {
+      "className": "stat-row-container"
+    },
+    {
+      "className": "stat-value"
+    },
+    {
+      "className": "stat-value-premium"
+    },
+    {
+      "className": "stat-value-split"
+    },
+    {
+      "className": "stats-row"
+    },
+    {
+      "className": "status-row"
+    },
+    {
+      "className": "step-chip"
+    },
+    {
+      "className": "step-chip-row"
+    },
+    {
+      "className": "step-content"
+    },
+    {
+      "className": "step-index"
+    },
+    {
+      "className": "stepper"
+    },
+    {
+      "className": "stepper-btn"
+    },
+    {
+      "className": "stepper-capsule"
+    },
+    {
+      "className": "stepper-input"
+    },
+    {
+      "className": "stepper-value"
+    },
+    {
+      "className": "stepper-value-text"
+    },
+    {
+      "className": "student-page"
+    },
+    {
+      "className": "switch-row"
+    },
+    {
+      "className": "table-scroll"
+    },
+    {
+      "className": "tag"
+    },
+    {
+      "className": "task-edit-modal"
+    },
+    {
+      "className": "template-buttons"
+    },
+    {
+      "className": "text-gradient"
+    },
+    {
+      "className": "thumb-row"
+    },
+    {
+      "className": "toolbar"
+    },
+    {
+      "className": "topbar-actions"
+    },
+    {
+      "className": "topbar-buttons"
+    },
+    {
+      "className": "topbar-condensed"
+    },
+    {
+      "className": "upload-dropzone"
+    },
+    {
+      "className": "upload-icon"
+    },
+    {
+      "className": "upload-select-modal"
+    },
+    {
+      "className": "window-hint"
+    }
+  ]
+}

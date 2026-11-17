@@ -1,0 +1,169 @@
+/* ============================================================
+   Apple Form Styles (Migration Override Layer)
+   Apple 风格表单控件 token 化覆盖层
+   ============================================================ */
+
+.apple-form .ant-form-item-label > label {
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  color: var(--co-text-muted) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.01875rem;
+}
+
+.apple-form .ant-form-item {
+  margin-bottom: 1.25rem !important;
+}
+
+.apple-input,
+.apple-input-ios,
+.apple-input-number,
+.apple-search-input,
+.ant-picker.apple-input,
+.apple-select .ant-select-selector,
+.apple-select-ios .ant-select-selector {
+  background: var(--co-input-bg) !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--co-radius-md) !important;
+  min-height: 2.5rem !important;
+  font-size: calc(0.875rem * var(--font-scale, 1)) !important;
+  color: var(--co-text) !important;
+  transition: all var(--co-transition-fast) !important;
+}
+
+.apple-input:focus,
+.apple-input:hover,
+.apple-input-ios:focus,
+.apple-input-ios:hover,
+.apple-input-number:focus,
+.apple-input-number:hover,
+.apple-input-focused,
+.apple-input-number-focused,
+.ant-input-number-focused.apple-input-number {
+  background: var(--co-input-focus-bg) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.apple-input:focus,
+.apple-input-ios:focus,
+.apple-input-number:focus,
+.apple-select.ant-select-focused .ant-select-selector,
+.apple-select-ios.ant-select-focused .ant-select-selector {
+  background: var(--co-input-focus-bg) !important;
+  border-color: var(--co-input-focus-border) !important;
+  box-shadow: var(--co-btn-primary-shadow) !important;
+}
+
+[data-theme="dark"] .apple-input,
+[data-theme="dark"] .apple-input-ios,
+[data-theme="dark"] .apple-input-number,
+[data-theme="dark"] .apple-search-input,
+[data-theme="dark"] .apple-select .ant-select-selector,
+[data-theme="dark"] .apple-select-ios .ant-select-selector {
+  background: var(--co-input-bg) !important;
+}
+
+[data-theme="dark"] .apple-input:focus,
+[data-theme="dark"] .apple-input-ios:focus,
+[data-theme="dark"] .apple-input-number:focus,
+[data-theme="dark"] .apple-select.ant-select-focused .ant-select-selector,
+[data-theme="dark"] .apple-select-ios.ant-select-focused .ant-select-selector {
+  background: var(--co-input-focus-bg) !important;
+  border-color: var(--co-input-focus-border) !important;
+  box-shadow: var(--co-btn-primary-shadow) !important;
+}
+
+.apple-input-number.ant-input-number {
+  width: 100%;
+  padding: 0 !important;
+}
+
+.apple-input-number.ant-input-number-affix-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  padding-inline-start: 12px !important;
+  padding-inline-end: 4px !important;
+  background: var(--co-input-bg) !important;
+}
+
+.apple-input-number.ant-input-number-affix-wrapper .ant-input-number-prefix {
+  margin-inline-end: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  color: #bfbfbf !important;
+}
+
+.apple-input-number.ant-input-number-affix-wrapper .ant-input-number {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  flex: 1;
+}
+
+.apple-input-number .ant-input-number-input {
+  height: 100% !important;
+  min-height: unset !important;
+  padding: 0 1rem !important;
+}
+
+/* 当 InputNumber 位于 affix-wrapper 中时，其内部 input 的 padding 应当由 wrapper 和 prefix margin 控制 */
+.apple-input-number.ant-input-number-affix-wrapper .ant-input-number-input {
+  padding: 0 !important;
+}
+
+.apple-input.ant-input-textarea textarea,
+textarea.apple-input {
+  height: auto !important;
+  min-height: 2.5rem !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: var(--co-radius-md) !important;
+}
+
+/* Search inputs use an affix wrapper plus an inner input.
+   The wrapper owns the glass background; the inner input must stay fully transparent,
+   otherwise dark mode shows a second rectangular layer behind the text. */
+.apple-search-input.ant-input-affix-wrapper > input.ant-input,
+.apple-search-input.ant-input-affix-wrapper .ant-input {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.apple-select .ant-select-selector,
+.apple-select-ios .ant-select-selector {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.apple-switch.ant-switch {
+  background: var(--co-btn-border) !important;
+}
+
+.apple-switch.ant-switch-checked {
+  background: var(--co-primary) !important;
+}
+
+/* Form Section Card */
+.form-section-card {
+  background: color-mix(in srgb, var(--co-text) 2%, transparent);
+  border-radius: var(--co-radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+[data-theme="dark"] .form-section-card {
+  background: color-mix(in srgb, var(--co-on-primary) 4%, transparent);
+}
+
+.form-section-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--co-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03125rem;
+  margin-bottom: 1rem;
+}

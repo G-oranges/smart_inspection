@@ -1,0 +1,179 @@
+/* ============================================================
+   Compact Form Styles (Migration Override Layer)
+   高密度表单与 Select 对齐修复的 token 化覆盖层
+   ============================================================ */
+
+.apple-form-compact {
+  --control-h: 36px;
+  --control-px: 12px;
+}
+
+.apple-form-compact .ant-form-item {
+  margin-bottom: 12px !important;
+}
+
+.apple-form-compact .ant-form-item-label {
+  padding-bottom: 2px !important;
+}
+
+.apple-form-compact .ant-form-item-label > label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--co-text-muted) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  height: auto !important;
+  line-height: 1.4 !important;
+}
+
+.apple-form-compact .apple-input,
+.apple-form-compact .apple-input-number.ant-input-number,
+.apple-form-compact .ant-picker.apple-input,
+.apple-form-compact .ant-input {
+  height: var(--control-h) !important;
+  font-size: 14px !important;
+  border-radius: var(--co-radius-md) !important;
+}
+
+.apple-form-compact .ant-select-single .ant-select-selector {
+  height: var(--control-h) !important;
+  padding: 0 var(--control-px) !important;
+  font-size: 14px !important;
+  border-radius: var(--co-radius-md) !important;
+  display: flex !important;
+  align-items: center !important;
+  border: none !important;
+}
+
+.apple-form-compact .ant-select-single .ant-select-selection-item,
+.apple-form-compact .ant-select-single .ant-select-selection-placeholder {
+  line-height: calc(var(--control-h) - 2px) !important;
+  transition: none !important;
+}
+
+.apple-form-compact .ant-select-single .ant-select-selection-search-input {
+  height: var(--control-h) !important;
+}
+
+.apple-form-compact .ant-select-single .ant-select-arrow {
+  height: var(--control-h) !important;
+  display: flex !important;
+  align-items: center !important;
+  top: 0 !important;
+  margin-top: 0 !important;
+  right: 10px !important;
+}
+
+.apple-form-compact .apple-input-number .ant-input-number-input {
+  height: calc(var(--control-h) - 2px) !important;
+  padding: 0 var(--control-px) !important;
+}
+
+.apple-form-compact .form-item-inline-switch .ant-form-item-control-input {
+  min-height: var(--control-h) !important;
+}
+
+.apple-form-compact .form-item-inline-switch .ant-form-item-control-input-content {
+  height: var(--control-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.apple-form-compact .apple-switch.ant-switch {
+  min-width: 40px;
+  height: 22px;
+}
+
+.apple-form-compact .apple-switch.ant-switch .ant-switch-handle {
+  width: 18px;
+  height: 18px;
+  top: 2px;
+}
+
+.apple-form-compact .apple-switch.ant-switch-checked .ant-switch-handle {
+  inset-inline-start: calc(100% - 20px);
+}
+
+.apple-form-compact .compact-grid {
+  gap: 0 16px !important;
+}
+
+.apple-form-compact .apple-select,
+.apple-form-compact .apple-select .ant-select-selector,
+.apple-form-compact .apple-select .ant-select-content {
+  height: var(--control-h) !important;
+  min-height: var(--control-h) !important;
+  line-height: var(--control-h) !important;
+}
+
+.apple-form-compact .apple-select.ant-select-single {
+  border-radius: var(--co-radius-md) !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 var(--control-px) !important;
+  background: var(--co-input-bg) !important;
+  border-color: transparent !important;
+}
+
+[data-theme="dark"] .apple-form-compact .apple-select.ant-select-single {
+  background: var(--co-input-bg) !important;
+  color: var(--co-text) !important;
+}
+
+[data-theme="dark"] .apple-form-compact .apple-select .ant-select-selection-item,
+[data-theme="dark"] .apple-form-compact .apple-select .ant-select-selection-placeholder,
+[data-theme="dark"] .apple-form-compact .apple-select .ant-select-content-value {
+  color: var(--co-text) !important;
+}
+
+[data-theme="dark"] .apple-form-compact .apple-select .ant-select-arrow {
+  color: var(--co-text-muted) !important;
+}
+
+.apple-form-compact .apple-select .ant-select-selection-item,
+.apple-form-compact .apple-select .ant-select-selection-placeholder,
+.apple-form-compact .apple-select .ant-select-content-value {
+  line-height: var(--control-h) !important;
+  height: var(--control-h) !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.apple-form-compact .apple-select .ant-select-suffix,
+.apple-form-compact .apple-select .ant-select-arrow {
+  height: var(--control-h) !important;
+  display: flex !important;
+  align-items: center !important;
+  top: 0 !important;
+  right: 8px !important;
+  margin-top: 0 !important;
+}
+
+.apple-form-compact .apple-select .ant-select-input,
+.apple-form-compact .apple-select .ant-select-selection-search-input {
+  height: var(--control-h) !important;
+  line-height: var(--control-h) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  background: transparent !important;
+}
+
+.apple-form-compact .apple-select .ant-select-content {
+  position: relative !important;
+  width: 100% !important;
+}
+
+@media (max-width: 48rem) {
+  .apple-form-compact {
+    --control-h: 40px;
+  }
+
+  .apple-form-compact .ant-form-item {
+    margin-bottom: 14px !important;
+  }
+}

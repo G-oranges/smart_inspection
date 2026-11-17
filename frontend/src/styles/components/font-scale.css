@@ -1,0 +1,50 @@
+/* ============================================================
+   Font Scale Styles (Migration Override Layer)
+   全局字体缩放 token 化迁移覆盖层
+   ============================================================ */
+
+:root {
+  --font-scale: 1;
+}
+
+body {
+  font-size: calc(0.875rem * var(--font-scale, 1));
+}
+
+.selection-info {
+  font-size: calc(0.9375rem * var(--font-scale, 1));
+}
+
+label {
+  font-size: calc(0.625rem * var(--font-scale, 1));
+}
+
+.muted {
+  font-size: calc(0.625rem * var(--font-scale, 1));
+}
+
+/* ============================================================
+   Font Scale Slider UI Fixes
+   局部修正字体缩放调节滑动条垂直对齐问题
+   ============================================================ */
+.font-scale-slider.ant-slider {
+  padding: 0;
+  height: 24px;
+}
+
+.font-scale-slider.ant-slider .ant-slider-rail,
+.font-scale-slider.ant-slider .ant-slider-track {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin-top: 0 !important;
+}
+
+.font-scale-slider.ant-slider .ant-slider-handle {
+  top: 50% !important;
+  /* 
+   * default ant-slider-handle behavior handles translateX,
+   * we use translateY for vertical centering, keeping left position intact 
+   */
+  transform: translate(-50%, -50%) !important;
+  margin-top: 0 !important;
+}

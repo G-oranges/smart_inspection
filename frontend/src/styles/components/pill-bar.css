@@ -1,0 +1,112 @@
+/* ============================================================
+   Pill Bar Styles (Migration Override Layer)
+   底部药丸栏选择态与操作区 token 化迁移覆盖层
+   ============================================================ */
+
+.co-pill-bar.selection-active,
+.apple-pill-bar.selection-active {
+  background: var(--co-glass-bg-heavy);
+  backdrop-filter: blur(var(--co-glass-blur-sm)) saturate(210%);
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-sm)) saturate(210%);
+  border-color: var(--co-btn-border);
+  box-shadow: 0 20px 50px color-mix(in srgb, var(--co-text) 16%, transparent);
+  transform: translateY(-4px);
+  border-radius: var(--co-radius-lg);
+}
+
+[data-theme="dark"] .co-pill-bar.selection-active,
+[data-theme="dark"] .apple-pill-bar.selection-active {
+  background: var(--co-header-bg);
+  border-color: var(--co-glass-border);
+  box-shadow: 0 20px 50px color-mix(in srgb, var(--co-text) 45%, transparent);
+}
+
+.co-pill-tab-item.active .anticon,
+.pill-tab-item.active .anticon {
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--co-primary) 40%, transparent));
+}
+
+.co-pill-tab-item:active,
+.pill-tab-item:active {
+  transform: scale(0.9);
+  opacity: 0.7;
+}
+
+.pill-selection-info {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  animation: pill-fade-in 0.4s ease;
+}
+
+.pill-selection-count {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--co-text);
+  letter-spacing: -0.5px;
+}
+
+[data-theme="dark"] .pill-selection-count {
+  color: var(--co-text);
+}
+
+.pill-action-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pill-action-btn-cancel {
+  background: transparent;
+  border: none;
+  color: var(--co-text-muted);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all var(--co-transition-fast);
+}
+
+[data-theme="dark"] .pill-action-btn-cancel {
+  color: var(--co-text-muted);
+}
+
+.pill-action-btn-cancel:active {
+  color: var(--co-primary);
+  transform: scale(0.95);
+}
+
+[data-theme="dark"] .pill-action-btn-cancel:active {
+  color: var(--co-on-primary);
+}
+
+.pill-action-btn-primary {
+  background: var(--co-primary);
+  color: var(--co-on-primary);
+  border: none;
+  padding: 8px 20px;
+  border-radius: var(--co-radius-md);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--co-primary) 45%, transparent);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pill-action-btn-primary:active {
+  transform: scale(0.92);
+  filter: brightness(1.2);
+}
+
+@keyframes pill-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

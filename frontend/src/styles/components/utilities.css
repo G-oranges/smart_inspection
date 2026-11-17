@@ -1,0 +1,191 @@
+/* ============================================================
+   Utility Styles (Migration Override Layer)
+   通用工具类 token 化覆盖层
+   ============================================================ */
+
+.premium-glass-panel {
+  background: var(--co-glass-bg-heavy);
+  backdrop-filter: blur(var(--co-glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-sm));
+  border: 1px solid var(--co-glass-border);
+  border-radius: var(--co-radius-lg);
+  box-shadow: var(--co-glass-shadow-lg);
+  transition: all var(--co-transition);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--co-primary), var(--co-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .text-gradient {
+  background: linear-gradient(135deg, var(--co-primary), var(--co-accent-warm));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.auto-responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 75rem) {
+  .auto-responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 40rem) {
+  .auto-responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.apple-transition {
+  transition: all 0.3s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ios-card-shadow {
+  box-shadow: var(--co-ios-card-shadow);
+}
+
+.hover-lift {
+  transition:
+    transform var(--co-transition-fast),
+    box-shadow var(--co-transition-fast);
+}
+
+.hover-lift:hover {
+  transform: translateY(-0.25rem);
+  box-shadow: var(--co-hover-lift-shadow);
+}
+
+.app-container-responsive {
+  padding: 1.5rem 2rem;
+}
+
+@media (max-width: 48rem) {
+  .app-container-responsive {
+    padding: 1rem;
+  }
+}
+
+.glass-panel-heavy {
+  backdrop-filter: blur(var(--co-glass-blur)) saturate(200%);
+  -webkit-backdrop-filter: blur(var(--co-glass-blur)) saturate(200%);
+  /* 浅色模式：白色 60% 不透明度 */
+  background-color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+[data-theme="dark"] .glass-panel-heavy {
+  /* 深色模式：背景色 80% 不透明度 */
+  background-color: rgba(16, 23, 34, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.glass-panel {
+  backdrop-filter: blur(var(--co-glass-blur)) saturate(210%);
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-sm)) saturate(210%);
+  /* 浅色模式：白色 50% 不透明度 */
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 1.125rem;
+  box-shadow:
+    0 12px 40px rgba(26, 26, 46, 0.12),
+    0 0 0 1px rgba(26, 26, 46, 0.04);
+  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[data-theme="dark"] .glass-panel {
+  /* 深色模式：背景色 72% 不透明度 */
+  background: rgba(16, 23, 34, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.apple-shadow-sm {
+  box-shadow: 0 2px 8px rgba(26, 26, 46, 0.06);
+}
+
+.apple-shadow-md {
+  box-shadow: 0 8px 24px rgba(26, 26, 46, 0.1);
+}
+
+.apple-shadow-lg {
+  box-shadow: 0 16px 48px rgba(26, 26, 46, 0.14);
+}
+
+.dark .apple-shadow-lg,
+[data-theme="dark"] .apple-shadow-lg {
+  box-shadow: 0 16px 48px rgba(241, 245, 249, 0.4);
+}
+
+.font-mono {
+  font-family:
+    "SF Mono", "ui-monospace", "Menlo", "Monaco", "Cascadia Mono", monospace !important;
+}
+
+.tracking-tightest {
+  letter-spacing: -0.05em;
+}
+
+[data-theme="dark"] .text-ios-gray-label {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.card {
+  /* --co-on-primary (#fff) 8% 不透明度 */
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--co-radius-md);
+  padding: 1.4rem;
+  box-shadow: var(--co-glass-shadow);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .card {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.flex-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.deduction-item-row {
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all var(--co-transition-fast);
+}
+
+.deduction-item-row:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="dark"] .deduction-item-row {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme="dark"] .deduction-item-row:hover {
+  background: rgba(255, 255, 255, 0.12);
+}

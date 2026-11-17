@@ -1,0 +1,416 @@
+{
+  "page": {
+    "name": "TaskPublishPage",
+    "route": "/tasks/publish",
+    "title": "查寝任务中枢",
+    "sourceFile": "frontend/src/pages/TaskPublishPage.jsx"
+  },
+  "uiStack": {
+    "framework": "React",
+    "uiLibrary": "Ant Design",
+    "customComponents": [
+      "PageLayout",
+      "AppleStatCard",
+      "GlassTable",
+      "ResponsiveDataView",
+      "FilterDropdownPanel",
+      "DormGridSelector",
+      "IOSActionSheet",
+      "AppleTag",
+      "AvatarGroup",
+      "GlassPanel"
+    ]
+  },
+  "permissions": {
+    "view": "TASK_PUBLISH",
+    "publish": "TASK_PUBLISH",
+    "edit": "TASK_PUBLISH",
+    "delete": "TASK_PUBLISH"
+  },
+  "data": {
+    "load": [
+      "actions.loadTasks",
+      "actions.loadDorms",
+      "actions.loadUsers",
+      "actions.fetchExecutors"
+    ],
+    "mutations": [
+      "actions.createTask",
+      "actions.updateTask",
+      "actions.deleteTask"
+    ],
+    "metrics": [
+      "taskStats.total",
+      "taskStats.inProgress",
+      "taskStats.upcoming",
+      "taskStats.coverageRate"
+    ]
+  },
+  "layout": {
+    "component": "PageLayout",
+    "sections": [
+      {
+        "key": "stats",
+        "component": "AppleStatCard",
+        "items": [
+          {
+            "label": "累计任务",
+            "value": "taskStats.total",
+            "unit": "项",
+            "icon": "ClusterOutlined",
+            "accent": "blue",
+            "accentHex": "#007AFF",
+            "subLabel": "环比增长",
+            "subValue": "taskStats.momGrowth"
+          },
+          {
+            "label": "活跃任务",
+            "value": "taskStats.inProgress",
+            "unit": "项",
+            "icon": "SyncOutlined",
+            "accent": "green",
+            "accentHex": "#34C759",
+            "iconAnimation": "spin-smooth"
+          },
+          {
+            "label": "计划任务",
+            "value": "taskStats.upcoming",
+            "unit": "项",
+            "icon": "CalendarOutlined",
+            "accent": "orange",
+            "accentHex": "#FF9500"
+          },
+          {
+            "label": "检查完成比",
+            "value": "taskStats.coverageRate",
+            "valueFormat": "percent",
+            "subLabel": "总已检 / 总应检",
+            "subValue": "taskStats.coverageFraction",
+            "icon": "LineChartOutlined",
+            "accent": "purple",
+            "accentHex": "#AF52DE"
+          }
+        ]
+      },
+      {
+        "key": "controls",
+        "component": "GlassPanel",
+        "style": "glass-panel",
+        "desktop": {
+          "quickSearch": {
+            "component": "Input",
+            "placeholder": "搜索任务标题或描述...",
+            "prefixIcon": "SearchOutlined",
+            "shape": "rounded-full",
+            "focusEffect": "glow-border"
+          },
+          "filterPanel": {
+            "component": "FilterDropdownPanel",
+            "fieldsRef": "filters.taskList.fields",
+            "layout": "condensed"
+          },
+          "actions": [
+            {
+              "key": "create",
+              "label": "发布新任务",
+              "icon": "PlusOutlined",
+              "type": "primary",
+              "style": "macos-blue-gradient",
+              "permission": "TASK_PUBLISH"
+            }
+          ]
+        },
+        "mobile": {
+          "search": {
+            "component": "Input",
+            "placeholder": "搜索任务...",
+            "prefixIcon": "SearchOutlined",
+            "shape": "rounded-full"
+          },
+          "filterButton": {
+            "component": "Button",
+            "label": "筛选",
+            "icon": "FilterOutlined",
+            "badge": "selectedFilterCount"
+          },
+          "actionButton": {
+            "component": "Button",
+            "label": "发布新任务",
+            "icon": "PlusOutlined",
+            "type": "primary",
+            "style": "macos-blue-gradient"
+          }
+        }
+      },
+      {
+        "key": "content",
+        "header": {
+          "title": "任务列表",
+          "subtitle": "最后更新: lastRefreshedAt"
+        },
+        "body": {
+          "component": "taskListView()",
+          "emptyText": "暂无发布任务"
+        }
+      }
+    ]
+  },
+  "filters": {
+    "taskList": {
+      "fields": [
+        {
+          "key": "status",
+          "label": "任务状态",
+          "options": [
+            {
+              "label": "全部",
+              "value": "all"
+            },
+            {
+              "label": "待开启",
+              "value": "upcoming"
+            },
+            {
+              "label": "进行中",
+              "value": "inProgress"
+            },
+            {
+              "label": "已结束",
+              "value": "ended"
+            }
+          ]
+        },
+        {
+          "key": "timeRange",
+          "label": "时间轴",
+          "options": [
+            {
+              "label": "近一周",
+              "value": "week"
+            },
+            {
+              "label": "近一月",
+              "value": "month"
+            },
+            {
+              "label": "自定义范围",
+              "value": "custom"
+            }
+          ],
+          "customRange": {
+            "component": "DatePicker.RangePicker",
+            "visibleWhen": "timeRange == 'custom'"
+          }
+        },
+        {
+          "key": "executorId",
+          "label": "责任人",
+          "component": "Select",
+          "searchable": true,
+          "optionsSource": "executors",
+          "placeholder": "搜索辅导员/干部"
+        }
+      ],
+      "syncToUrlParams": true
+    },
+    "dormRange": {
+      "reuseFrom": "doc/dorm_management_ui.json:filters.fields",
+      "fields": [
+        "building",
+        "floor",
+        "grade"
+      ],
+      "interactions": [
+        "clickFloorTitleSelectAll",
+        "syncWithDormManagementFilters"
+      ]
+    }
+  },
+  "views": {
+    "default": "table",
+    "mobile": {
+      "component": "ResponsiveDataView",
+      "cardRenderer": "renderTaskCard",
+      "pagination": true,
+      "cardStyle": "rounded-2xl bg-white/80"
+    },
+    "desktop": {
+      "table": {
+        "component": "GlassTable",
+        "pagination": true,
+        "resizableColumns": true
+      },
+      "card": {
+        "component": "TaskCardGrid",
+        "grid": "1-3 columns by breakpoint",
+        "pagination": true,
+        "cardStyle": "rounded-2xl bg-white/80",
+        "cardFields": [
+          "status",
+          "title",
+          "publisher",
+          "coverageCount",
+          "executors"
+        ]
+      }
+    }
+  },
+  "table": {
+    "key": "taskList",
+    "columnsDefault": [
+      {
+        "fieldKey": "title",
+        "label": "任务主题",
+        "visible": true,
+        "sortable": true
+      },
+      {
+        "fieldKey": "status",
+        "label": "状态",
+        "visible": true,
+        "sortable": true
+      },
+      {
+        "fieldKey": "completion",
+        "label": "检查进度",
+        "visible": true,
+        "sortable": false
+      },
+      {
+        "fieldKey": "executors",
+        "label": "检查员",
+        "visible": true,
+        "sortable": false
+      }
+    ],
+    "rowActions": [
+      {
+        "key": "edit",
+        "label": "编辑",
+        "icon": "EditOutlined",
+        "permission": "TASK_PUBLISH"
+      },
+      {
+        "key": "delete",
+        "label": "删除",
+        "icon": "DeleteOutlined",
+        "permission": "TASK_PUBLISH",
+        "confirm": "确定删除该任务吗？"
+      }
+    ],
+    "cellRender": {
+      "title": "Bold title + subtext publisher",
+      "status": "AppleTag (in-progress glow, ended low-saturation with glass border)",
+      "completion": "inspected/total + hover percent tooltip",
+      "executors": "AvatarGroup (top 3) + hover full list"
+    }
+  },
+  "actions": {
+    "toolbar": [
+      "create",
+      "refresh",
+      "bulkDelete"
+    ],
+    "row": [
+      "edit",
+      "delete"
+    ],
+    "bulk": [
+      "selectAllResults",
+      "deleteSelected",
+      "clearSelection"
+    ],
+    "floating": [
+      "发布新任务"
+    ]
+  },
+  "selection": {
+    "enabledWhen": "canEdit",
+    "crossPageSelection": true,
+    "banner": {
+      "visibleWhen": "selectedCount > 0",
+      "style": "ios-photo-handle",
+      "label": "已选择 {selectedCount} 项",
+      "actions": [
+        "clearSelection"
+      ]
+    },
+    "mobileActionSheet": {
+      "component": "IOSActionSheet",
+      "title": "任务操作",
+      "actions": [
+        "selectAllResults",
+        "deleteSelected",
+        "clearSelection"
+      ]
+    }
+  },
+  "overlays": {
+    "modals": [
+      {
+        "key": "taskPublishWizard",
+        "title": "发布新任务",
+        "component": "TaskPublishWizard",
+        "steps": [
+          {
+            "title": "任务信息",
+            "fields": [
+              "title",
+              "startAt",
+              "deadline",
+              "notes"
+            ]
+          },
+          {
+            "title": "圈定宿舍范围",
+            "component": "DormGridSelector",
+            "filtersRef": "filters.dormRange",
+            "interactions": [
+              "clickFloorTitleSelectAll"
+            ]
+          },
+          {
+            "title": "选择执行人",
+            "component": "ExecutorPicker",
+            "fields": [
+              "role",
+              "keyword",
+              "selectedExecutors"
+            ]
+          }
+        ]
+      }
+    ],
+    "drawers": [
+      {
+        "key": "taskPublishMobile",
+        "title": "发布新任务",
+        "component": "TaskPublishWizard"
+      }
+    ],
+    "panels": [
+      {
+        "key": "mobileFilterSheet",
+        "title": "任务筛选",
+        "component": "IOSActionSheet"
+      }
+    ]
+  },
+  "floatingActions": {
+    "mobile": {
+      "components": [
+        "FloatButton.BackTop"
+      ],
+      "primary": "发布新任务"
+    }
+  },
+  "notes": [
+    "GlassPanel 使用 10-20px blur + 1px 透明白描边，保证文字对比度 >= 4.5:1。",
+    "SyncOutlined 旋转仅用于进行中状态，并遵循 prefers-reduced-motion。",
+    "进度单元格 hover 弹出百分比气泡，避免持续动画干扰。",
+    "状态标签进行中使用亮绿色呼吸光晕，已结束低饱和灰 + 玻璃边框。",
+    "卡片模式 rounded-2xl + bg-white/80，左上角状态标签，右下角覆盖寝室数。",
+    "宿舍范围筛选与宿舍管理保持一致，支持点击楼层标题全选该层。",
+    "移动端筛选与批量操作统一由 IOSActionSheet 触发，选中后显示 iOS 相册式选择手柄。"
+  ]
+}

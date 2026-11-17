@@ -1,0 +1,52 @@
+/* ============================================================
+   Crystal Omni — Style Entry Point
+   所有样式的聚合入口
+   ============================================================ */
+
+/* Tailwind 基础层 */
+@import './tailwind.css';
+
+/* Design Tokens (必须在 Tailwind layers 之后，以便覆盖默认值) */
+@import './base/tokens.css';
+@import './base/reset.css';
+
+/* 组件类 */
+@import './components/glass.css';
+@import './components/glass-legacy.css';
+@import './components/animations.css';
+@import './components/layout.css';
+@import './vendors/antd-overrides.css';
+
+/* 迁移覆盖层（后置加载，用于替换 legacy 中的旧变量写法） */
+@import './components/auth.css';
+@import './components/task-publish.css';
+@import './components/dorm-grid.css';
+@import './components/assignment-pool.css';
+@import './components/apple-utilities.css';
+@import './components/title-dropdown.css';
+@import './components/stats.css';
+@import './components/utilities.css';
+@import './components/font-scale.css';
+@import './components/mobile-compact.css';
+@import './components/app-shell.css';
+@import './components/overlay.css';
+@import './components/action-sheet.css';
+@import './components/pill-bar.css';
+@import './components/task-publish-modal.css';
+@import './components/result-detail-modal.css';
+@import './components/filter-panel.css';
+@import './components/dorm-management.css';
+@import './components/form-apple.css';
+@import './components/form-compact.css';
+@import './components/dropdown-apple.css';
+@import './components/custom-select.css';
+@import './components/date-picker-apple.css';
+@import './components/table-layout.css';
+@import './components/table-macos.css';
+@import './components/table-resize.css';
+@import './components/account-permission.css';
+@import './components/button-apple.css';
+@import './components/tag-apple.css';
+@import './components/result-entry.css';
+@import './components/admin-settings.css';
+

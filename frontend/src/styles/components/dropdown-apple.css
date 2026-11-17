@@ -1,0 +1,62 @@
+/* ============================================================
+   Apple Dropdown Styles (Migration Override Layer)
+   Apple Select/Dropdown 弹层 token 化覆盖层
+   ============================================================ */
+
+.apple-dropdown {
+  border-radius: var(--co-radius-xl) !important;
+  overflow: hidden;
+  box-shadow: var(--co-glass-shadow-lg) !important;
+  border: 1px solid var(--co-glass-border);
+  background: var(--co-glass-bg-heavy) !important;
+  backdrop-filter: blur(var(--co-glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-sm));
+  padding: 0.25rem !important;
+}
+
+.apple-dropdown .ant-select-item,
+.apple-dropdown .ant-select-item-option {
+  border-radius: var(--co-radius) !important;
+  margin: 0.125rem 0.25rem !important;
+  transition: all var(--co-transition-fast) !important;
+}
+
+.apple-dropdown .ant-dropdown-menu {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0.125rem !important;
+}
+
+.apple-dropdown .ant-dropdown-menu-item {
+  border-radius: var(--co-radius-md) !important;
+  padding: 0.625rem 0.75rem !important;
+  transition: background var(--co-transition-fast) !important;
+  margin-bottom: 0.125rem !important;
+}
+
+.apple-dropdown .ant-dropdown-menu-item:last-child {
+  margin-bottom: 0 !important;
+}
+
+.apple-dropdown .ant-dropdown-menu-item:hover {
+  background: var(--co-nav-hover-bg) !important;
+}
+
+.apple-dropdown-item-active {
+  background: color-mix(in srgb, var(--co-primary) 12%, transparent) !important;
+}
+
+[data-theme="dark"] .apple-dropdown-item-active {
+  background: color-mix(in srgb, var(--co-primary) 24%, transparent) !important;
+}
+
+.apple-dropdown-item-active span {
+  font-weight: 700 !important;
+  color: var(--co-primary) !important;
+}
+
+.apple-dropdown .ant-dropdown-menu-item-icon {
+  font-size: 1rem !important;
+  color: var(--co-text-muted) !important;
+}

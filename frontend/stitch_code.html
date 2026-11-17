@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dormitory Scoring System - Optimization Variation 2</title>
+<!-- Tailwind CSS CDN with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts for better typography -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style data-purpose="custom-theme">
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0e14;
+            color: #e6edf3;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #161b22;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 10px;
+        }
+
+        /* Glassmorphism/Dark Card effects */
+        .dark-card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+        }
+
+        /* Specific glow for the score circle */
+        .score-glow {
+            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.5));
+        }
+    </style>
+<style data-purpose="layout-grid">
+        .main-grid {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            min-height: 100vh;
+        }
+        .content-grid {
+            display: grid;
+            /* 40/60 split for Efficiency-Focused Layout */
+            grid-template-columns: 4fr 6fr;
+            gap: 24px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+<!-- BEGIN: Page Layout Container -->
+<div class="main-grid">
+<!-- BEGIN: Left Sidebar Navigation -->
+<aside class="bg-[#0d1117] border-r border-[#30363d] flex flex-col p-4" data-purpose="sidebar">
+<div class="flex items-center gap-3 mb-10 px-2">
+<div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+<svg class="h-5 w-5" fill="currentColor" viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+</svg>
+</div>
+<div>
+<h1 class="text-sm font-bold">查寝系统</h1>
+<p class="text-[10px] text-gray-500">SMART PROTOCOL</p>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 p-3 rounded-lg text-gray-400 hover:bg-[#161b22] transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>仪表盘</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-gray-400 hover:bg-[#161b22] transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>基础管理</span>
+</a>
+<div class="space-y-1">
+<a class="flex items-center gap-3 p-3 rounded-lg bg-blue-600/10 text-blue-500 font-medium" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>查寝中心</span>
+</a>
+<div class="ml-11 text-sm space-y-3 py-2">
+<a class="block text-gray-500 hover:text-white" href="#">任务发布</a>
+<a class="block text-blue-400" href="#">分数录入</a>
+<a class="block text-gray-500 hover:text-white" href="#">结果查看</a>
+</div>
+</div>
+<a class="flex items-center gap-3 p-3 rounded-lg text-gray-400 hover:bg-[#161b22] transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>系统设置</span>
+</a>
+</nav>
+<div class="mt-auto p-4 rounded-xl bg-[#161b22] flex items-center gap-3" data-purpose="user-profile">
+<div class="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center text-xs">超</div>
+<div class="flex-1">
+<p class="text-sm font-semibold">超级管理员</p>
+<p class="text-[10px] text-gray-500">管理员</p>
+</div>
+<button class="text-gray-500 hover:text-white">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</aside>
+<!-- END: Left Sidebar Navigation -->
+<!-- BEGIN: Main Content Area -->
+<main class="flex flex-col bg-[#0b0e14]">
+<!-- Header Section -->
+<header class="h-16 flex items-center justify-between px-8 bg-[#0d1117] border-b border-[#30363d]" data-purpose="top-header">
+<h2 class="text-lg font-semibold">查寝中心</h2>
+<div class="flex items-center gap-4">
+<button class="p-2 text-gray-400 hover:text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<div class="flex items-center gap-2 px-4 py-1 bg-[#161b22] rounded-full text-xs font-medium border border-[#30363d]">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+<span>4月10日周五</span>
+</div>
+<button class="relative p-2 text-gray-400 hover:text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+</button>
+</div>
+</header>
+<!-- Content Scroller -->
+<div class="flex-1 overflow-y-auto p-8" data-purpose="main-scroller">
+<!-- Sub-header Navigation -->
+<div class="flex items-center justify-between mb-8 pb-4 border-b border-[#30363d]/50">
+<button class="flex items-center gap-2 text-blue-500 text-sm">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                    返回
+                </button>
+<div class="flex items-center gap-6">
+<button class="text-gray-500 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
+<div class="text-center">
+<h3 class="text-2xl font-bold">205</h3>
+<p class="text-[10px] text-gray-500">荔园8栋</p>
+</div>
+<button class="text-gray-500 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
+</div>
+<div class="w-16"></div> <!-- Spacer for centering -->
+</div>
+<div class="content-grid">
+<!-- BEGIN: Left Column (Static Info - 40%) -->
+<div class="space-y-6" data-purpose="static-column">
+<!-- Score Display -->
+<div class="dark-card aspect-square max-h-[400px] flex flex-col items-center justify-center relative overflow-hidden" data-purpose="score-dashboard">
+<div class="absolute inset-0 bg-gradient-to-b from-blue-600/5 to-transparent"></div>
+<div class="relative w-48 h-48 flex items-center justify-center">
+<!-- SVG Donut Chart Background -->
+<svg class="w-full h-full transform -rotate-90 score-glow">
+<circle cx="96" cy="96" fill="transparent" r="80" stroke="#1f2937" stroke-width="10"></circle>
+<circle cx="96" cy="96" fill="transparent" r="80" stroke="#3b82f6" stroke-dasharray="502" stroke-dashoffset="100" stroke-linecap="round" stroke-width="10"></circle>
+</svg>
+<!-- Score Text -->
+<div class="absolute text-center">
+<span class="text-6xl font-bold">100</span>
+<div class="mt-2">
+<span class="bg-blue-600/20 text-blue-400 text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">优秀</span>
+</div>
+</div>
+</div>
+<div class="mt-6">
+<span class="bg-[#1c222c] px-6 py-2 rounded-full text-xs text-gray-400">测试1</span>
+</div>
+</div>
+<!-- Room Members below Score Display -->
+<div class="dark-card p-6" data-purpose="members-list">
+<div class="flex items-center justify-between mb-6">
+<h4 class="text-sm font-semibold">宿舍成员</h4>
+<span class="text-xs bg-blue-900/30 text-blue-400 px-2 py-0.5 rounded">3人</span>
+</div>
+<div class="space-y-1">
+<!-- Member Row 1 -->
+<div class="flex items-center justify-between p-3 bg-[#1c222c]/40 rounded-lg border-b border-transparent hover:border-[#30363d] transition-all">
+<div>
+<p class="font-semibold text-sm">李成睿</p>
+<p class="text-[10px] text-gray-500">2024303210102</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-xs text-gray-400">床位 <span class="text-white font-bold">2</span></span>
+<span class="text-[9px] px-2 py-0.5 bg-gray-700 text-gray-300 rounded-full">成员</span>
+</div>
+</div>
+<!-- Member Row 2 -->
+<div class="flex items-center justify-between p-3 bg-[#1c222c]/40 rounded-lg border-b border-transparent hover:border-[#30363d] transition-all">
+<div>
+<p class="font-semibold text-sm">齐光辉</p>
+<p class="text-[10px] text-gray-500">2023307290135</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-xs text-gray-400">床位 <span class="text-white font-bold">3</span></span>
+<span class="text-[9px] px-2 py-0.5 bg-gray-700 text-gray-300 rounded-full">成员</span>
+</div>
+</div>
+<!-- Member Row 3 -->
+<div class="flex items-center justify-between p-3 bg-[#1c222c]/40 rounded-lg border-b border-transparent hover:border-[#30363d] transition-all">
+<div>
+<p class="font-semibold text-sm">李佳星</p>
+<p class="text-[10px] text-gray-500">2023307290136</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-xs text-gray-400">床位 <span class="text-white font-bold">4</span></span>
+<span class="text-[9px] px-2 py-0.5 bg-gray-700 text-gray-300 rounded-full">成员</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- END: Left Column -->
+<!-- BEGIN: Right Column (Active Entry Area - 60%) -->
+<div class="space-y-6 flex flex-col" data-purpose="interaction-panel">
+<!-- Deduction Items (Top of right column) -->
+<div class="dark-card p-6 flex-none" data-purpose="deduction-section">
+<h4 class="text-sm font-semibold mb-2">扣分项目</h4>
+<p class="text-[11px] text-gray-500 mb-6">点击下方按钮添加宿舍内发现的违规项</p>
+<div class="min-h-[140px] flex flex-col items-center justify-center border-t border-[#30363d] pt-6">
+<p class="text-gray-600 text-sm mb-6 italic">暂无扣分记录</p>
+<button class="flex items-center gap-2 text-blue-500 text-sm font-medium hover:opacity-80">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                                添加违规项
+                            </button>
+</div>
+</div>
+<!-- Photos & Remarks (Followed by) -->
+<div class="dark-card p-6 flex-1 flex flex-col" data-purpose="media-section">
+<h4 class="text-sm font-semibold mb-6">照片与备注</h4>
+<!-- Upload Tile -->
+<div class="mb-6">
+<button class="w-20 h-20 border-2 border-dashed border-gray-600 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-blue-500 transition-colors group">
+<svg class="w-6 h-6 text-gray-500 group-hover:text-blue-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="text-[10px] text-gray-500 group-hover:text-blue-500">拍摄</span>
+</button>
+</div>
+<!-- Notes Area -->
+<div class="relative flex-1">
+<textarea class="w-full h-full min-h-[140px] bg-[#0d1117] border border-[#30363d] rounded-lg p-4 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none placeholder-gray-600" placeholder="输入备注..."></textarea>
+</div>
+</div>
+<!-- Submit Action -->
+<div class="pt-4">
+<button class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all transform active:scale-[0.98]">
+                            提交结果
+                        </button>
+</div>
+</div>
+<!-- END: Right Column -->
+</div>
+</div>
+</main>
+<!-- END: Main Content Area -->
+</div>
+<!-- END: Page Layout Container -->
+</body></html>

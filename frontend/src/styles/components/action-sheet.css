@@ -1,0 +1,223 @@
+/* ============================================================
+   Action Sheet Styles (Migration Override Layer)
+   iOS ActionSheet 与底部选择按钮 token 化迁移覆盖层
+   ============================================================ */
+
+.apple-drawer.ios-action-sheet .ant-drawer-content {
+  border-radius: 1.25rem 1.25rem 0 0 !important;
+  overflow: hidden !important;
+}
+
+.ios-action-sheet-root .ant-drawer-content-wrapper {
+  box-shadow: none !important;
+  height: auto !important;
+  max-height: 85vh !important;
+}
+
+.ios-action-sheet-drawer,
+.ios-action-sheet-drawer .ant-drawer-content,
+.ios-action-sheet-drawer .ant-drawer-wrapper-body,
+.ios-action-sheet-drawer .ant-drawer-body {
+  background: transparent !important;
+  border: none !important;
+}
+
+.ios-action-sheet-drawer.ant-drawer-bottom > .ant-drawer-content-wrapper {
+  height: auto !important;
+}
+
+.ios-action-sheet-drawer .ant-drawer-body {
+  padding: 0 !important;
+}
+
+body.ios-sheet-active {
+  background-color: var(--co-text) !important;
+}
+
+[data-theme="dark"] body.ios-sheet-active {
+  background-color: var(--co-bg) !important;
+}
+
+body.ios-sheet-active .ios-mobile-base {
+  transform: translateY(calc(env(safe-area-inset-top, 0px) + 12px)) scale(0.93);
+  border-radius: 2.25rem;
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--co-text) 55%, transparent);
+  pointer-events: none;
+  filter: brightness(0.85) grayscale(0.1);
+}
+
+.ios-action-sheet-root .ant-drawer-mask {
+  background-color: color-mix(in srgb, var(--co-text) 25%, transparent) !important;
+  backdrop-filter: blur(var(--co-glass-blur-sm)) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-sm)) saturate(180%) !important;
+}
+
+.ios-action-sheet-drawer button {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  border: none;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .ios-action-sheet-drawer button:hover:not(:disabled) {
+    background: var(--co-nav-hover-bg);
+  }
+
+  [data-theme="dark"] .ios-action-sheet-drawer button:hover:not(:disabled) {
+    background: var(--co-nav-hover-bg);
+  }
+}
+
+.bottom-selection-bar .action-trigger-btn {
+  background: color-mix(in srgb, var(--co-on-primary) 20%, transparent);
+  border: none;
+  color: var(--co-on-primary);
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 18px;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--co-transition-fast);
+}
+
+.bottom-selection-bar .action-trigger-btn:active {
+  transform: scale(0.96);
+  background: color-mix(in srgb, var(--co-on-primary) 30%, transparent);
+}
+
+.bottom-selection-bar .action-trigger-btn.primary {
+  background: var(--co-primary);
+}
+
+.bottom-selection-bar .action-trigger-btn.primary:active {
+  background: var(--co-primary-active);
+}
+
+.mobile-action-buttons .ant-btn {
+  flex: 0 0 auto !important;
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+}
+
+.bottom-selection-bar {
+  position: fixed;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 25rem;
+  background: color-mix(in srgb, var(--co-bg) 20%, var(--co-text) 80%);
+  backdrop-filter: blur(var(--co-glass-blur-xs)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-xs)) saturate(120%);
+  padding: 0.625rem 1rem;
+  border-radius: 1.125rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 0.5rem 2rem color-mix(in srgb, var(--co-text) 25%, transparent);
+  z-index: 950;
+  animation: co-slide-up-from-bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid color-mix(in srgb, var(--co-on-primary) 10%, transparent);
+}
+
+[data-theme="dark"] .bottom-selection-bar {
+  background: color-mix(in srgb, var(--co-bg) 85%, var(--co-text) 15%);
+  border-color: color-mix(in srgb, var(--co-on-primary) 14%, transparent);
+}
+
+@keyframes co-slide-up-from-bottom {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.bottom-selection-bar .selection-info {
+  font-size: 0.875rem;
+  color: var(--co-on-primary);
+  font-weight: 600;
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin-right: 0.5rem;
+}
+
+.bottom-selection-bar .ant-space {
+  flex-shrink: 1;
+  flex-wrap: nowrap;
+}
+
+.bottom-selection-bar .ant-btn {
+  border-radius: 0.625rem;
+  font-size: 0.75rem;
+  height: 1.75rem;
+  padding: 0 0.625rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+@media (max-width: 23.75rem) {
+  .bottom-selection-bar {
+    padding: 0.5rem 0.75rem !important;
+    gap: 0.25rem;
+  }
+
+  .bottom-selection-bar .selection-info {
+    font-size: 0.75rem !important;
+  }
+
+  .bottom-selection-bar .ant-btn > span:not(.anticon):not(.ant-btn-icon) {
+    display: none !important;
+  }
+
+  .bottom-selection-bar
+    .ant-btn
+    .ant-btn-content-wrapper
+    > span:last-child:not(:first-child) {
+    display: none !important;
+  }
+
+  .bottom-selection-bar .ant-btn .ant-btn-icon,
+  .bottom-selection-bar .ant-btn .anticon {
+    display: inline-flex !important;
+    margin: 0 !important;
+  }
+
+  .bottom-selection-bar .ant-btn {
+    padding: 0 0.5rem !important;
+    min-width: 1.75rem;
+    height: 1.625rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .bottom-selection-bar .ant-space-item {
+    margin-right: 0.25rem !important;
+  }
+
+  .bottom-selection-bar .ant-space-item:last-child {
+    margin-right: 0 !important;
+  }
+}
+
+@media (max-width: 26.25rem) and (min-width: 23.8125rem) {
+  .bottom-selection-bar .ant-btn {
+    font-size: 0.6875rem;
+    padding: 0 0.5rem;
+    height: 1.625rem;
+  }
+
+  .bottom-selection-bar .selection-info {
+    font-size: 0.8125rem;
+  }
+}

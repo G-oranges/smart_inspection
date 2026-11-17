@@ -1,0 +1,296 @@
+/* ============================================================
+   Result Entry — 分数录入页面专用样式
+   参照 Stitch "Obsidian Command" 设计稿
+   ============================================================ */
+
+/* 桌面端 40/60 分割布局 */
+.re-content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 64rem) {
+  .re-content-grid {
+    grid-template-columns: 4fr 6fr;
+    gap: 1.75rem;
+    align-items: start;
+  }
+}
+
+/* 深色卡片（Stitch dark-card 风格） */
+.re-dark-card {
+  background: var(--co-glass-bg-heavy);
+  border: 1px solid var(--co-glass-border);
+  border-radius: var(--co-radius-md);
+  overflow: hidden;
+  transition: background-color var(--co-transition), border-color var(--co-transition);
+}
+
+[data-theme="dark"] .re-dark-card {
+  background: rgba(22, 27, 34, 0.85);
+  border-color: rgba(48, 54, 61, 0.6);
+}
+
+/* 分数仪表盘卡片 */
+.re-score-dashboard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: auto;
+  min-height: 280px;
+}
+
+/* 分数圆环光晕 */
+.re-score-glow {
+  filter: drop-shadow(0 0 15px rgba(60, 131, 246, 0.45));
+}
+
+/* 分数圆环内部渐变背景 */
+.re-score-dashboard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--co-primary) 5%, transparent),
+    transparent
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+[data-theme="dark"] .re-score-dashboard::before {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--co-primary) 8%, transparent),
+    transparent
+  );
+}
+
+/* 任务标签 pill */
+.re-task-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 1.25rem;
+  border-radius: var(--co-radius-full);
+  background: var(--co-input-bg);
+  color: var(--co-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: var(--co-label-spacing);
+}
+
+[data-theme="dark"] .re-task-pill {
+  background: rgba(28, 34, 44, 0.8);
+}
+
+/* 成员列表行 */
+.re-member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-radius: var(--co-radius);
+  background: var(--co-input-bg);
+  transition: background-color var(--co-transition-fast), border-color var(--co-transition-fast);
+  border: 1px solid transparent;
+}
+
+.re-member-row:hover {
+  border-color: var(--co-glass-border);
+}
+
+[data-theme="dark"] .re-member-row {
+  background: rgba(28, 34, 44, 0.4);
+}
+
+/* 扣分项标题 */
+.re-section-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--co-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+
+.re-section-desc {
+  font-size: 0.6875rem;
+  color: var(--co-text-muted);
+  margin-bottom: 1rem;
+}
+
+/* 扣分项行 */
+.re-deduction-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color var(--co-transition-fast);
+}
+
+.re-deduction-row:hover {
+  background: var(--co-nav-hover-bg);
+}
+
+.re-deduction-row:active {
+  background: var(--co-input-bg);
+}
+
+/* 上传方格 */
+.re-upload-tile {
+  width: 5rem;
+  height: 5rem;
+  border: 2px dashed var(--co-glass-border);
+  border-radius: var(--co-radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--co-text-muted);
+  transition: border-color var(--co-transition-fast), color var(--co-transition-fast), background var(--co-transition-fast);
+}
+
+.re-upload-tile:hover {
+  border-color: color-mix(in srgb, var(--co-primary) 50%, transparent);
+  color: var(--co-primary);
+  background: color-mix(in srgb, var(--co-primary) 5%, transparent);
+}
+
+/* 备注文本框 */
+.re-textarea {
+  width: 100%;
+  min-height: 140px;
+  background: var(--co-input-bg);
+  border: 1px solid var(--co-glass-border);
+  border-radius: var(--co-radius-md);
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: var(--co-text);
+  resize: none;
+  outline: none;
+  font-family: var(--co-font);
+  transition: border-color var(--co-transition-fast), box-shadow var(--co-transition-fast);
+}
+
+.re-textarea::placeholder {
+  color: var(--co-input-placeholder);
+}
+
+.re-textarea:focus {
+  border-color: var(--co-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--co-primary) 15%, transparent);
+}
+
+[data-theme="dark"] .re-textarea {
+  background: rgba(13, 17, 23, 0.8);
+  border-color: rgba(48, 54, 61, 0.6);
+}
+
+/* 提交按钮 */
+.re-submit-btn {
+  width: 100%;
+  padding: 1rem;
+  background: var(--co-primary);
+  color: var(--co-on-primary);
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  border-radius: var(--co-radius-lg);
+  cursor: pointer;
+  transition: background var(--co-transition-fast), transform var(--co-transition-fast), box-shadow var(--co-transition-fast);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--co-primary) 25%, transparent);
+}
+
+.re-submit-btn:hover {
+  background: var(--co-primary-hover);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--co-primary) 35%, transparent);
+}
+
+.re-submit-btn:active {
+  transform: scale(0.98);
+}
+
+.re-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 成员计数徽标 */
+.re-count-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--co-radius-full);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--co-primary) 12%, transparent);
+  color: var(--co-primary);
+}
+
+/* 床位/角色标签 */
+.re-role-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--co-radius-full);
+  font-size: 0.5625rem;
+  font-weight: 700;
+}
+
+.re-role-tag--leader {
+  background: color-mix(in srgb, var(--co-warning) 12%, transparent);
+  color: var(--co-warning);
+}
+
+.re-role-tag--member {
+  background: var(--co-btn-bg);
+  color: var(--co-text-muted);
+}
+
+/* 分数数值 */
+.re-score-value {
+  font-size: 3.5rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--co-text);
+}
+
+/* 评级胶囊 */
+.re-rating-capsule {
+  display: inline-flex;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--co-radius-full);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* 左列固定 sticky */
+@media (min-width: 64rem) {
+  .re-left-col {
+    position: sticky;
+    top: 4rem;
+  }
+}
+
+/* 扣分总量指示器 */
+.re-deduct-total {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--co-error);
+}
+
+/* 添加违规项按钮区 */
+.re-add-btn-area {
+  padding: 0.75rem;
+  border-top: 1px solid var(--co-glass-border);
+}

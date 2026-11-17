@@ -1,0 +1,162 @@
+/* ============================================================
+   Crystal Omni Design Tokens
+   单一真相源 — 所有颜色/模糊/阴影/圆角/字体在此定义
+   浅色/深色通过 CSS 变量切换，组件代码无需关心主题
+   ============================================================ */
+
+:root {
+  /* === 品牌色 (主题无关) === */
+  --co-primary:          #3c83f6;
+  --co-primary-hover:    #2563eb;
+  --co-primary-active:   #1d4ed8;
+  --co-on-primary:       #ffffff;
+  --co-accent:           #A18CD1;
+  --co-accent-warm:      #FBC2EB;
+
+  /* === 语义状态色 === */
+  --co-success:          #34C759;
+  --co-warning:          #FF9500;
+  --co-error:            #FF3B30;
+  --co-info:             #3c83f6;
+
+  /* === 玻璃常量 (主题无关) === */
+  --co-glass-blur:       40px;
+  --co-glass-blur-sm:    20px;
+  --co-glass-blur-xs:    12px;
+
+  /* === 圆角 === */
+  --co-radius-sm:        0.375rem;   /* 6px */
+  --co-radius:           0.5rem;     /* 8px */
+  --co-radius-md:        0.75rem;    /* 12px */
+  --co-radius-lg:        1rem;       /* 16px */
+  --co-radius-xl:        1.5rem;     /* 24px */
+  --co-radius-2xl:       2rem;       /* 32px */
+  --co-radius-full:      9999px;
+
+  /* === 字体栈 (Inter 英文 + 苹方中文) === */
+  --co-font: 'Inter', -apple-system, BlinkMacSystemFont,
+             'PingFang SC', 'Hiragino Sans GB',
+             'Microsoft YaHei', sans-serif;
+
+  /* === 排版 === */
+  --co-label-spacing:    0.08em;
+  --co-label-size:       0.75rem;
+  --co-transition:       0.3s ease;
+  --co-transition-fast:  0.15s ease;
+}
+
+/* ======================================================
+   浅色模式 (Light Mode)
+   ====================================================== */
+:root, [data-theme="light"] {
+  --co-bg:                 #f5f7f8;
+  --co-text:               #1a1a2e;
+  --co-text-secondary:     rgba(0, 0, 0, 0.65);
+  --co-text-muted:         rgba(0, 0, 0, 0.45);
+
+  /* 玻璃面板 */
+  --co-glass-bg:           rgba(255, 255, 255, 0.65);
+  --co-glass-bg-heavy:     rgba(255, 255, 255, 0.80);
+  --co-glass-border:       rgba(0, 0, 0, 0.08);
+  --co-glass-shadow:       0 8px 32px rgba(0, 0, 0, 0.08);
+  --co-glass-shadow-lg:    0 25px 50px -12px rgba(0, 0, 0, 0.12);
+  --co-ios-card-shadow:    0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.08);
+  --co-hover-lift-shadow:  var(--co-glass-shadow-lg);
+  --co-legacy-glass-base-bg: rgba(255, 255, 255, 0.50);
+  --co-legacy-glass-base-border: rgba(255, 255, 255, 0.20);
+  --co-legacy-glass-dynamic-bg: rgba(255, 255, 255, 0.70);
+  --co-legacy-glass-dynamic-bg-mobile: rgba(255, 255, 255, 0.85);
+
+  /* 输入控件 */
+  --co-input-bg:           rgba(0, 0, 0, 0.04);
+  --co-input-focus-bg:     rgba(0, 0, 0, 0.06);
+  --co-input-focus-border: var(--co-primary);
+  --co-input-placeholder:  rgba(0, 0, 0, 0.35);
+
+  /* 按钮 */
+  --co-btn-bg:             rgba(0, 0, 0, 0.05);
+  --co-btn-border:         rgba(0, 0, 0, 0.08);
+  --co-btn-hover-bg:       rgba(0, 0, 0, 0.08);
+  --co-btn-hover-glow:     0 0 15px rgba(0, 0, 0, 0.05);
+  --co-btn-primary-bg:     var(--co-primary);
+  --co-btn-primary-shadow: 0 4px 12px rgba(60, 131, 246, 0.3);
+
+  /* 侧边栏 / 导航 */
+  --co-sidebar-bg:         rgba(255, 255, 255, 0.70);
+  --co-header-bg:          rgba(255, 255, 255, 0.70);
+  --co-nav-active-bg:      rgba(255, 255, 255, 0.90);
+  --co-nav-hover-bg:       rgba(0, 0, 0, 0.03);
+
+  /* 表格列拖拽与固定列 */
+  --co-table-resize-handle-bg:  rgba(0, 122, 255, 0.20);
+  --co-table-resize-indicator:  rgba(0, 122, 255, 0.50);
+  --co-table-fix-shadow:        inset 10px 0 8px -8px rgba(0, 0, 0, 0.08);
+  --co-table-fix-cell-bg:       rgba(255, 255, 255, 0.92);
+  --co-table-fix-head-bg:       rgba(250, 250, 250, 0.95);
+  --co-table-fix-row-hover-bg:  rgba(245, 245, 245, 0.95);
+  --co-table-fix-row-selected-bg: rgba(230, 244, 255, 0.95);
+
+  /* 渐变流动背景 */
+  --co-gradient:           linear-gradient(135deg,
+                             #e8eef5 0%,
+                             #dbeafe 35%,
+                             #e9d5ff 65%,
+                             #fce7f3 100%);
+}
+
+/* ======================================================
+   深色模式 (Dark Mode)
+   ====================================================== */
+[data-theme="dark"] {
+  --co-bg:                 #101722;
+  --co-text:               #f1f5f9;
+  --co-text-secondary:     rgba(235, 235, 245, 0.6);
+  --co-text-muted:         rgba(255, 255, 255, 0.4);
+
+  /* 玻璃面板 */
+  --co-glass-bg:           rgba(255, 255, 255, 0.12);
+  --co-glass-bg-heavy:     rgba(255, 255, 255, 0.18);
+  --co-glass-border:       rgba(255, 255, 255, 0.15);
+  --co-glass-shadow:       0 8px 32px rgba(0, 0, 0, 0.30);
+  --co-glass-shadow-lg:    0 25px 50px -12px rgba(0, 0, 0, 0.40);
+  --co-hover-lift-shadow:  0 12px 40px rgba(0, 0, 0, 0.40);
+  --co-legacy-glass-dynamic-bg: rgba(30, 41, 59, 0.70);
+  --co-legacy-glass-dynamic-bg-mobile: rgba(30, 41, 59, 0.85);
+
+  /* 输入控件 */
+  --co-input-bg:           rgba(0, 0, 0, 0.20);
+  --co-input-focus-bg:     rgba(0, 0, 0, 0.35);
+  --co-input-focus-border: rgba(255, 255, 255, 0.5);
+  --co-input-placeholder:  rgba(255, 255, 255, 0.35);
+
+  /* 按钮 */
+  --co-btn-bg:             rgba(255, 255, 255, 0.12);
+  --co-btn-border:         rgba(255, 255, 255, 0.18);
+  --co-btn-hover-bg:       rgba(255, 255, 255, 0.20);
+  --co-btn-hover-glow:     0 0 15px rgba(255, 255, 255, 0.15);
+  --co-btn-primary-bg:     var(--co-primary);
+  --co-btn-primary-shadow: 0 4px 12px rgba(60, 131, 246, 0.4);
+
+  /* 侧边栏 / 导航 */
+  --co-sidebar-bg:         rgba(255, 255, 255, 0.08);
+  --co-header-bg:          rgba(16, 23, 34, 0.70);
+  --co-nav-active-bg:      rgba(255, 255, 255, 0.10);
+  --co-nav-hover-bg:       rgba(255, 255, 255, 0.05);
+
+  /* 表格列拖拽与固定列 */
+  --co-table-resize-handle-bg:  rgba(64, 158, 255, 0.25);
+  --co-table-resize-indicator:  rgba(64, 158, 255, 0.60);
+  --co-table-fix-shadow:        inset 10px 0 8px -8px rgba(0, 0, 0, 0.25);
+  --co-table-fix-cell-bg:       rgba(28, 28, 30, 0.88);
+  --co-table-fix-head-bg:       rgba(44, 44, 46, 0.92);
+  --co-table-fix-row-hover-bg:  rgba(50, 50, 52, 0.92);
+  --co-table-fix-row-selected-bg: rgba(17, 26, 44, 0.95);
+
+  /* 渐变流动背景 */
+  --co-gradient:           linear-gradient(135deg,
+                             #101722 0%,
+                             #1e3a5f 30%,
+                             #3c83f6 50%,
+                             #A18CD1 75%,
+                             #FBC2EB 100%);
+}

@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>确认弹窗样式对比 — 浅色/深色模式</title>
+    <style>
+      /* ========== 基础重置 ========== */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+          "Microsoft YaHei", sans-serif;
+        line-height: 1.6;
+        padding: 40px 24px;
+      }
+
+      /* ========== 页面标题 ========== */
+      .page-title {
+        text-align: center;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin-bottom: 12px;
+      }
+      .page-subtitle {
+        text-align: center;
+        font-size: 14px;
+        color: #64748b;
+        margin-bottom: 48px;
+      }
+
+      /* ========== 区域块 ========== */
+      .section {
+        margin-bottom: 60px;
+        border-radius: 24px;
+        padding: 40px;
+        position: relative;
+      }
+      .section-light {
+        background: linear-gradient(
+          135deg,
+          #f0f4ff 0%,
+          #f8fafc 50%,
+          #f0fdf4 100%
+        );
+        border: 1px solid #e2e8f0;
+      }
+      .section-dark {
+        background: linear-gradient(
+          135deg,
+          #0f172a 0%,
+          #1a1a2e 50%,
+          #0f172a 100%
+        );
+        border: 1px solid #334155;
+      }
+
+      .section-label {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .section-label-light {
+        color: #0f172a;
+      }
+      .section-label-dark {
+        color: #f1f5f9;
+      }
+
+      .section-desc {
+        font-size: 13px;
+        margin-bottom: 32px;
+      }
+      .section-desc-light {
+        color: #64748b;
+      }
+      .section-desc-dark {
+        color: #94a3b8;
+      }
+
+      .badge-ok {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #dcfce7;
+        color: #16a34a;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 20px;
+      }
+      .badge-bug {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #fef2f2;
+        color: #dc2626;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 20px;
+      }
+
+      /* ========== 弹窗容器 ========== */
+      .dialogs-row {
+        display: flex;
+        gap: 32px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .dialog-wrapper {
+        flex: 1;
+        min-width: 320px;
+        max-width: 480px;
+      }
+      .dialog-label {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        text-align: center;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+      .dialog-label-light {
+        color: #94a3b8;
+      }
+      .dialog-label-dark {
+        color: #64748b;
+      }
+
+      /* ========== 模拟遮罩 ========== */
+      .modal-backdrop {
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 280px;
+        position: relative;
+      }
+      .backdrop-light {
+        background: rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(4px);
+      }
+      .backdrop-dark {
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(4px);
+      }
+
+      /* ========== 弹窗本体 ========== */
+      .modal-dialog {
+        width: 100%;
+        max-width: 420px;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+      }
+      .modal-light {
+        background: #ffffff;
+        box-shadow:
+          0 20px 60px rgba(0, 0, 0, 0.15),
+          0 8px 24px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+      }
+      .modal-dark {
+        background: #1e293b;
+        box-shadow:
+          0 20px 60px rgba(0, 0, 0, 0.5),
+          0 8px 24px rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      /* 弹窗头部 (图标 + 标题) */
+      .modal-header {
+        padding: 20px 24px 12px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .modal-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .icon-danger {
+        background: #fef2f2;
+        color: #dc2626;
+      }
+      .icon-warning {
+        background: #fffbeb;
+        color: #f59e0b;
+      }
+      .icon-danger-dark {
+        background: rgba(220, 38, 38, 0.2);
+        color: #f87171;
+      }
+      .icon-warning-dark {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+      }
+      .modal-title {
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+      .text-light {
+        color: #0f172a;
+      }
+      .text-dark {
+        color: #f1f5f9;
+      }
+
+      /* 弹窗内容 */
+      .modal-body {
+        padding: 0 24px 16px;
+        margin-left: 34px;
+      }
+      .modal-body p {
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 6px;
+      }
+      .text-muted-light {
+        color: #475569;
+      }
+      .text-muted-dark {
+        color: #94a3b8;
+      }
+      .text-danger {
+        color: #ff4d4f;
+        font-size: 12px !important;
+      }
+      .text-bold {
+        font-weight: 700;
+      }
+
+      /* 弹窗底部 */
+      .modal-footer {
+        padding: 12px 24px 20px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+      }
+      .modal-footer-dark {
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      /* ========== 按钮 ========== */
+      .btn {
+        padding: 6px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        line-height: 1.5;
+      }
+
+      /* 取消按钮 — 浅色模式（正常） */
+      .btn-cancel-light {
+        background: #ffffff;
+        border-color: #d9d9d9;
+        color: rgba(0, 0, 0, 0.88);
+      }
+
+      /* 取消按钮 — 深色模式 BUG（仍然是浅色样式，未适配！） */
+      .btn-cancel-dark-bug {
+        background: #ffffff;
+        border-color: #d9d9d9;
+        color: rgba(0, 0, 0, 0.88);
+      }
+
+      /* 取消按钮 — 深色模式 期望样式 */
+      .btn-cancel-dark-expected {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.15);
+        color: #f1f5f9;
+      }
+
+      /* 确认按钮 — danger */
+      .btn-danger {
+        background: #ff4d4f;
+        border-color: #ff4d4f;
+        color: #ffffff;
+      }
+      .btn-danger-disabled {
+        background: rgba(255, 77, 79, 0.4);
+        border-color: rgba(255, 77, 79, 0.3);
+        color: rgba(255, 255, 255, 0.6);
+        cursor: not-allowed;
+      }
+
+      /* ========== Bug 标注 ========== */
+      .bug-highlight {
+        position: relative;
+      }
+      .bug-highlight::after {
+        content: "";
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        right: -4px;
+        bottom: -4px;
+        border: 2px dashed #ef4444;
+        border-radius: 10px;
+        pointer-events: none;
+        animation: bugPulse 2s ease-in-out infinite;
+      }
+      @keyframes bugPulse {
+        0%,
+        100% {
+          border-color: #ef4444;
+          opacity: 1;
+        }
+        50% {
+          border-color: #fca5a5;
+          opacity: 0.6;
+        }
+      }
+
+      .bug-arrow {
+        position: absolute;
+        left: -6px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 10;
+      }
+      .bug-arrow-line {
+        width: 60px;
+        height: 2px;
+        background: #ef4444;
+        position: relative;
+      }
+      .bug-arrow-line::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: -4px;
+        border: 5px solid transparent;
+        border-right-color: #ef4444;
+      }
+      .bug-tag {
+        background: #fef2f2;
+        color: #dc2626;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 4px;
+        border: 1px solid #fecaca;
+        white-space: nowrap;
+      }
+
+      .ok-tag {
+        display: inline-block;
+        margin-top: 8px;
+        background: #f0fdf4;
+        color: #16a34a;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 4px;
+        border: 1px solid #bbf7d0;
+      }
+
+      /* ========== 期望效果展示 ========== */
+      .expected-section {
+        margin-top: 40px;
+        padding: 24px;
+        border-radius: 16px;
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+      }
+      .expected-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #059669;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .expected-buttons {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .expected-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+      .expected-item-label {
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 500;
+      }
+      .expected-demo {
+        padding: 12px 20px;
+        border-radius: 8px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .expected-demo-dark {
+        background: #1e293b;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .arrow-between {
+        font-size: 24px;
+        color: #059669;
+        font-weight: 700;
+      }
+
+      /* ========== CSS 代码块 ========== */
+      .fix-code {
+        margin-top: 24px;
+        background: #1e293b;
+        border-radius: 12px;
+        padding: 20px;
+        overflow-x: auto;
+      }
+      .fix-code-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #94a3b8;
+        margin-bottom: 12px;
+      }
+      .fix-code pre {
+        font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+        font-size: 12px;
+        color: #e2e8f0;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .code-comment {
+        color: #64748b;
+      }
+      .code-selector {
+        color: #7dd3fc;
+      }
+      .code-property {
+        color: #c4b5fd;
+      }
+      .code-value {
+        color: #86efac;
+      }
+      .code-important {
+        color: #fca5a5;
+      }
+    </style>
+  </head>
+  <body style="background: #f8fafc">
+    <div class="page-title" style="color: #0f172a">
+      🔍 确认弹窗深色模式适配检查
+    </div>
+    <p class="page-subtitle">
+      对比浅色 / 深色模式下的「取消」按钮渲染效果 — 当前存在未适配问题
+    </p>
+
+    <!-- ======================================== -->
+    <!-- 浅色模式 -->
+    <!-- ======================================== -->
+    <div class="section section-light">
+      <div class="section-label section-label-light">
+        ☀️ 浅色模式 (Light Mode)
+        <span class="badge-ok">✓ 样式正常</span>
+      </div>
+      <p class="section-desc section-desc-light">
+        浅色模式下，所有按钮样式渲染正确，取消按钮的白底灰边框风格与整体保持一致。
+      </p>
+
+      <div class="dialogs-row">
+        <!-- 第一阶段确认 -->
+        <div class="dialog-wrapper">
+          <div class="dialog-label dialog-label-light">第一阶段 · 常规确认</div>
+          <div class="modal-backdrop backdrop-light">
+            <div class="modal-dialog modal-light">
+              <div class="modal-header">
+                <div class="modal-icon icon-danger">✕</div>
+                <div class="modal-title text-light">确认批量删除用户</div>
+              </div>
+              <div class="modal-body">
+                <p class="text-muted-light">
+                  您确定要删除选中的 <span class="text-bold">3</span> 个用户吗？
+                </p>
+                <p class="text-danger">
+                  警告：此操作不可撤销，且会清除该用户的所有关联权限和数据。
+                </p>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-cancel-light">取消</button>
+                <button class="btn btn-danger">确认删除</button>
+              </div>
+            </div>
+          </div>
+          <div style="text-align: center; margin-top: 8px">
+            <span class="ok-tag">✓ 取消按钮样式正常</span>
+          </div>
+        </div>
+
+        <!-- 第二阶段确认（倒计时） -->
+        <div class="dialog-wrapper">
+          <div class="dialog-label dialog-label-light">
+            第二阶段 · 倒计时强确认
+          </div>
+          <div class="modal-backdrop backdrop-light">
+            <div class="modal-dialog modal-light">
+              <div class="modal-header">
+                <div class="modal-icon icon-warning">⚠</div>
+                <div class="modal-title text-light">是否确认 — 批量删除</div>
+              </div>
+              <div class="modal-body">
+                <p class="text-muted-light">
+                  即将<span class="text-bold">永久删除</span>选中的
+                  <span class="text-bold">3</span> 个用户及其所有关联数据。
+                </p>
+                <p class="text-danger">
+                  该操作无法撤销，请确认您已核实选中的用户列表。
+                </p>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-cancel-light">取消</button>
+                <button class="btn btn-danger-disabled">确认删除 (3)</button>
+              </div>
+            </div>
+          </div>
+          <div style="text-align: center; margin-top: 8px">
+            <span class="ok-tag">✓ 取消按钮样式正常</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================== -->
+    <!-- 深色模式 -->
+    <!-- ======================================== -->
+    <div class="section section-dark">
+      <div class="section-label section-label-dark">
+        🌙 深色模式 (Dark Mode)
+        <span class="badge-bug">✗ 取消按钮未适配</span>
+      </div>
+      <p class="section-desc section-desc-dark">
+        深色模式下，Modal.confirm
+        中的「取消」按钮仍保持浅色样式（白底、灰色边框、深色文字），与深色弹窗背景形成强烈视觉冲突。
+      </p>
+
+      <div class="dialogs-row">
+        <!-- 第一阶段确认 -->
+        <div class="dialog-wrapper">
+          <div class="dialog-label dialog-label-dark">第一阶段 · 常规确认</div>
+          <div class="modal-backdrop backdrop-dark">
+            <div class="modal-dialog modal-dark">
+              <div class="modal-header">
+                <div class="modal-icon icon-danger-dark">✕</div>
+                <div class="modal-title text-dark">确认批量删除用户</div>
+              </div>
+              <div class="modal-body">
+                <p class="text-muted-dark">
+                  您确定要删除选中的
+                  <span class="text-bold" style="color: #f1f5f9">3</span>
+                  个用户吗？
+                </p>
+                <p class="text-danger">
+                  警告：此操作不可撤销，且会清除该用户的所有关联权限和数据。
+                </p>
+              </div>
+              <div class="modal-footer modal-footer-dark">
+                <div style="position: relative">
+                  <button class="btn btn-cancel-dark-bug bug-highlight">
+                    取消
+                  </button>
+                </div>
+                <button class="btn btn-danger">确认删除</button>
+              </div>
+            </div>
+          </div>
+          <div style="text-align: center; margin-top: 8px">
+            <span class="bug-tag" style="font-size: 12px; padding: 4px 12px"
+              >✗ 取消按钮仍为白底 — 视觉冲突严重</span
+            >
+          </div>
+        </div>
+
+        <!-- 第二阶段确认（倒计时） -->
+        <div class="dialog-wrapper">
+          <div class="dialog-label dialog-label-dark">
+            第二阶段 · 倒计时强确认
+          </div>
+          <div class="modal-backdrop backdrop-dark">
+            <div class="modal-dialog modal-dark">
+              <div class="modal-header">
+                <div class="modal-icon icon-warning-dark">⚠</div>
+                <div class="modal-title text-dark">是否确认 — 批量删除</div>
+              </div>
+              <div class="modal-body">
+                <p class="text-muted-dark">
+                  即将<span class="text-bold" style="color: #f1f5f9"
+                    >永久删除</span
+                  >选中的
+                  <span class="text-bold" style="color: #f1f5f9">3</span>
+                  个用户及其所有关联数据。
+                </p>
+                <p class="text-danger">
+                  该操作无法撤销，请确认您已核实选中的用户列表。
+                </p>
+              </div>
+              <div class="modal-footer modal-footer-dark">
+                <div style="position: relative">
+                  <button class="btn btn-cancel-dark-bug bug-highlight">
+                    取消
+                  </button>
+                </div>
+                <button class="btn btn-danger-disabled">确认删除 (3)</button>
+              </div>
+            </div>
+          </div>
+          <div style="text-align: center; margin-top: 8px">
+            <span class="bug-tag" style="font-size: 12px; padding: 4px 12px"
+              >✗ 取消按钮仍为白底 — 视觉冲突严重</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- 期望效果对比 -->
+      <div
+        class="expected-section"
+        style="
+          background: rgba(16, 185, 129, 0.05);
+          border-color: rgba(16, 185, 129, 0.15);
+        "
+      >
+        <div class="expected-title" style="color: #34d399">
+          💡 修复后期望效果对比
+        </div>
+        <div class="expected-buttons">
+          <div class="expected-item">
+            <div class="expected-item-label" style="color: #94a3b8">
+              当前（BUG）
+            </div>
+            <div class="expected-demo expected-demo-dark">
+              <button class="btn btn-cancel-dark-bug" style="font-size: 13px">
+                取消
+              </button>
+            </div>
+          </div>
+          <div class="arrow-between" style="color: #34d399">→</div>
+          <div class="expected-item">
+            <div class="expected-item-label" style="color: #94a3b8">
+              修复后（期望）
+            </div>
+            <div class="expected-demo expected-demo-dark">
+              <button
+                class="btn btn-cancel-dark-expected"
+                style="font-size: 13px"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px">
+          <table
+            style="
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 12px;
+              color: #94a3b8;
+            "
+          >
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1)">
+                <th style="text-align: left; padding: 8px 12px; color: #64748b">
+                  属性
+                </th>
+                <th style="text-align: left; padding: 8px 12px; color: #ef4444">
+                  当前值 (BUG)
+                </th>
+                <th style="text-align: left; padding: 8px 12px; color: #34d399">
+                  期望值 (修复后)
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06)">
+                <td style="padding: 8px 12px; color: #cbd5e1">background</td>
+                <td
+                  style="
+                    padding: 8px 12px;
+                    color: #fca5a5;
+                    font-family: monospace;
+                  "
+                >
+                  #ffffff
+                </td>
+                <td
+                  style="
+                    padding: 8px 12px;
+                    color: #86efac;
+                    font-family: monospace;
+                  "
+                >
+                  rgba(255,255,255,0.05)
+                </td>
+              </tr>
+              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06)">
+                <td style="padding: 8px 12px; color: #cbd5e1">border-color</td>
+                <td
+                  style="
+                    padding: 8px 12px;
+                    color: #fca5a5;
+                    font-family: monospace;
+                  "
+                >
+                  #d9d9d9
+                </td>
+                <td
+                  style="
+                    padding: 8px 12px;
+                    color: #86efac;
+                    font-family: monospace;
+                  "
+                >
+                  rgba(255,255,255,0.15)
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 12px; color: #cbd5e1">color (文字)</td>
+                <td
+                  style="
+                    padding: 8px 12px;
+                    color: #fca5a5;
+                    font-family: monospace;
+                  "
+                >
+                  rgba(0,0,0,0.88)
+                </td>
+                <td
+                  style="
+                    padding: 8px 12px;
+                    color: #86efac;
+                    font-family: monospace;
+                  "
+                >
+                  #f1f5f9 / var(--color-text)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================== -->
+    <!-- 根因分析 -->
+    <!-- ======================================== -->
+    <div class="section" style="background: #ffffff; border: 1px solid #e2e8f0">
+      <div class="section-label" style="color: #0f172a">🔧 根因分析</div>
+      <p class="section-desc" style="color: #64748b">
+        以下是导致此 Bug 的技术原因和建议的修复方案。
+      </p>
+
+      <div
+        style="
+          display: grid;
+          gap: 16px;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        "
+      >
+        <!-- 原因 -->
+        <div
+          style="
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 20px;
+          "
+        >
+          <div
+            style="
+              font-size: 14px;
+              font-weight: 700;
+              color: #dc2626;
+              margin-bottom: 12px;
+            "
+          >
+            ❌ 问题原因
+          </div>
+          <ul
+            style="
+              font-size: 13px;
+              color: #991b1b;
+              line-height: 2;
+              padding-left: 18px;
+            "
+          >
+            <li>
+              <code>Modal.confirm()</code> 使用 Ant Design CSS-in-JS
+              内联样式渲染按钮
+            </li>
+            <li>
+              CSS-in-JS 的内联样式优先级高于 <code>App.css</code> 中的
+              <code>[data-theme="dark"] .ant-btn-default</code>
+            </li>
+            <li>
+              虽然 App.css 中有 <code>!important</code> 覆盖，但 AntD v5+ 的
+              CSS-in-JS hash 作用域可能导致覆盖失效
+            </li>
+            <li>
+              <code>Modal.confirm</code> 默认挂载到
+              <code>document.body</code>，可能不在 ConfigProvider 的 CSS
+              作用域内
+            </li>
+          </ul>
+        </div>
+
+        <!-- 修复方案 -->
+        <div
+          style="
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 20px;
+          "
+        >
+          <div
+            style="
+              font-size: 14px;
+              font-weight: 700;
+              color: #16a34a;
+              margin-bottom: 12px;
+            "
+          >
+            ✅ 建议修复方案
+          </div>
+          <ul
+            style="
+              font-size: 13px;
+              color: #166534;
+              line-height: 2;
+              padding-left: 18px;
+            "
+          >
+            <li>
+              在 <code>App.css</code> 的
+              <code>[data-theme="dark"]</code> 块中，添加针对
+              <code>.ant-modal-confirm-btns .ant-btn-default</code> 的深色覆盖
+            </li>
+            <li>
+              使用足够高的选择器权重和 <code>!important</code> 确保覆盖
+              CSS-in-JS
+            </li>
+            <li>
+              或在 <code>Modal.confirm</code> 调用时传入
+              <code>cancelButtonProps.style</code> 根据当前主题动态设定
+            </li>
+            <li>
+              全局方案推荐：通过 ConfigProvider 的
+              <code>theme.components.Modal</code> 统一配置
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 影响范围 -->
+      <div
+        style="
+          margin-top: 24px;
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          border-radius: 12px;
+          padding: 20px;
+        "
+      >
+        <div
+          style="
+            font-size: 14px;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 12px;
+          "
+        >
+          📋 影响范围（涉及 Modal.confirm 调用）
+        </div>
+        <div
+          style="
+            display: grid;
+            gap: 6px;
+            font-size: 12px;
+            font-family: &quot;SF Mono&quot;, Consolas, monospace;
+            color: #78350f;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          "
+        >
+          <div>• AccountPermissionPage.jsx (6 处)</div>
+          <div>• useAccountActions.jsx (6 处)</div>
+          <div>• useTeacherActions.jsx (2 处)</div>
+          <div>• useStudentActions.jsx (2 处)</div>
+          <div>• useTaskPublishActions.jsx (2 处)</div>
+          <div>• useBuildingActions.jsx (2 处)</div>
+          <div>• DormManagementPage.jsx (2 处)</div>
+          <div>• OccupancyManagementPage.jsx (3 处)</div>
+          <div>• useResultActions.jsx (3 处)</div>
+          <div>• useResultEntryActions.jsx (1 处)</div>
+          <div>• AppLayout.jsx (1 处)</div>
+          <div>• confirm.js (confirmDangerCountdown)</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

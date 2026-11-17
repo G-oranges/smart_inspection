@@ -1,0 +1,78 @@
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import IOSActionSheet from "../../components/common/IOSActionSheet";
+import type {
+  TaskPublishActionSheetItem,
+  TaskPublishActionSheetProps,
+} from "./types";
+
+export const TaskPublishActionSheet = ({
+  canEditTasks,
+  open,
+  onClose,
+  selectedTaskIds,
+  sortedTasks,
+  handleOpenEditModal,
+  handleDeleteTask,
+  handleBulkDeleteTasks,
+}: TaskPublishActionSheetProps) => {
+  const getActions = (): TaskPublishActionSheetItem[] => {
+    if (!canEditTasks) {
+      return [];
+    }
+
+    if (selectedTaskIds.length === 1) {
+      const task = sortedTasks.find((item) => item.id === selectedTaskIds[0]);
+      if (!task) return [];
+      return [
+        {
+          key: "edit",
+          label: "编辑任务",
+          icon: <EditOutlined />,
+          type: "primary",
+          onClick: () => {
+            onClose();
+            handleOpenEditModal(task);
+          },
+        },
+        {
+          key: "delete",
+          label: "删除任务",
+          icon: <DeleteOutlined />,
+          type: "danger",
+          onClick: () => {
+            onClose();
+            handleDeleteTask(task);
+          },
+        },
+      ];
+    } else {
+      return [
+        {
+          key: "batch-delete",
+          label: `删除任务 (${selectedTaskIds.length} 项)`,
+          icon: <DeleteOutlined />,
+          type: "danger",
+          onClick: () => {
+            onClose();
+            handleBulkDeleteTasks(selectedTaskIds);
+          },
+        },
+      ];
+    }
+  };
+
+  const title = selectedTaskIds.length === 1 ? "任务操作" : `批量操作 (${selectedTaskIds.length} 项)`;
+  const subtitle = selectedTaskIds.length === 1 
+    ? sortedTasks.find((t) => t.id === selectedTaskIds[0])?.title 
+    : "支持编辑和删除操作";
+
+  return (
+    <IOSActionSheet
+      open={open}
+      onClose={onClose}
+      title={title}
+      subtitle={subtitle}
+      actions={getActions()}
+    />
+  );
+};

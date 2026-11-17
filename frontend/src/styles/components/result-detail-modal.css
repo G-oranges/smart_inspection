@@ -1,0 +1,66 @@
+/* ============================================================
+   Result Detail Modal Styles (Migration Override Layer)
+   结果详情弹窗 token 化迁移覆盖层
+   ============================================================ */
+
+.result-detail-modal .result-detail-descriptions .ant-descriptions-item-label,
+.result-detail-modal .result-detail-descriptions .ant-descriptions-item-content {
+  transition: background-color var(--co-transition-fast);
+}
+
+.result-detail-modal .result-detail-descriptions .ant-descriptions-row:hover > th,
+.result-detail-modal .result-detail-descriptions .ant-descriptions-row:hover > td {
+  background-color: color-mix(in srgb, var(--co-text) 4%, transparent);
+}
+
+[data-theme="dark"]
+  .result-detail-modal
+  .result-detail-descriptions
+  .ant-descriptions-row:hover
+  > th,
+[data-theme="dark"]
+  .result-detail-modal
+  .result-detail-descriptions
+  .ant-descriptions-row:hover
+  > td {
+  background-color: color-mix(in srgb, var(--co-on-primary) 8%, transparent);
+}
+
+@media (max-width: 40rem) {
+  .result-detail-modal.ant-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0;
+    top: 0;
+    padding-bottom: 0;
+  }
+
+  .result-detail-modal .ant-modal-content {
+    border-radius: 0 !important;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .result-detail-modal .ant-modal-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .result-detail-modal .ant-modal-header,
+  .result-detail-modal .ant-modal-body,
+  .result-detail-modal .ant-modal-footer {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .result-detail-modal .ant-modal-footer {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .result-detail-modal .macos-table .ant-table-thead > tr > th,
+  .result-detail-modal .macos-table .ant-table-tbody > tr > td {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.5rem !important;
+  }
+}

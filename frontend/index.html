@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- PWA 基础配置 -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#007AFF" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="宿舍管理" />
+
+    <!-- SEO 优化 -->
+    <meta
+      name="description"
+      content="智慧宿舍管理系统 - 高效便捷的宿舍管理与查寝评分系统"
+    />
+    <meta name="keywords" content="宿舍管理,查寝,学生管理,住宿管理" />
+
+    <!-- 图标 -->
+    <link rel="icon" type="image/svg+xml" href="/pwa-icon.svg" />
+    <link rel="apple-touch-icon" href="/pwa-icon.svg" />
+
+    <!-- 预连接优化 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <title>智慧宿舍管理系统</title>
+
+    <!-- iOS 启动画面样式 -->
+    <style>
+      /* 防止 iOS 滚动回弹空白 */
+      html,
+      body {
+        overscroll-behavior: none;
+      }
+
+      /* PWA 安装提示样式 */
+      .pwa-install-prompt {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        padding: 16px 20px;
+        background: linear-gradient(135deg, #007aff 0%, #00d4ff 100%);
+        color: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 122, 255, 0.3);
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 10000;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+      }
+
+      .pwa-install-prompt.show {
+        display: flex;
+        animation: slideUp 0.3s ease-out;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .pwa-install-prompt button {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.2s;
+      }
+
+      .pwa-install-prompt button:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      .pwa-install-prompt .close {
+        background: transparent;
+        padding: 4px 8px;
+        margin-left: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- PWA 安装提示 -->
+    <div id="pwa-install-prompt" class="pwa-install-prompt">
+      <span>📱 将应用添加到主屏幕，获得更好体验</span>
+      <div>
+        <button id="pwa-install-btn">安装</button>
+        <button id="pwa-install-close" class="close">✕</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- PWA 安装逻辑 -->
+    <script>
+      let deferredPrompt;
+      const installPrompt = document.getElementById("pwa-install-prompt");
+      const installBtn = document.getElementById("pwa-install-btn");
+      const closeBtn = document.getElementById("pwa-install-close");
+
+      // 监听安装提示事件
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+
+        // 检查是否已经显示过提示（24小时内不重复显示）
+        const lastPrompt = localStorage.getItem("pwa-install-prompt-time");
+        const now = Date.now();
+        if (!lastPrompt || now - parseInt(lastPrompt) > 24 * 60 * 60 * 1000) {
+          setTimeout(() => {
+            installPrompt.classList.add("show");
+          }, 3000); // 延迟3秒显示
+        }
+      });
+
+      // 安装按钮点击
+      installBtn?.addEventListener("click", async () => {
+        if (!deferredPrompt) return;
+
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+
+        if (outcome === "accepted") {
+          console.log("用户接受了 PWA 安装");
+        }
+
+        deferredPrompt = null;
+        installPrompt.classList.remove("show");
+      });
+
+      // 关闭按钮点击
+      closeBtn?.addEventListener("click", () => {
+        installPrompt.classList.remove("show");
+        localStorage.setItem("pwa-install-prompt-time", Date.now().toString());
+      });
+
+      // 检测是否已安装
+      window.addEventListener("appinstalled", () => {
+        installPrompt.classList.remove("show");
+        console.log("PWA 安装成功");
+      });
+    </script>
+  </body>
+</html>

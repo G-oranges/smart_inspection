@@ -1,0 +1,617 @@
+/* ============================================================
+   Account Permission Styles (Migration Override Layer).
+   账号权限页与相关表单辅助类 token 化迁移覆盖层.
+   轻量化收敛：深色、克制、低噪音
+   ============================================================ */
+
+.control-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ant-card.control-card .ant-card-body {
+  padding: 1rem 1.25rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--co-text);
+}
+
+.hero-hint {
+  margin: 0;
+  color: var(--co-text-muted);
+  font-size: 0.82rem;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.full-row {
+  grid-column: 1 / -1;
+}
+
+.modal-form {
+  padding-top: 0.25rem;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.9rem 1rem;
+}
+
+.modal-grid .full-row {
+  grid-column: 1 / -1;
+}
+
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: var(--co-text);
+}
+
+.field-label {
+  font-size: 0.95rem;
+  color: var(--co-text-secondary);
+}
+
+.field-hint {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--co-text-muted);
+}
+
+.field-hint--error {
+  color: var(--co-error);
+}
+
+.error {
+  color: var(--co-error);
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 3rem;
+  height: 1.625rem;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch .slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: color-mix(in srgb, var(--co-text) 12%, transparent);
+  transition: background var(--co-transition);
+  border-radius: var(--co-radius-full);
+}
+
+[data-theme="dark"] .switch .slider {
+  background: color-mix(in srgb, var(--co-on-primary) 24%, transparent);
+}
+
+.switch .slider:before {
+  position: absolute;
+  content: "";
+  height: 1.25rem;
+  width: 1.25rem;
+  left: 0.1875rem;
+  bottom: 0.1875rem;
+  background-color: var(--co-on-primary);
+  transition: transform var(--co-transition), background var(--co-transition);
+  border-radius: var(--co-radius-full);
+  box-shadow: 0 0.125rem 0.25rem color-mix(in srgb, var(--co-text) 18%, transparent);
+}
+
+.switch input:checked + .slider {
+  background: linear-gradient(120deg, var(--co-primary-hover), var(--co-primary));
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(1.375rem);
+}
+
+.switch input:focus-visible + .slider {
+  box-shadow: 0 0 0 0.1875rem color-mix(in srgb, var(--co-primary) 30%, transparent);
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.loading-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--co-text-muted);
+}
+
+/* ============================================================
+   角色管理主布局 — 轻量化版本
+   ============================================================ */
+
+.role-management-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.role-management-layout {
+  display: grid;
+  grid-template-columns: minmax(14rem, 16rem) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+/* --- 左侧角色列表卡片 --- */
+
+.role-list-card,
+.role-detail-card,
+.role-config-card {
+  overflow: hidden;
+}
+
+/* 左侧列表卡片去掉多余内边距 */
+.ant-card.role-list-card .ant-card-body {
+  padding: 0.75rem 0.5rem;
+}
+
+.role-list-header,
+.role-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.role-list-header {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.role-list-header__copy {
+  min-width: 0;
+}
+
+/* 工具栏更紧凑 */
+.role-list-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.role-list-toolbar .ant-btn {
+  border-radius: 0.5rem;
+  font-size: 0.82rem;
+  padding: 0.2rem 0.6rem;
+  height: auto;
+  line-height: 1.6;
+}
+
+.role-list-toolbar .ant-btn-icon-only {
+  color: var(--co-text-muted);
+  padding: 0.2rem 0.4rem;
+}
+
+/* --- 左侧角色纯文字列表 --- */
+
+.role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* 列表项：纯文字行，左侧细高亮条 */
+.role-list-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem 0.55rem 0.85rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--co-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--co-transition), color var(--co-transition);
+}
+
+/* 左侧选中高亮条 */
+.role-list-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  border-radius: 2px;
+  background: var(--co-primary);
+  transition: height var(--co-transition), opacity var(--co-transition);
+  opacity: 0;
+}
+
+/* Hover：仅提升文字亮度和极轻底色 */
+.role-list-item:hover {
+  background: color-mix(in srgb, var(--co-text) 5%, transparent);
+}
+
+/* 选中态：左侧细高亮条 + 极轻底色 */
+.role-list-item--active {
+  background: color-mix(in srgb, var(--co-primary) 8%, transparent);
+}
+
+.role-list-item--active::before {
+  height: 60%;
+  opacity: 1;
+}
+
+.role-list-item--active .role-list-item__title > span:first-child {
+  color: var(--co-primary);
+}
+
+.role-list-item__content {
+  min-width: 0;
+  flex: 1;
+}
+
+.role-list-item__title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* 缩小标签尺寸 */
+.role-list-item__title .ant-tag {
+  font-size: 0.68rem;
+  line-height: 1.4;
+  padding: 0 0.3rem;
+  margin: 0;
+  border-radius: 0.25rem;
+}
+
+/* Meta 信息默认隐藏，选中时显示一行 */
+.role-list-item__meta {
+  display: none;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--co-text-muted);
+}
+
+.role-list-item--active .role-list-item__meta {
+  display: flex;
+}
+
+/* 操作按钮默认隐藏，hover 时淡入 */
+.role-list-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  opacity: 0;
+  transition: opacity var(--co-transition);
+}
+
+.role-list-item:hover .role-list-item__actions,
+.role-list-item--active .role-list-item__actions {
+  opacity: 1;
+}
+
+.role-list-item__actions .ant-btn {
+  font-size: 0.78rem;
+}
+
+/* --- 右侧配置区 --- */
+
+.role-detail-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+/* 右侧配置卡片：降低内边距 */
+.ant-card.role-config-card .ant-card-body {
+  padding: 1rem 1.25rem;
+}
+
+/* 权限/数据范围 折叠头 */
+.role-config-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.role-config-card__header .section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.role-config-card__header .hero-hint {
+  font-size: 0.78rem;
+  margin-top: 0.1rem;
+}
+
+/* 折叠按钮：仅箭头图标 */
+.role-collapse-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding-inline: 0.25rem;
+  color: var(--co-text-muted);
+  font-size: 0.78rem;
+}
+
+.role-collapse-toggle .anticon {
+  transition: transform var(--co-transition);
+  font-size: 0.72rem;
+}
+
+.role-collapse-toggle--expanded .anticon {
+  transform: rotate(180deg);
+}
+
+/* 折叠面板 */
+.role-config-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--co-transition), opacity var(--co-transition);
+  opacity: 0;
+}
+
+.role-config-panel--expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.role-config-panel__inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 分段分隔线 */
+.role-config-divider {
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--co-text) 8%, transparent);
+  margin: 0.75rem 0;
+}
+
+.role-detail-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: flex-end;
+}
+
+/* --- 权限模块列表 — 分段+分隔线，无独立卡片 --- */
+
+.role-module-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* 模块：去掉边框和圆角盒子 */
+.role-module-card {
+  padding: 0.5rem 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* 模块之间用分隔线 */
+.role-module-card + .role-module-card {
+  border-top: 1px solid color-mix(in srgb, var(--co-text) 8%, transparent);
+  padding-top: 0.75rem;
+}
+
+.role-module-card__title {
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--co-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* 模块标题小圆点装饰 */
+.role-module-card__title::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--co-primary);
+  flex-shrink: 0;
+}
+
+.role-module-card__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.5rem 0.75rem;
+}
+
+/* 权限开关项 */
+.role-permission-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.85rem;
+  color: var(--co-text);
+}
+
+@media (min-width: 48.01rem) {
+  .role-module-card__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem 1rem;
+    align-items: start;
+  }
+
+  .role-permission-toggle {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.4rem 0.25rem;
+    text-align: center;
+  }
+
+  .role-permission-toggle > span {
+    display: block;
+    width: 100%;
+    min-height: 2.4em;
+    line-height: 1.4;
+  }
+
+  .role-permission-toggle .ant-switch {
+    flex-shrink: 0;
+  }
+}
+
+/* --- 数据范围区 — 去重框 --- */
+
+.role-scope-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.6rem 0 0 0;
+  border: none;
+  border-radius: 0;
+}
+
+.role-scope-block__title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--co-text-secondary);
+}
+
+/* --- 保存按钮 sticky --- */
+
+.role-management-sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem 0 0.25rem;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--co-bg, #0b1220) 88%, transparent) 26%);
+}
+
+.role-management-sticky .ant-btn {
+  min-width: 10rem;
+  border-radius: 999px;
+}
+
+.role-list-empty {
+  min-height: 6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================
+   响应式
+   ============================================================ */
+
+@media (max-width: 48rem) {
+  .section-title {
+    font-size: 0.95rem !important;
+  }
+
+  .role-management-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .role-list-header,
+  .role-detail-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .role-list-toolbar,
+  .role-config-card__header {
+    justify-content: stretch;
+  }
+
+  .role-list-toolbar .ant-btn {
+    flex: 1 1 6rem;
+  }
+
+  .role-list-toolbar .ant-btn-icon-only {
+    flex-basis: 2.5rem;
+    flex-grow: 0;
+  }
+
+  .role-detail-status {
+    align-items: flex-start;
+  }
+
+  .role-module-card__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .role-management-sticky {
+    justify-content: stretch;
+  }
+
+  .role-management-sticky .ant-btn {
+    width: 100%;
+  }
+
+  /* 移动端列表项始终显示 meta 和 actions */
+  .role-list-item__meta {
+    display: flex;
+  }
+
+  .role-list-item__actions {
+    opacity: 1;
+  }
+}

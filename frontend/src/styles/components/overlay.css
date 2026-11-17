@@ -1,0 +1,148 @@
+/* ============================================================
+   Overlay Styles (Migration Override Layer)
+   Modal / Drawer / ActionSheet token 化覆盖层
+   ============================================================ */
+
+.glass-modal .ant-modal-content {
+  border-radius: 1.75rem !important;
+  overflow: hidden;
+  background: var(--co-glass-bg-heavy) !important;
+  backdrop-filter: blur(var(--co-glass-blur));
+  -webkit-backdrop-filter: blur(var(--co-glass-blur));
+  border: 1px solid var(--co-glass-border) !important;
+  box-shadow: var(--co-glass-shadow-lg) !important;
+}
+
+[data-theme="dark"] .glass-modal .ant-modal-content {
+  background: var(--co-glass-bg-heavy) !important;
+  border: 1px solid var(--co-glass-border) !important;
+  box-shadow: var(--co-glass-shadow-lg) !important;
+}
+
+.apple-modal .ant-modal-content {
+  border-radius: var(--co-radius-xl) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.apple-modal .ant-modal-header {
+  background: transparent !important;
+  border-bottom: none !important;
+  padding: 1.5rem 1.75rem 0.5rem !important;
+}
+
+.apple-modal .ant-modal-title {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: var(--co-text) !important;
+  letter-spacing: -0.01875rem;
+}
+
+.apple-modal .ant-modal-body {
+  padding: 0.5rem 1.5rem 1.5rem !important;
+}
+
+.apple-modal .ant-modal-footer {
+  background: transparent !important;
+  border-top: 1px solid var(--co-glass-border) !important;
+  padding: 0.5rem 1.5rem 1.5rem !important;
+}
+
+[data-theme="dark"] .apple-modal .ant-modal-footer {
+  border-top: 1px solid var(--co-glass-border) !important;
+}
+
+.glass-modal .ant-modal-mask,
+.apple-modal .ant-modal-mask {
+  backdrop-filter: blur(var(--co-glass-blur-xs));
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-xs));
+  background: var(--co-glass-bg) !important;
+}
+
+.ant-modal-mask {
+  backdrop-filter: blur(var(--co-glass-blur-xs));
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-xs));
+  background: color-mix(in srgb, var(--co-text) 10%, transparent) !important;
+}
+
+.apple-drawer .ant-drawer-content {
+  border-radius: 1.25rem 1.25rem 0 0 !important;
+  background: var(--co-glass-bg-heavy) !important;
+  backdrop-filter: blur(var(--co-glass-blur));
+  -webkit-backdrop-filter: blur(var(--co-glass-blur));
+}
+
+[data-theme="dark"] .apple-drawer .ant-drawer-content {
+  background: var(--co-glass-bg-heavy) !important;
+}
+
+.apple-drawer .ant-drawer-header {
+  border-bottom: 1px solid var(--co-glass-border) !important;
+  padding: 1rem 1.25rem !important;
+}
+
+.apple-drawer .ant-drawer-title {
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.01875rem;
+}
+
+[data-theme="dark"] .apple-drawer .ant-drawer-header {
+  border-bottom: 1px solid var(--co-glass-border) !important;
+}
+
+.apple-drawer .ant-drawer-body {
+  padding: 1.25rem !important;
+}
+
+.ios-inset-grouped-drawer .ant-drawer-content {
+  background: var(--co-bg) !important;
+}
+
+[data-theme="dark"] .ios-inset-grouped-drawer .ant-drawer-content {
+  background: var(--co-bg) !important;
+}
+
+.profile-drawer-right .ant-drawer-content {
+  border-radius: 1.25rem 0 0 1.25rem !important;
+  background: var(--co-glass-bg-heavy) !important;
+  border-left: 1px solid var(--co-glass-border);
+  backdrop-filter: blur(var(--co-glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-sm));
+}
+
+[data-theme="dark"] .profile-drawer-right .ant-drawer-content {
+  background: var(--co-glass-bg-heavy) !important;
+  border-left: 1px solid var(--co-glass-border);
+}
+
+.profile-drawer-right .ant-drawer-body {
+  padding: 0 !important;
+}
+
+.apple-popover-glass .ant-popover-content {
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--co-text) 20%, transparent) !important;
+}
+
+.apple-popover-glass .ant-popover-inner {
+  background: var(--co-glass-bg-heavy) !important;
+  backdrop-filter: blur(var(--co-glass-blur-sm)) !important;
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-sm)) !important;
+  border: 1px solid var(--co-glass-border) !important;
+  border-radius: 1.125rem !important;
+  padding: 0 !important;
+}
+
+[data-theme="dark"] .apple-popover-glass .ant-popover-inner {
+  background: var(--co-glass-bg-heavy) !important;
+  border-color: var(--co-glass-border) !important;
+}
+
+.apple-popover-glass .ant-popover-arrow::before {
+  background: var(--co-glass-bg-heavy) !important;
+}
+
+[data-theme="dark"] .apple-popover-glass .ant-popover-arrow::before {
+  background: var(--co-glass-bg-heavy) !important;
+}

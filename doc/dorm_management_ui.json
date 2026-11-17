@@ -1,0 +1,554 @@
+{
+  "page": {
+    "name": "DormManagementPage",
+    "route": "/dorms",
+    "title": "宿舍管理",
+    "sourceFile": "frontend/src/pages/DormManagementPage.jsx"
+  },
+  "uiStack": {
+    "framework": "React",
+    "uiLibrary": "Ant Design",
+    "customComponents": [
+      "PageLayout",
+      "GlassTable",
+      "AppleStatCard",
+      "DormGridSelector",
+      "ResponsiveDataView",
+      "RoomOccupancyCard",
+      "TableFieldSettings",
+      "IOSActionSheet",
+      "FilterDropdownPanel",
+      "MobileAdvancedFilter",
+      "BedDetailModal",
+      "ImportWizardModal",
+      "CollegeMajorClassCascader"
+    ]
+  },
+  "permissions": {
+    "view": "DORM_VIEW",
+    "edit": "DORM_EDIT",
+    "export": "DORM_EXPORT",
+    "import": "DORM_IMPORT"
+  },
+  "data": {
+    "load": [
+      "actions.loadDorms",
+      "actions.loadDormBeds",
+      "actions.loadStudents",
+      "actions.fetchDormTable"
+    ],
+    "mutations": [
+      "actions.createDorm",
+      "actions.updateDorm",
+      "actions.deleteDorm",
+      "actions.deleteDorms",
+      "actions.previewImportDorms",
+      "actions.importDorms"
+    ],
+    "download": [
+      "actions.exportDorms",
+      "actions.downloadDormTemplate"
+    ]
+  },
+  "layout": {
+    "component": "PageLayout",
+    "sections": [
+      {
+        "key": "stats",
+        "component": "AppleStatCard",
+        "items": [
+          {
+            "label": "宿舍总数",
+            "value": "dormStats.total",
+            "unit": "间",
+            "icon": "BankOutlined",
+            "accent": "blue"
+          },
+          {
+            "label": "总床位数",
+            "value": "dormStats.capacitySum",
+            "unit": "床",
+            "icon": "AppstoreOutlined",
+            "accent": "green"
+          },
+          {
+            "label": "已入住 / 容量",
+            "value": "dormStats.occupiedSum",
+            "subValue": "dormStats.capacitySum",
+            "unit": "人",
+            "icon": "TeamOutlined",
+            "accent": "orange"
+          },
+          {
+            "label": "男/女分布",
+            "value": "dormStats.maleDorms/dormStats.femaleDorms",
+            "unit": "间",
+            "icon": "ManOutlined",
+            "accent": "purple"
+          }
+        ]
+      },
+      {
+        "key": "filters",
+        "desktop": {
+          "search": {
+            "component": "Input",
+            "placeholder": "搜索宿舍、教工、学生..."
+          },
+          "actions": [
+            {
+              "key": "create",
+              "label": "新增宿舍",
+              "permission": "DORM_EDIT"
+            },
+            {
+              "key": "import",
+              "label": "导入",
+              "permission": "DORM_IMPORT"
+            },
+            {
+              "key": "export",
+              "label": "导出",
+              "permission": "DORM_EXPORT"
+            },
+            {
+              "key": "fieldSettings",
+              "label": "字段管理"
+            },
+            {
+              "key": "bulkDelete",
+              "label": "删除",
+              "permission": "DORM_EDIT",
+              "visibleWhen": "selectedIds.length > 0"
+            }
+          ],
+          "filterPanel": {
+            "component": "FilterDropdownPanel",
+            "fieldsRef": "filters.fields"
+          },
+          "viewSwitcher": {
+            "component": "Segmented",
+            "options": [
+              {
+                "value": "list",
+                "label": "列表",
+                "icon": "BarsOutlined"
+              },
+              {
+                "value": "card",
+                "label": "卡片",
+                "icon": "AppstoreOutlined"
+              },
+              {
+                "value": "mini",
+                "label": "缩略",
+                "icon": "TableOutlined"
+              }
+            ]
+          },
+          "selectionBanner": {
+            "visibleWhen": "selectedCount > 0",
+            "actions": [
+              "selectAllResults",
+              "clearSelection"
+            ]
+          }
+        },
+        "mobile": {
+          "search": {
+            "component": "Input",
+            "placeholder": "搜索宿舍..."
+          },
+          "filterButton": {
+            "component": "Button",
+            "label": "筛选",
+            "badge": "selectedFilterCount"
+          },
+          "clearButton": {
+            "component": "Button",
+            "icon": "CloseCircleOutlined",
+            "visibleWhen": "hasFilters"
+          }
+        }
+      },
+      {
+        "key": "content",
+        "header": {
+          "title": "实时列表",
+          "subtitle": "最后更新: lastRefreshedAt"
+        },
+        "body": {
+          "component": "tableContent()"
+        }
+      }
+    ]
+  },
+  "filters": {
+    "fields": [
+      {
+        "key": "building",
+        "label": "楼栋",
+        "optionsSource": "uniqueBuildings"
+      },
+      {
+        "key": "floor",
+        "label": "楼层",
+        "optionsSource": "uniqueFloors",
+        "valueFormat": "{floor}层"
+      },
+      {
+        "key": "grade",
+        "label": "年级",
+        "optionsSource": "uniqueGrades"
+      },
+      {
+        "key": "gender",
+        "label": "性别",
+        "options": [
+          "男",
+          "女",
+          "混合",
+          "未指定"
+        ],
+        "searchable": false
+      },
+      {
+        "key": "occupancyStatus",
+        "label": "空余情况",
+        "options": [
+          {
+            "label": "无空床",
+            "value": "full"
+          },
+          {
+            "label": "有空床",
+            "value": "partial"
+          },
+          {
+            "label": "全空",
+            "value": "empty"
+          }
+        ],
+        "searchable": false
+      },
+      {
+        "key": "college_major_class",
+        "label": "学院专业班级",
+        "component": "CollegeMajorClassCascader"
+      }
+    ],
+    "syncToUrlParams": true
+  },
+  "views": {
+    "default": "list",
+    "mobile": {
+      "component": "ResponsiveDataView",
+      "cardRenderer": "renderDormCard",
+      "pagination": true
+    },
+    "desktop": {
+      "list": {
+        "component": "GlassTable",
+        "pagination": true,
+        "resizableColumns": true
+      },
+      "card": {
+        "component": "RoomOccupancyCardGrid",
+        "grid": "1-4 columns by breakpoint",
+        "pagination": true,
+        "cardFields": [
+          "building + roomNo",
+          "campus",
+          "gender",
+          "capacity",
+          "occupiedCount",
+          "floor",
+          "grade",
+          "monitorName",
+          "beds"
+        ]
+      },
+      "mini": {
+        "component": "DormGridSelector",
+        "pagination": true
+      }
+    }
+  },
+  "table": {
+    "key": "dormList",
+    "columnsDefault": [
+      {
+        "fieldKey": "campus",
+        "label": "校区",
+        "visible": true,
+        "sortable": true
+      },
+      {
+        "fieldKey": "building",
+        "label": "楼栋",
+        "visible": true,
+        "sortable": true
+      },
+      {
+        "fieldKey": "floor",
+        "label": "楼层",
+        "visible": true,
+        "sortable": true
+      },
+      {
+        "fieldKey": "roomNo",
+        "label": "房间号",
+        "visible": true,
+        "sortable": true
+      },
+      {
+        "fieldKey": "college",
+        "label": "所属学院",
+        "visible": true,
+        "sortable": false
+      },
+      {
+        "fieldKey": "capacity",
+        "label": "可住人数",
+        "visible": true,
+        "sortable": true
+      },
+      {
+        "fieldKey": "occupancy",
+        "label": "占用情况",
+        "visible": true,
+        "sortable": false
+      },
+      {
+        "fieldKey": "availableBeds",
+        "label": "空余床位",
+        "visible": false,
+        "sortable": true
+      },
+      {
+        "fieldKey": "gender",
+        "label": "宿舍性别",
+        "visible": true,
+        "sortable": true
+      },
+      {
+        "fieldKey": "grade",
+        "label": "年级集合",
+        "visible": true,
+        "sortable": true
+      },
+      {
+        "fieldKey": "studentList",
+        "label": "入住学生",
+        "visible": false,
+        "sortable": false
+      },
+      {
+        "fieldKey": "monitorName",
+        "label": "寝室长",
+        "visible": false,
+        "sortable": false
+      }
+    ],
+    "rowActions": [
+      {
+        "key": "detail",
+        "label": "详情",
+        "icon": "EyeOutlined"
+      },
+      {
+        "key": "edit",
+        "label": "编辑",
+        "icon": "EditOutlined",
+        "permission": "DORM_EDIT"
+      },
+      {
+        "key": "delete",
+        "label": "删除",
+        "icon": "DeleteOutlined",
+        "permission": "DORM_EDIT",
+        "confirm": "确定删除该宿舍吗？"
+      }
+    ],
+    "cellRender": {
+      "occupancy": "Progress percent + occupied/total",
+      "availableBeds": "Tag (success/error)",
+      "college": "Tag list (beds college aggregation)",
+      "grade": "Text list (beds grade aggregation)",
+      "studentList": "Tag list (top 4)",
+      "monitorName": "Tag or fallback"
+    }
+  },
+  "actions": {
+    "toolbar": [
+      "create",
+      "import",
+      "export",
+      "fieldSettings",
+      "bulkDelete"
+    ],
+    "row": [
+      "detail",
+      "edit",
+      "delete"
+    ],
+    "bulk": [
+      "selectAllResults",
+      "deleteSelected"
+    ],
+    "floating": [
+      "新增",
+      "导入",
+      "导出",
+      "模板"
+    ]
+  },
+  "selection": {
+    "enabledWhen": "canEdit",
+    "crossPageSelection": true,
+    "banner": {
+      "visibleWhen": "selectedCount > 0",
+      "actions": [
+        "selectAllResults",
+        "clearSelection"
+      ]
+    },
+    "mobileActionSheet": {
+      "component": "IOSActionSheet",
+      "actions": [
+        "selectAllResults",
+        "view",
+        "edit",
+        "delete"
+      ]
+    }
+  },
+  "overlays": {
+    "drawers": [
+      {
+        "key": "createDormMobile",
+        "title": "新增宿舍",
+        "fields": [
+          "campus",
+          "building",
+          "floor",
+          "roomNo",
+          "capacity",
+          "gender",
+          "grade",
+          "remark"
+        ]
+      },
+      {
+        "key": "editDormMobile",
+        "title": "编辑宿舍信息",
+        "fields": [
+          "campus",
+          "building",
+          "floor",
+          "roomNo",
+          "capacity",
+          "gender",
+          "grade"
+        ]
+      }
+    ],
+    "modals": [
+      {
+        "key": "createDormDesktop",
+        "title": "新增宿舍",
+        "fields": [
+          "campus",
+          "building",
+          "floor",
+          "roomNo",
+          "capacity",
+          "gender",
+          "grade",
+          "remark"
+        ]
+      },
+      {
+        "key": "editDormDesktop",
+        "title": "编辑宿舍信息",
+        "fields": [
+          "campus",
+          "building",
+          "floor",
+          "roomNo",
+          "capacity",
+          "gender",
+          "grade"
+        ]
+      },
+      {
+        "key": "detailDorm",
+        "title": "宿舍详情",
+        "fields": [
+          "campus",
+          "building",
+          "floor",
+          "roomNo",
+          "capacity",
+          "occupiedCount",
+          "gender",
+          "grade",
+          "monitorName"
+        ]
+      },
+      {
+        "key": "importPreview",
+        "title": "宿舍导入预检",
+        "fields": [
+          "total",
+          "newCount",
+          "conflictCount",
+          "invalidCount"
+        ]
+      },
+      {
+        "key": "tableFieldSettings",
+        "title": "宿舍列表字段设置",
+        "component": "TableFieldSettings"
+      },
+      {
+        "key": "bedDetail",
+        "component": "BedDetailModal"
+      },
+      {
+        "key": "importWizard",
+        "component": "ImportWizardModal"
+      }
+    ],
+    "panels": [
+      {
+        "key": "mobileAdvancedFilter",
+        "title": "筛选宿舍",
+        "component": "MobileAdvancedFilter"
+      }
+    ],
+    "actionSheet": {
+      "component": "IOSActionSheet",
+      "title": "宿舍管理"
+    }
+  },
+  "floatingActions": {
+    "mobile": {
+      "components": [
+        "FloatButton.BackTop",
+        "FloatButton.Group"
+      ],
+      "groupItems": [
+        "新增",
+        "导入",
+        "导出",
+        "模板"
+      ]
+    }
+  },
+  "notes": [
+    "筛选条件与分页/排序参数同步到 URL 查询参数。",
+    "列表视图支持列宽拖拽与字段可见性配置。",
+    "移动端使用卡片与操作面板替代桌面表格交互。"
+  ]
+}

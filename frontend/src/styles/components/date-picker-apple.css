@@ -1,0 +1,127 @@
+/* ============================================================
+   Apple Date Picker Styles (Migration Override Layer)
+   Apple 风格 DatePicker / RangePicker 迁移覆盖层
+   ============================================================ */
+
+.apple-datepicker.ant-picker,
+.apple-rangepicker.ant-picker {
+  @apply rounded-xl border-none bg-ios-gray/50 dark:bg-white/5 h-10 px-4 transition-all !important;
+}
+
+.apple-datepicker.ant-picker:hover,
+.apple-datepicker.ant-picker-focused,
+.apple-rangepicker.ant-picker:hover,
+.apple-rangepicker.ant-picker-focused {
+  @apply bg-ios-gray/80 dark:bg-white/10 ring-2 ring-ios-blue/20 !important;
+}
+
+.apple-datepicker-dropdown.ant-picker-dropdown,
+.apple-rangepicker-dropdown.ant-picker-dropdown {
+  @apply rounded-2xl border-none shadow-macos backdrop-blur-xl !important;
+}
+
+.apple-datepicker-dropdown .ant-picker-panel-container,
+.apple-rangepicker-dropdown .ant-picker-panel-container {
+  @apply bg-white/90 dark:bg-zinc-900/90 rounded-2xl overflow-hidden !important;
+}
+
+.apple-datepicker-dropdown .ant-picker-cell-selected .ant-picker-cell-inner,
+.apple-rangepicker-dropdown .ant-picker-cell-selected .ant-picker-cell-inner {
+  @apply bg-ios-blue rounded-lg !important;
+}
+
+.apple-datepicker-dropdown .ant-picker-cell:hover .ant-picker-cell-inner,
+.apple-rangepicker-dropdown .ant-picker-cell:hover .ant-picker-cell-inner {
+  @apply bg-ios-gray/50 dark:bg-white/10 rounded-lg !important;
+}
+
+.apple-datepicker-dropdown
+  .ant-picker-time-panel-cell-selected
+  .ant-picker-time-panel-cell-inner,
+.apple-rangepicker-dropdown
+  .ant-picker-time-panel-cell-selected
+  .ant-picker-time-panel-cell-inner {
+  @apply bg-ios-blue text-white rounded-md !important;
+}
+
+.apple-datepicker-dropdown .ant-picker-ok button,
+.apple-rangepicker-dropdown .ant-picker-ok button {
+  @apply bg-ios-blue rounded-lg border-none !important;
+}
+
+/* 深色模式下的 DatePicker / TimePicker 体验优化（全局） */
+[data-theme="dark"] .ant-picker-panel tbody tr:hover td {
+  background: color-mix(in srgb, var(--co-on-primary) 8%, transparent) !important;
+}
+
+[data-theme="dark"] .ant-picker-panel tbody tr .ant-picker-cell-selected {
+  background: var(--ant-primary-color) !important;
+}
+
+[data-theme="dark"] .ant-picker-time-panel-cell-inner:hover {
+  background: color-mix(in srgb, var(--co-on-primary) 12%, transparent) !important;
+  color: var(--co-on-primary) !important;
+}
+
+[data-theme="dark"] .ant-picker-dropdown {
+  backdrop-filter: blur(var(--co-glass-blur-xs)) !important;
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-xs)) !important;
+}
+
+[data-theme="dark"] .ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
+  background: var(--ant-primary-1) !important;
+}
+
+/* Date/Time panel alignment fixes */
+.ant-picker-cell-inner {
+  text-align: center !important;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+}
+
+.ant-picker-content th {
+  text-align: center !important;
+}
+
+.ant-picker-time-panel-column > li .ant-picker-time-panel-cell-inner {
+  text-align: center !important;
+  padding: 0 !important;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.ant-picker-time-panel-column {
+  width: 100%;
+  text-align: center;
+}
+
+/* Mobile DatePicker as bottom sheet */
+@media (max-width: 36rem) {
+  .ant-picker-dropdown {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    max-height: 80vh;
+    transform: none !important;
+    display: flex;
+    justify-content: center;
+    background: var(--co-bg);
+    border-radius: var(--co-radius-lg) var(--co-radius-lg) 0 0;
+    box-shadow: 0 -0.25rem 1.25rem color-mix(in srgb, var(--co-text) 20%, transparent);
+    z-index: 10000 !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .ant-picker-dropdown .ant-picker-panel-container {
+    width: 100% !important;
+    border-radius: var(--co-radius-lg) var(--co-radius-lg) 0 0;
+    overflow: hidden;
+    box-shadow: none !important;
+  }
+}

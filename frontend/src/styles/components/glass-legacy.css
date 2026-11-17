@@ -1,0 +1,44 @@
+/* ============================================================
+   Legacy Glass Card Bridge
+   迁移自 src/index.css 的 glass-card 兼容层
+   ============================================================ */
+
+.glass-card,
+.glass-card--small {
+  --co-legacy-glass-dynamic-bg-active: var(--co-legacy-glass-dynamic-bg);
+  backdrop-filter: blur(42.685px);
+  -webkit-backdrop-filter: blur(42.685px);
+  background: var(--co-legacy-glass-base-bg);
+  border: 1px solid var(--co-legacy-glass-base-border);
+  border-radius: 1em;
+  overflow: visible;
+}
+
+.glass-card--small {
+  width: 13em;
+  height: 7em;
+  border-top-left-radius: 0.5rem;
+  transition: transform 1s cubic-bezier(0.8, 0, 0.2, 1);
+  transition-delay: 0.2s;
+  transform: translateY(2.5rem);
+}
+
+.active .glass-card--small {
+  transform: translateY(0);
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .glass-card,
+  .glass-card--small {
+    background: var(--co-legacy-glass-dynamic-bg-active) !important;
+    backdrop-filter: blur(var(--co-glass-blur-xs));
+    -webkit-backdrop-filter: blur(var(--co-glass-blur-xs));
+  }
+}
+
+@media (max-width: 48rem) {
+  .glass-card,
+  .glass-card--small {
+    --co-legacy-glass-dynamic-bg-active: var(--co-legacy-glass-dynamic-bg-mobile);
+  }
+}

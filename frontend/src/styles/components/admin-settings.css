@@ -1,0 +1,261 @@
+/* ============================================================
+   Admin Settings Workbench Styles
+   系统设置工作台专属样式 - 基于 Apple Workbench 进行扁平化重构
+   ============================================================ */
+
+/**
+ * 工作台私有变量
+ */
+.admin-settings-page {
+  --as-sidebar-width: 240px;
+  --as-header-h: 64px;
+  --as-section-gap: 24px;
+  
+  /* 基础颜色映射 */
+  --as-bg: var(--co-bg);
+  --as-border: var(--co-glass-border);
+  --as-panel-bg: var(--co-glass-bg);
+}
+
+[data-theme="dark"] .admin-settings-page {
+  /* 深色工作台特化：更深的底色，更克制的边框 */
+  --as-bg: #0e0e11;
+  --as-panel-bg: rgba(255, 255, 255, 0.03);
+  --as-border: rgba(255, 255, 255, 0.08);
+  --as-nav-active: rgba(60, 131, 246, 0.15);
+}
+
+/**
+ * 布局容器
+ */
+.admin-settings-workbench {
+  display: flex;
+  gap: var(--as-section-gap);
+  align-items: flex-start;
+  min-height: calc(100vh - 160px);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/**
+ * 左侧导航栏 (桌面端)
+ */
+.admin-settings-sidebar {
+  width: var(--as-sidebar-width);
+  position: sticky;
+  top: 80px;
+  flex-shrink: 0;
+  z-index: 40;
+}
+
+.admin-settings-nav-card {
+  padding: 8px;
+  background: var(--as-panel-bg);
+  border: 1px solid var(--as-border);
+  border-radius: var(--co-radius-lg);
+  backdrop-filter: blur(10px);
+}
+
+.admin-settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  color: var(--co-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  margin-bottom: 2px;
+  border: 1px solid transparent;
+}
+
+.admin-settings-nav-item:hover {
+  background: var(--co-nav-hover-bg);
+  color: var(--co-text);
+}
+
+.admin-settings-nav-item.active {
+  background: var(--as-nav-active, var(--co-nav-active-bg));
+  color: var(--co-primary);
+  font-weight: 600;
+}
+
+.admin-settings-nav-item i {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+/**
+ * 侧边栏页脚 (保存按钮区)
+ */
+.admin-settings-sidebar-footer {
+  margin-top: 12px;
+  padding: 12px 8px 4px 8px;
+  border-top: 1px solid var(--as-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/**
+ * 右侧内容区
+ */
+.admin-settings-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--as-section-gap);
+}
+
+/**
+ * 内容分区面板 - 扁平化重构
+ */
+.admin-settings-section-panel {
+  scroll-margin-top: 80px;
+  background: var(--as-panel-bg);
+  border: 1px solid var(--as-border);
+  border-radius: var(--co-radius-lg);
+  overflow: hidden;
+}
+
+.admin-settings-section-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--as-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="dark"] .admin-settings-section-header {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.admin-settings-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--co-text) !important;
+  margin: 0 !important;
+  letter-spacing: 0.02em;
+}
+
+.admin-settings-section-body {
+  padding: 20px;
+}
+
+/**
+ * 各组件扁平化覆盖
+ */
+
+/* 评分规则行 */
+.grading-rule-row {
+  border-bottom: 1px solid var(--as-border);
+  padding: 12px 0;
+}
+.grading-rule-row:last-child {
+  border-bottom: none;
+}
+
+/* 扣分项列表 - 压扁卡片 */
+.deduction-item-row {
+  padding: 10px 14px !important;
+  border-radius: 10px !important;
+  background: rgba(0, 0, 0, 0.02) !important;
+  border: 1px solid var(--as-border) !important;
+  margin-bottom: 8px !important;
+  transition: all 0.2s;
+}
+
+[data-theme="dark"] .deduction-item-row {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.deduction-item-row:hover {
+  border-color: var(--co-primary) !important;
+  background: rgba(60, 131, 246, 0.04) !important;
+}
+
+.admin-settings-email-domain-action.ant-btn {
+  height: 40px !important;
+  min-height: 40px !important;
+}
+
+/**
+ * 移动端锚点导航
+ */
+.admin-settings-mobile-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--co-glass-bg-heavy);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  margin: -16px -16px 16px -16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--as-border);
+  display: none;
+}
+
+.admin-settings-mobile-nav-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.admin-settings-mobile-nav-item {
+  white-space: nowrap;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--co-text-secondary);
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+[data-theme="dark"] .admin-settings-mobile-nav-item {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-settings-mobile-nav-item.active {
+  background: var(--co-primary);
+  color: white;
+}
+
+/**
+ * 响应式处理
+ */
+@media (max-width: 1024px) {
+  .admin-settings-workbench {
+    flex-direction: column;
+    padding: 0 16px;
+  }
+  
+  .admin-settings-sidebar {
+    display: none;
+  }
+  
+  .admin-settings-mobile-nav {
+    display: block;
+  }
+
+  .admin-settings-content {
+    width: 100%;
+  }
+
+  .admin-settings-section-body {
+    padding: 16px;
+  }
+}
+
+/**
+ * 动画增强
+ */
+.admin-settings-nav-item {
+  animation: co-fade-in 0.4s ease-out backwards;
+}

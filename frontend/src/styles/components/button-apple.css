@@ -1,0 +1,66 @@
+/* ============================================================
+   Apple Button Styles (Migration Override Layer)
+   Apple 风格按钮 token 化覆盖层
+   ============================================================ */
+
+.apple-btn-primary {
+  background: var(--co-btn-primary-bg) !important;
+  border: none !important;
+  border-radius: var(--co-radius-md) !important;
+  min-height: 2.75rem !important;
+  font-weight: 600 !important;
+  font-size: calc(0.875rem * var(--font-scale, 1)) !important;
+  padding: 0 1.75rem !important;
+  color: var(--co-bg) !important;
+  box-shadow: var(--co-btn-primary-shadow) !important;
+  transition: all var(--co-transition-fast) !important;
+}
+
+.apple-btn-primary:hover:not(:disabled) {
+  background: var(--co-primary-hover) !important;
+  transform: translateY(-0.0625rem);
+  box-shadow: var(--co-btn-primary-shadow), var(--co-btn-hover-glow) !important;
+}
+
+.apple-btn-primary:active:not(:disabled) {
+  background: var(--co-primary-active) !important;
+  transform: scale(0.96);
+}
+
+.apple-btn-secondary {
+  background: var(--co-btn-bg) !important;
+  border: 1px solid var(--co-btn-border) !important;
+  border-radius: var(--co-radius-md) !important;
+  min-height: 2.75rem !important;
+  font-weight: 600 !important;
+  font-size: calc(0.875rem * var(--font-scale, 1)) !important;
+  padding: 0 1.5rem !important;
+  color: var(--co-text) !important;
+  transition: all var(--co-transition-fast) !important;
+}
+
+.apple-btn-secondary:hover:not(:disabled) {
+  background: var(--co-btn-hover-bg) !important;
+  color: var(--co-text) !important;
+}
+
+.apple-btn-secondary:active:not(:disabled) {
+  transform: scale(0.96);
+  background: var(--co-nav-hover-bg) !important;
+}
+
+[data-theme="dark"] .apple-btn-secondary {
+  background: var(--co-btn-bg) !important;
+  border-color: var(--co-btn-border) !important;
+  color: var(--co-text) !important;
+}
+
+[data-theme="dark"] .apple-btn-secondary:hover:not(:disabled) {
+  background: var(--co-btn-hover-bg) !important;
+}
+
+.apple-btn-primary:disabled,
+.apple-btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

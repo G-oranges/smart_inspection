@@ -1,0 +1,65 @@
+/* ============================================================
+   Apple Tag & Chip Styles (Migration Override Layer)
+   Apple 风格标签与芯片 token 化迁移覆盖层
+   ============================================================ */
+
+.ant-tag-blue {
+  background-color: color-mix(in srgb, var(--co-primary) 10%, transparent) !important;
+  color: var(--co-primary) !important;
+  border: none !important;
+  border-radius: var(--co-radius-full) !important;
+  padding: 0 10px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  line-height: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+[data-theme="dark"] .ant-tag-blue {
+  background-color: color-mix(in srgb, var(--co-primary) 22%, transparent) !important;
+  color: var(--co-primary) !important;
+}
+
+.apple-tag-gray {
+  background-color: var(--co-btn-bg) !important;
+  color: var(--co-text-muted) !important;
+  border: none !important;
+  border-radius: var(--co-radius-full) !important;
+  padding: 0 8px !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  line-height: 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+[data-theme="dark"] .apple-tag-gray {
+  background-color: var(--co-btn-bg) !important;
+  color: var(--co-text-muted) !important;
+}
+
+.apple-chip-blue {
+  background-color: var(--co-primary) !important;
+  color: var(--co-on-primary) !important;
+  border: none !important;
+  border-radius: var(--co-radius-full) !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  cursor: pointer;
+  transition: all var(--co-transition-fast);
+}
+
+.apple-chip-blue:hover {
+  background-color: var(--co-primary-hover) !important;
+  transform: scale(1.02);
+}
+
+.apple-chip-blue .ant-tag-close-icon {
+  color: color-mix(in srgb, var(--co-on-primary) 80%, transparent) !important;
+  margin-left: 6px !important;
+}

@@ -1,0 +1,103 @@
+/* ============================================================
+   Task Publish Styles (Migration Layer)
+   任务发布列表状态与进度样式
+   ============================================================ */
+
+.task-sync-spin {
+  animation: task-sync-spin 1.8s linear infinite;
+}
+
+@keyframes task-sync-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.task-status-pill {
+  border-radius: var(--co-radius-full) !important;
+  padding: 0 10px !important;
+  border: none !important;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 22px;
+  margin: 0 !important;
+}
+
+.task-status-pill-muted {
+  background: color-mix(in srgb, var(--co-text-muted) 24%, transparent) !important;
+  color: var(--co-text-muted) !important;
+}
+
+[data-theme="dark"] .task-status-pill-muted {
+  background: color-mix(in srgb, var(--co-text-muted) 18%, transparent) !important;
+  color: var(--co-text-secondary) !important;
+}
+
+.task-progress-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 110px;
+}
+
+.task-progress-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--co-text);
+}
+
+.task-progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--co-radius-full);
+  background: color-mix(in srgb, var(--co-text) 10%, transparent);
+  overflow: hidden;
+}
+
+.task-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--co-success) 0%, var(--co-primary) 100%);
+  transition: width var(--co-transition);
+}
+
+[data-theme="dark"] .task-progress-value {
+  color: var(--co-text-secondary);
+}
+
+[data-theme="dark"] .task-progress-track {
+  background: color-mix(in srgb, var(--co-text) 16%, transparent);
+}
+
+.task-publish-modal .task-publish-selection-action-btn.ant-btn,
+.task-publish-page .task-publish-selection-action-btn.ant-btn {
+  background: var(--dorm-toolbar-bg);
+  border: 1px solid var(--dorm-toolbar-border);
+  color: var(--dorm-text-strong);
+}
+
+.task-publish-modal .task-publish-selection-action-btn.ant-btn:hover,
+.task-publish-modal .task-publish-selection-action-btn.ant-btn:focus,
+.task-publish-page .task-publish-selection-action-btn.ant-btn:hover,
+.task-publish-page .task-publish-selection-action-btn.ant-btn:focus {
+  background: var(--dorm-toolbar-hover) !important;
+  border-color: var(--dorm-toolbar-border) !important;
+  color: var(--dorm-text-strong) !important;
+  box-shadow: none !important;
+}
+
+.task-publish-modal .task-publish-selection-action-btn.ant-btn[disabled],
+.task-publish-page .task-publish-selection-action-btn.ant-btn[disabled] {
+  border-color: var(--dorm-toolbar-border) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-sync-spin {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,266 @@
+/**
+ * 骨架屏样式
+ * 统一的骨架动画和布局规范
+ */
+
+/* ========================================
+   骨架基础样式
+   ======================================== */
+
+/* 脉冲动画 */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-pulse {
+  background: linear-gradient(90deg, 
+    var(--skeleton-base, rgba(0, 0, 0, 0.06)) 25%, 
+    var(--skeleton-highlight, rgba(0, 0, 0, 0.12)) 50%, 
+    var(--skeleton-base, rgba(0, 0, 0, 0.06)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+  border-radius: 4px;
+}
+
+.skeleton-line {
+  display: block;
+}
+
+/* ========================================
+   卡片骨架 (移动端)
+   ======================================== */
+
+.skeleton-card-list {
+  padding: 0 4px;
+}
+
+.skeleton-card {
+  background: var(--glass-card-bg, rgba(255, 255, 255, 0.7));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.3));
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.skeleton-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.skeleton-header-left {
+  flex: 1;
+}
+
+.skeleton-tag {
+  width: 40px;
+  height: 20px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.skeleton-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.skeleton-grid-item {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================
+   表格骨架 (桌面端)
+   ======================================== */
+
+.skeleton-table {
+  background: var(--glass-card-bg, rgba(255, 255, 255, 0.7));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.3));
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.skeleton-table-header {
+  display: flex;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid var(--glass-border, rgba(0, 0, 0, 0.06));
+}
+
+.skeleton-table-body {
+  padding: 8px 0;
+}
+
+.skeleton-table-row {
+  display: flex;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.skeleton-table-row:last-child {
+  border-bottom: none;
+}
+
+.skeleton-table-cell {
+  flex: 1;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+}
+
+.skeleton-table-cell:first-child {
+  padding-left: 0;
+}
+
+.skeleton-table-cell:last-child {
+  padding-right: 0;
+}
+
+/* ========================================
+   详情描述骨架
+   ======================================== */
+
+.skeleton-detail {
+  border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.06));
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.skeleton-detail-row {
+  display: flex;
+  border-bottom: 1px solid var(--glass-border, rgba(0, 0, 0, 0.06));
+}
+
+.skeleton-detail-row:last-child {
+  border-bottom: none;
+}
+
+.skeleton-detail-item {
+  flex: 1;
+  padding: 12px 16px;
+  border-right: 1px solid var(--glass-border, rgba(0, 0, 0, 0.06));
+}
+
+.skeleton-detail-item:last-child {
+  border-right: none;
+}
+
+.skeleton-label {
+  opacity: 0.6;
+}
+
+/* ========================================
+   指标卡片骨架
+   ======================================== */
+
+.skeleton-stat-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.skeleton-stat-col {
+  flex: 1;
+  min-width: 140px;
+}
+
+@media (max-width: 768px) {
+  .skeleton-stat-col {
+    flex: 0 0 calc(50% - 8px);
+    min-width: auto;
+  }
+  
+  .skeleton-stat-group {
+    gap: 8px;
+  }
+}
+
+.skeleton-stat-card {
+  background: var(--glass-card-bg, rgba(255, 255, 255, 0.7));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.3));
+  border-radius: 20px;
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .skeleton-stat-card {
+    padding: 12px;
+    border-radius: 12px;
+  }
+}
+
+.skeleton-stat-value {
+  width: 60%;
+  height: 32px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+}
+
+@media (max-width: 768px) {
+  .skeleton-stat-value {
+    height: 24px;
+    margin-bottom: 8px;
+  }
+}
+
+.skeleton-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeleton-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .skeleton-dot {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* ========================================
+   深色模式适配
+   ======================================== */
+
+[data-theme="dark"] .skeleton-pulse {
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.06) 25%, 
+    rgba(255, 255, 255, 0.12) 50%, 
+    rgba(255, 255, 255, 0.06) 75%
+  );
+  background-size: 200% 100%;
+}
+
+[data-theme="dark"] .skeleton-card,
+[data-theme="dark"] .skeleton-table,
+[data-theme="dark"] .skeleton-stat-card {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .skeleton-table-header {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .skeleton-table-row {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .skeleton-detail {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .skeleton-detail-row,
+[data-theme="dark"] .skeleton-detail-item {
+  border-color: rgba(255, 255, 255, 0.08);
+}

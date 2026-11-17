@@ -1,0 +1,105 @@
+/* ============================================================
+   Table Resize & Action Column Styles (Migration Override Layer)
+   表格列拖拽与操作列 token 化迁移覆盖层
+   ============================================================ */
+
+.react-resizable {
+  position: relative;
+}
+
+.table-resize-handle {
+  position: absolute;
+  right: -5px;
+  bottom: 0;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 1;
+  transition: background-color 0.2s ease;
+}
+
+.table-resize-handle:hover,
+.table-resize-handle:active {
+  background-color: var(--co-table-resize-handle-bg);
+  border-radius: 2px;
+}
+
+.ant-table-thead > tr > th.react-resizable {
+  position: relative;
+}
+
+.ant-table-thead > tr > th.react-resizable::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 0;
+  background-color: var(--co-table-resize-indicator);
+  border-radius: 1px;
+  transition: height 0.2s ease;
+}
+
+.ant-table-thead > tr > th.react-resizable:hover::after {
+  height: 60%;
+}
+
+/* 固定列阴影优化 */
+.ant-table-cell-fix-right-first::after {
+  box-shadow: var(--co-table-fix-shadow) !important;
+}
+
+/* 固定列背景色修复（浅/深色统一由 token 控制） */
+.ant-table .ant-table-cell-fix-right,
+.ant-table .ant-table-cell-fix-end,
+.ant-table .ant-table-cell-fix-end-shadow,
+.ant-table-thead .ant-table-cell-fix-right,
+.ant-table-thead .ant-table-cell-fix-end,
+.ant-table-tbody .ant-table-cell-fix-right,
+.ant-table-tbody .ant-table-cell-fix-end {
+  background: var(--co-table-fix-cell-bg) !important;
+  backdrop-filter: blur(var(--co-glass-blur-sm)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-sm)) saturate(180%);
+}
+
+.ant-table-thead .ant-table-cell-fix-right,
+.ant-table-thead .ant-table-cell-fix-end {
+  background: var(--co-table-fix-head-bg) !important;
+}
+
+.ant-table-tbody tr:hover .ant-table-cell-fix-right,
+.ant-table-tbody tr:hover .ant-table-cell-fix-end {
+  background: var(--co-table-fix-row-hover-bg) !important;
+}
+
+.ant-table-tbody tr.ant-table-row-selected .ant-table-cell-fix-right,
+.ant-table-tbody tr.ant-table-row-selected .ant-table-cell-fix-end {
+  background: var(--co-table-fix-row-selected-bg) !important;
+}
+
+/* 操作列容器 - 防止内容换行 */
+.table-action-column {
+  white-space: nowrap !important;
+  min-width: fit-content !important;
+}
+
+/* 操作按钮组 - 不换行，自适应 */
+.table-action-buttons {
+  display: inline-flex !important;
+  flex-wrap: nowrap !important;
+  gap: 4px;
+}
+
+/* 操作按钮 - 紧凑布局 */
+.table-action-buttons .ant-btn-link {
+  padding: 0 6px !important;
+  height: auto !important;
+  line-height: 1.5 !important;
+}
+
+/* 操作按钮图标与文字间距 */
+.table-action-buttons .ant-btn-link .anticon {
+  margin-inline-end: 4px;
+}

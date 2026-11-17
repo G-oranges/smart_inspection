@@ -1,0 +1,35 @@
+/* ============================================================
+   Table Layout Styles (Migration Override Layer).
+   通用表格容器与表头布局 token 化迁移覆盖层.
+   ============================================================ */
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ant-card.table-card .ant-card-body {
+  padding: 1rem 1.25rem;
+}
+
+.table-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.table-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

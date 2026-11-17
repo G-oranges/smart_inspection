@@ -1,0 +1,12 @@
+2025/12/23 18:58:54 Connecting to database...
+User found:
+  ID: 7cb2ae60-3940-45e9-b8cc-9f45436a8034
+  Username: admin
+  FullName: 绯荤粺绠＄悊鍛?  Role: ADMIN
+  Password (first 50 chars): $2b$10$rv2hUTvnxq6Dka87/2vxzu7PHbs4slFD2GhSyGL6POc...
+鉂?Password '123456' does not match
+鉂?Password 'admin' does not match
+鉂?Password 'admin123' does not match
+鉂?Password 'password' does not match
+
+New bcrypt hash for '123456': $2a$10$TxLZ/SCojbXoE9YPJ4Ou9OH3RbHb1B4lkTGQ7dG01mOCkRjKV1t.G

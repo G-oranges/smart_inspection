@@ -1,0 +1,52 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "lint:pagesize": "node scripts/check-page-size.js",
+    "lint:styleguard": "node scripts/check-style-guardrails.js",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "ci": "npm run typecheck && npm run lint && npm run lint:pagesize && npm run lint:styleguard && npm run test:coverage && npm run build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^6.1.0",
+    "@tanstack/react-query": "^5.90.12",
+    "antd": "^6.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-resizable": "^3.1.3",
+    "react-router-dom": "^6.28.0",
+    "recharts": "^3.5.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^8.57.1",
+    "@testing-library/react": "^14.2.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.5",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^1.6.1",
+    "autoprefixer": "^10.4.23",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.7",
+    "globals": "^13.24.0",
+    "jsdom": "^24.0.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.11",
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^1.6.0",
+    "workbox-window": "^7.4.0"
+  }
+}

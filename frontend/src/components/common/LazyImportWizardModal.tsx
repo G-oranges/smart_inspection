@@ -1,0 +1,38 @@
+import { lazy, Suspense, type ComponentType } from 'react';
+import { Modal, Spin } from 'antd';
+
+import type { ImportWizardModalProps } from '../../types/import';
+import { loadImportWizardModal } from './importWizardPrefetch';
+
+const ImportWizardModal = lazy(loadImportWizardModal) as ComponentType<ImportWizardModalProps>;
+
+function ImportWizardFallback({ open, onClose }: Pick<ImportWizardModalProps, 'open' | 'onClose'>) {
+  return (
+    <Modal
+      open={open}
+      onCancel={onClose}
+      footer={null}
+      closable={false}
+      centered
+      width={420}
+    >
+      <div className="flex min-h-[180px] items-center justify-center">
+        <Spin size="large" tip="导入向导加载中..." />
+      </div>
+    </Modal>
+  );
+}
+
+export default function LazyImportWizardModal(props: ImportWizardModalProps) {
+  if (!props.open) {
+    return null;
+  }
+
+  return (
+    <Suspense
+      fallback={<ImportWizardFallback open={props.open} onClose={props.onClose} />}
+    >
+      <ImportWizardModal {...props} />
+    </Suspense>
+  );
+}

@@ -1,0 +1,52 @@
+/* ============================================================
+   Assignment Pool Styles (Migration Override Layer)
+   批量入住分配学生池 token 化迁移覆盖层
+   ============================================================ */
+
+.assignment-pool-card {
+  border: 1px solid var(--co-btn-border);
+  border-radius: var(--co-radius);
+  transition: all var(--co-transition-fast);
+}
+
+.assignment-pool-card:hover {
+  border-color: var(--co-primary);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--co-primary) 20%, transparent);
+}
+
+.assignment-pool-card.active {
+  border-color: var(--co-primary) !important;
+  border-width: 2px !important;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--co-primary) 30%, transparent);
+  position: relative;
+}
+
+.assignment-pool-card.active::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  background: var(--co-primary);
+  border-radius: 2px;
+}
+
+.assignment-pool-card.assigned {
+  background-color: color-mix(in srgb, var(--co-success) 8%, transparent) !important;
+  border-style: dashed;
+}
+
+.assignment-pool-card.assigned:not(.active) {
+  border-color: color-mix(in srgb, var(--co-success) 35%, transparent);
+}
+
+[data-theme="dark"] .assignment-pool-card.assigned {
+  background-color: color-mix(in srgb, var(--co-success) 15%, transparent) !important;
+}
+
+.modal-bed-filter .ant-select-selector,
+.modal-bed-filter .ant-input {
+  border-radius: var(--co-radius) !important;
+}

@@ -1,0 +1,136 @@
+
+> frontend@0.0.0 lint
+> eslint .
+
+
+D:\my_project_bychatgpt\frontend\src\App.jsx
+  157:6  warning  React Hook useEffect has a missing dependency: 'loadAll'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  267:5  warning  React Hook useMemo has a missing dependency: 'loadUsers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\components\DormGridSelector.jsx
+  67:6  warning  React Hook useEffect has missing dependencies: 'bedCache' and 'loadingRooms'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\components\GlassTable.jsx
+   9:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  18:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+D:\my_project_bychatgpt\frontend\src\components\Layout.jsx
+  148:6  warning  React Hook useEffect has a missing dependency: 'changePasswordModal'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  276:6  warning  React Hook useMemo has a missing dependency: 'filterChildren'. Either include it or remove the dependency array         react-hooks/exhaustive-deps
+  340:6  warning  React Hook useEffect has a missing dependency: 'openKeys'. Either include it or remove the dependency array             react-hooks/exhaustive-deps
+  382:6  warning  React Hook useEffect has a missing dependency: 'activeRole'. Either include it or remove the dependency array           react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\components\ResidencyAdjustModal.jsx
+  40:6  warning  React Hook useEffect has a missing dependency: 'loadBuildings'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\components\common\ImportWizardModal.jsx
+   333:6  warning  React Hook useEffect has a missing dependency: 'validateSelectedSheet'. Either include it or remove the dependency array                                                                                    react-hooks/exhaustive-deps
+   812:9  warning  The 'previewIssues' logical expression could make the dependencies of useMemo Hook (at line 852) change on every render. To fix this, wrap the initialization of 'previewIssues' in its own useMemo() Hook  react-hooks/exhaustive-deps
+   812:9  warning  The 'previewIssues' logical expression could make the dependencies of useMemo Hook (at line 861) change on every render. To fix this, wrap the initialization of 'previewIssues' in its own useMemo() Hook  react-hooks/exhaustive-deps
+   916:6  warning  React Hook useCallback has a missing dependency: 'autoMatchHeaders'. Either include it or remove the dependency array                                                                                       react-hooks/exhaustive-deps
+  1030:6  warning  React Hook useMemo has missing dependencies: 'handleExecute', 'handleNext', and 'onClose'. Either include them or remove the dependency array                                                               react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\components\common\PWAUpdatePrompt.jsx
+  155:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  170:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+D:\my_project_bychatgpt\frontend\src\hooks\useTableFetch.js
+  114:25  warning  React Hook useEffect has a spread element in its dependency array. This means we can't statically verify whether you've passed the correct dependencies  react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\hooks\useTableState.js
+  50:8  warning  Function 'useTableState' has too many lines (176). Maximum allowed is 150  max-lines-per-function
+
+D:\my_project_bychatgpt\frontend\src\hooks\useTableStateCore.js
+  134:6  warning  React Hook useEffect has missing dependencies: 'appliedFilters' and 'pagination'. Either include them or remove the dependency array. Mutable values like 'pagination.current' aren't valid dependencies because mutating them doesn't re-render the component  react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\hooks\useTasks.js
+  5:8  warning  Function 'useTasks' has too many lines (158). Maximum allowed is 150  max-lines-per-function
+
+D:\my_project_bychatgpt\frontend\src\pages\AccountPermissionPage.jsx
+   59:16  warning  Function 'AccountPermissionPage' has too many lines (815). Maximum allowed is 300                                   max-lines-per-function
+  319:6   warning  React Hook useEffect has a missing dependency: 'loadBatchUsers'. Either include it or remove the dependency array   react-hooks/exhaustive-deps
+  347:6   warning  React Hook useEffect has a missing dependency: 'loadStudentList'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\pages\AdminSettingsPage.jsx
+  31:16  warning  Function 'AdminSettingsPage' has too many lines (622). Maximum allowed is 300                                                                                                                          max-lines-per-function
+  62:9   warning  The 'deductionItems' conditional could make the dependencies of useMemo Hook (at line 108) change on every render. To fix this, wrap the initialization of 'deductionItems' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\pages\AuditLogPage.jsx
+  45:16  warning  Function 'AuditLogPage' has too many lines (578). Maximum allowed is 300  max-lines-per-function
+
+D:\my_project_bychatgpt\frontend\src\pages\BuildingManagementPage.jsx
+   42:3   error    'createDefaultBuildingFilters' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+   43:3   error    'areBuildingFiltersEqual' is defined but never used. Allowed unused vars must match /^[A-Z_]/u       no-unused-vars
+   69:32  warning  Arrow function has too many lines (467). Maximum allowed is 300                                      max-lines-per-function
+  159:12  error    'fetchError' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u           no-unused-vars
+  160:5   error    'refetch' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u              no-unused-vars
+  200:26  error    'useCallback' is not defined                                                                         no-undef
+
+D:\my_project_bychatgpt\frontend\src\pages\DashboardPage.jsx
+  121:6  warning  React Hook useMemo has an unnecessary dependency: 'summaryLoading'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\pages\DormManagementPage.jsx
+  84:16  warning  Function 'DormManagementPage' has too many lines (633). Maximum allowed is 300  max-lines-per-function
+
+D:\my_project_bychatgpt\frontend\src\pages\FloorSelectPage.jsx
+  42:6  warning  React Hook useCallback has a missing dependency: 'actions'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\pages\OccupancyManagementPage.jsx
+   51:16  warning  Function 'OccupancyManagementPage' has too many lines (615). Maximum allowed is 300                                                                                                              max-lines-per-function
+  265:6   warning  React Hook useEffect has a missing dependency: 'actions'. Either include it or remove the dependency array                                                                                       react-hooks/exhaustive-deps
+  277:6   warning  React Hook useEffect has a missing dependency: 'loadStats'. Either include it or remove the dependency array                                                                                     react-hooks/exhaustive-deps
+  515:9   warning  The 'handleCheckout' function makes the dependencies of useMemo Hook (at line 539) change on every render. To fix this, wrap the definition of 'handleCheckout' in its own useCallback() Hook    react-hooks/exhaustive-deps
+  526:9   warning  The 'openAdjustModal' function makes the dependencies of useMemo Hook (at line 539) change on every render. To fix this, wrap the definition of 'openAdjustModal' in its own useCallback() Hook  react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\pages\ResultViewPage.jsx
+   36:16  warning  Function 'ResultViewPage' has too many lines (691). Maximum allowed is 300                                                                                                                               max-lines-per-function
+  159:9   warning  The 'resolveDormColleges' function makes the dependencies of useMemo Hook (at line 571) change on every render. To fix this, wrap the definition of 'resolveDormColleges' in its own useCallback() Hook  react-hooks/exhaustive-deps
+  173:9   warning  The 'resolveDormGrades' function makes the dependencies of useMemo Hook (at line 571) change on every render. To fix this, wrap the definition of 'resolveDormGrades' in its own useCallback() Hook      react-hooks/exhaustive-deps
+  196:6   warning  React Hook useMemo has a missing dependency: 'resolveDormGrades'. Either include it or remove the dependency array                                                                                       react-hooks/exhaustive-deps
+  204:6   warning  React Hook useMemo has a missing dependency: 'resolveDormColleges'. Either include it or remove the dependency array                                                                                     react-hooks/exhaustive-deps
+  279:6   warning  React Hook useMemo has missing dependencies: 'resolveDormColleges' and 'resolveDormGrades'. Either include them or remove the dependency array                                                           react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\pages\RoomSelectPage.jsx
+  51:6  warning  React Hook useCallback has a missing dependency: 'actions'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  73:6  warning  React Hook useEffect has a missing dependency: 'actions'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\pages\StudentManagementPage.jsx
+   78:16  warning  Function 'StudentManagementPage' has too many lines (858). Maximum allowed is 300                                                                                                                                                                              max-lines-per-function
+  264:6   warning  React Hook useEffect has missing dependencies: 'pagination' and 'setPagination'. Either include them or remove the dependency array. Mutable values like 'pagination.current' aren't valid dependencies because mutating them doesn't re-render the component  react-hooks/exhaustive-deps
+  285:9   warning  The 'filterOptions' logical expression could make the dependencies of useMemo Hook (at line 295) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'filterOptions' in its own useMemo() Hook              react-hooks/exhaustive-deps
+  313:5   warning  React Hook useMemo has unnecessary dependencies: 'reloadFlag' and 'tableData.total'. Either exclude them or remove the dependency array                                                                                                                        react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\pages\TaskPublishPage.jsx
+  46:16  warning  Function 'TaskPublishPage' has too many lines (675). Maximum allowed is 300  max-lines-per-function
+
+D:\my_project_bychatgpt\frontend\src\pages\TeacherManagementPage.jsx
+  148:16  warning  Function 'TeacherManagementPage' has too many lines (1073). Maximum allowed is 300                                                                                                                                                       max-lines-per-function
+  291:6   warning  React Hook useEffect has a missing dependency: 'pagination'. Either include it or remove the dependency array. Mutable values like 'pagination.current' aren't valid dependencies because mutating them doesn't re-render the component  react-hooks/exhaustive-deps
+  304:5   warning  React Hook useMemo has unnecessary dependencies: 'reloadFlag' and 'tableData.total'. Either exclude them or remove the dependency array                                                                                                  react-hooks/exhaustive-deps
+  619:6   warning  React Hook useMemo has missing dependencies: 'openModal', 'setSelectAcrossPages', and 'setSelectedIds'. Either include them or remove the dependency array                                                                               react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\pages\account-permission\useAccountActions.jsx
+  15:8  warning  Function 'useAccountActions' has too many lines (358). Maximum allowed is 300  max-lines-per-function
+
+D:\my_project_bychatgpt\frontend\src\pages\result-entry\ResultEntryLayout.jsx
+  11:16  warning  Function 'ResultEntryLayout' has too many lines (378). Maximum allowed is 300  max-lines-per-function
+
+D:\my_project_bychatgpt\frontend\src\pages\result-entry\useResultEntryActions.jsx
+   17:8  warning  Function 'useResultEntryActions' has too many lines (728). Maximum allowed is 300                                           max-lines-per-function
+  208:6  warning  React Hook useEffect has a missing dependency: 'settings.deductionItems'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  489:6  warning  React Hook useMemo has a missing dependency: 'getFormSnapshot'. Either include it or remove the dependency array            react-hooks/exhaustive-deps
+
+D:\my_project_bychatgpt\frontend\src\pages\student\useStudentActions.jsx
+  33:8  warning  Function 'useStudentActions' has too many lines (372). Maximum allowed is 300  max-lines-per-function
+
+D:\my_project_bychatgpt\frontend\src\pages\task-publish\subforms\DormSelectionStep.jsx
+  26:16  warning  Function 'DormSelectionStep' has too many lines (453). Maximum allowed is 300                                                                                                              max-lines-per-function
+  46:9   warning  The 'dormList' conditional could make the dependencies of useMemo Hook (at line 61) change on every render. To fix this, wrap the initialization of 'dormList' in its own useMemo() Hook   react-hooks/exhaustive-deps
+  46:9   warning  The 'dormList' conditional could make the dependencies of useMemo Hook (at line 66) change on every render. To fix this, wrap the initialization of 'dormList' in its own useMemo() Hook   react-hooks/exhaustive-deps
+  46:9   warning  The 'dormList' conditional could make the dependencies of useMemo Hook (at line 72) change on every render. To fix this, wrap the initialization of 'dormList' in its own useMemo() Hook   react-hooks/exhaustive-deps
+  46:9   warning  The 'dormList' conditional could make the dependencies of useMemo Hook (at line 81) change on every render. To fix this, wrap the initialization of 'dormList' in its own useMemo() Hook   react-hooks/exhaustive-deps
+  46:9   warning  The 'dormList' conditional could make the dependencies of useMemo Hook (at line 90) change on every render. To fix this, wrap the initialization of 'dormList' in its own useMemo() Hook   react-hooks/exhaustive-deps
+  46:9   warning  The 'dormList' conditional could make the dependencies of useMemo Hook (at line 129) change on every render. To fix this, wrap the initialization of 'dormList' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+鉁?71 problems (5 errors, 66 warnings)
+

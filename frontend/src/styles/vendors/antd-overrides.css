@@ -1,0 +1,194 @@
+/* ============================================================
+   Ant Design Overrides (Tokenized)
+   迁移阶段覆盖层：仅使用 var(--co-*)，禁止硬编码颜色
+   ============================================================ */
+
+/* Global glass treatment */
+.ant-card,
+.ant-table,
+.ant-table-container,
+.ant-table-cell,
+.ant-table-tbody > tr > td,
+.ant-table-thead > tr > th,
+.ant-select-selector,
+.ant-input,
+.ant-btn-default:not(.ant-btn-primary),
+.ant-picker {
+  background-color: var(--co-glass-bg) !important;
+  border-color: var(--co-glass-border) !important;
+  backdrop-filter: blur(var(--co-glass-blur-xs));
+}
+
+/* Inputs and selectors */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-affix-wrapper:hover,
+.ant-input-affix-wrapper.ant-input-affix-wrapper-focused,
+.ant-select-selector,
+.ant-select:hover .ant-select-selector,
+.ant-select-focused .ant-select-selector {
+  background-color: var(--co-input-bg) !important;
+  border-color: var(--co-btn-border) !important;
+  color: var(--co-text) !important;
+  box-shadow: none !important;
+}
+
+.ant-input:focus,
+.ant-input:hover {
+  background-color: var(--co-input-focus-bg) !important;
+  border-color: var(--co-input-focus-border) !important;
+}
+
+.ant-input::placeholder,
+.ant-input-affix-wrapper input::placeholder,
+.ant-select-selection-placeholder {
+  color: var(--co-input-placeholder) !important;
+}
+
+.ant-select-arrow,
+.ant-select-clear,
+.ant-input-prefix,
+.ant-input-suffix {
+  color: var(--co-text-muted) !important;
+}
+
+.ant-select-dropdown {
+  background-color: var(--co-glass-bg-heavy) !important;
+  border: 1px solid var(--co-glass-border) !important;
+}
+
+.ant-select-item {
+  color: var(--co-text) !important;
+}
+
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background-color: var(--co-nav-hover-bg) !important;
+}
+
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: var(--co-nav-active-bg) !important;
+  color: var(--co-text) !important;
+}
+
+/* Pagination */
+.ant-pagination-item,
+.ant-pagination-item-link,
+.ant-pagination-options-quick-jumper input,
+.ant-pagination-options .ant-select-selector {
+  background-color: transparent !important;
+  border-color: var(--co-btn-border) !important;
+  color: var(--co-text-muted) !important;
+}
+
+.ant-pagination-item a {
+  color: var(--co-text-muted) !important;
+}
+
+.ant-pagination-item-active {
+  background-color: var(--co-primary) !important;
+  border-color: var(--co-primary) !important;
+}
+
+.ant-pagination-item-active a {
+  color: var(--co-bg) !important;
+}
+
+/* Buttons */
+.ant-btn-default:not(:disabled),
+.ant-btn-default.ant-btn-background-ghost:not(:disabled) {
+  background-color: var(--co-btn-bg) !important;
+  border-color: var(--co-btn-border) !important;
+  color: var(--co-text) !important;
+}
+
+.ant-btn-default:not(:disabled):hover {
+  background-color: var(--co-btn-hover-bg) !important;
+  border-color: var(--co-primary) !important;
+  color: var(--co-primary) !important;
+}
+
+.ant-btn-link,
+.ant-btn-text {
+  color: var(--co-primary) !important;
+}
+
+.ant-btn-link:hover,
+.ant-btn-text:hover {
+  background-color: var(--co-nav-hover-bg) !important;
+  color: var(--co-primary-hover) !important;
+}
+
+.ant-btn-dangerous.ant-btn-default:not(:disabled),
+.ant-btn-default.ant-btn-dangerous:not(:disabled) {
+  background-color: var(--co-btn-bg) !important;
+  border-color: var(--co-error) !important;
+  color: var(--co-error) !important;
+}
+
+.ant-btn-dangerous.ant-btn-default:not(:disabled):hover,
+.ant-btn-default.ant-btn-dangerous:not(:disabled):hover {
+  background-color: var(--co-nav-hover-bg) !important;
+  border-color: var(--co-error) !important;
+  color: var(--co-error) !important;
+}
+
+/* Typography */
+.ant-typography-secondary,
+.ant-typography.ant-typography-secondary {
+  color: var(--co-text-muted) !important;
+}
+
+/* Modal.confirm dark-mode root token bridge */
+[data-theme="dark"] .ant-modal-root {
+  --ant-color-bg-elevated: var(--co-bg);
+  --ant-color-bg-container: var(--co-bg);
+  --ant-color-bg-base: var(--co-bg);
+  --ant-modal-content-bg: var(--co-bg);
+  --ant-color-text: var(--co-text);
+  --ant-color-text-secondary: var(--co-text-secondary);
+}
+
+[data-theme="dark"] .ant-modal-container,
+[data-theme="dark"] .ant-modal-confirm .ant-modal-content {
+  background-color: var(--co-bg) !important;
+  border: 1px solid var(--co-glass-border);
+  box-shadow: var(--co-glass-shadow-lg);
+}
+
+[data-theme="dark"] .ant-modal-confirm .ant-modal-confirm-title {
+  color: var(--co-text) !important;
+}
+
+[data-theme="dark"] .ant-modal-confirm .ant-modal-confirm-content,
+[data-theme="dark"] .ant-modal-confirm .ant-modal-confirm-body p,
+[data-theme="dark"] .ant-modal-confirm .ant-modal-confirm-body span {
+  color: var(--co-text-secondary) !important;
+}
+
+[data-theme="dark"] .ant-modal-confirm .ant-modal-confirm-btns .ant-btn-default:not(:disabled) {
+  background-color: var(--co-btn-bg) !important;
+  border-color: var(--co-btn-border) !important;
+  color: var(--co-text) !important;
+}
+
+[data-theme="dark"] .ant-modal-confirm .ant-modal-confirm-btns .ant-btn-default:not(:disabled):hover {
+  background-color: var(--co-btn-hover-bg) !important;
+  border-color: var(--co-btn-border) !important;
+  color: var(--co-text) !important;
+}
+
+[data-theme="dark"] .ant-modal-confirm .ant-modal-confirm-btns .ant-btn-dangerous:not(:disabled) {
+  background-color: var(--co-error) !important;
+  border-color: var(--co-error) !important;
+  color: var(--co-bg) !important;
+}
+
+[data-theme="dark"] .ant-modal-confirm .ant-modal-confirm-btns .ant-btn-dangerous:disabled {
+  background-color: var(--co-btn-bg) !important;
+  border-color: var(--co-btn-border) !important;
+  color: var(--co-text-muted) !important;
+}
+
+[data-theme="dark"] .ant-modal-confirm .anticon-exclamation-circle {
+  color: var(--co-warning) !important;
+}

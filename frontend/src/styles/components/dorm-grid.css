@@ -1,0 +1,690 @@
+/* ============================================================
+   Dorm Grid Styles (Migration Layer)
+   宿舍网格选择器与床位标签 token 化迁移覆盖层
+   ============================================================ */
+
+.dorm-grid-card {
+  position: relative;
+  padding: 14px;
+  cursor: pointer;
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    background-color 0.22s ease;
+  border: 1px solid color-mix(in srgb, var(--co-text) 8%, transparent);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--co-bg) 94%, var(--co-on-primary) 2%) !important;
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--co-text) 4%, transparent),
+    0 1px 0 color-mix(in srgb, var(--co-on-primary) 30%, transparent) inset;
+}
+
+.dorm-grid-card.status-full {
+  border-color: color-mix(in srgb, var(--co-text) 8%, transparent) !important;
+}
+
+.dorm-grid-card.status-empty {
+  border-color: color-mix(in srgb, var(--co-text) 8%, transparent) !important;
+}
+
+.dorm-grid-card.status-partial {
+  border-color: color-mix(in srgb, var(--co-text) 8%, transparent) !important;
+}
+
+[data-theme="dark"] .dorm-grid-card.status-full {
+  border-color: color-mix(in srgb, var(--co-on-primary) 12%, transparent) !important;
+}
+
+[data-theme="dark"] .dorm-grid-card.status-empty {
+  border-color: color-mix(in srgb, var(--co-on-primary) 12%, transparent) !important;
+}
+
+[data-theme="dark"] .dorm-grid-card.status-partial {
+  border-color: color-mix(in srgb, var(--co-on-primary) 12%, transparent) !important;
+}
+
+.dorm-grid-card.status-full .meter-text,
+.dorm-grid-card.status-full .meter-fill.error {
+  color: var(--co-text);
+}
+
+.dorm-grid-card.status-empty .meter-text,
+.dorm-grid-card.status-empty .meter-fill.success {
+  color: var(--co-text);
+}
+
+.dorm-grid-card.status-partial .meter-text,
+.dorm-grid-card.status-partial .meter-fill.warning {
+  color: var(--co-text);
+}
+
+.dorm-grid-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--co-text) 14%, transparent);
+  box-shadow:
+    0 14px 28px color-mix(in srgb, var(--co-text) 8%, transparent),
+    0 1px 0 color-mix(in srgb, var(--co-on-primary) 30%, transparent) inset;
+}
+
+.dorm-grid-card:active {
+  transform: scale(0.992);
+}
+
+.dorm-grid-card.selected {
+  border-color: var(--co-primary) !important;
+  background: color-mix(in srgb, var(--co-bg) 92%, var(--co-primary) 5%) !important;
+  box-shadow:
+    0 14px 30px color-mix(in srgb, var(--co-primary) 12%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--co-primary) 55%, transparent) !important;
+  z-index: 5;
+}
+
+[data-theme="dark"] .dorm-grid-card.selected {
+  background: color-mix(in srgb, var(--co-bg) 88%, var(--co-primary) 10%) !important;
+  box-shadow:
+    0 14px 30px color-mix(in srgb, var(--co-text) 40%, transparent),
+    0 0 0 1.5px var(--co-primary) !important;
+}
+
+.selection-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: var(--co-on-primary);
+  background: var(--co-primary);
+  font-size: 13px;
+  z-index: 10;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--co-primary) 24%, transparent);
+  border: 2px solid var(--co-on-primary);
+}
+
+[data-theme="dark"] .selection-badge {
+  border-color: var(--co-bg);
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.card-header-main,
+.dorm-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-header-extra {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+.room-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  min-width: 32px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--co-text) 9%, transparent);
+  background: color-mix(in srgb, var(--co-text) 3%, transparent);
+  color: var(--co-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.room-meta-chip.is-male {
+  color: #9fc5ff;
+  background: rgba(59, 130, 246, 0.16);
+  border-color: rgba(59, 130, 246, 0.24);
+}
+
+.room-meta-chip.is-female {
+  color: #ffb4c5;
+  background: rgba(244, 63, 94, 0.14);
+  border-color: rgba(244, 63, 94, 0.22);
+}
+
+.dorm-title {
+  font-size: calc(1rem * var(--font-scale, 1));
+  font-weight: 700;
+  color: var(--co-text);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+.card-occupancy {
+  display: flex;
+  align-items: center;
+  min-height: 16px;
+  margin-top: 7px;
+}
+
+.dorm-occupancy-dots-card {
+  gap: 6px;
+}
+
+.dorm-occupancy-dots-card .dorm-occupancy-dot {
+  width: 9px;
+  height: 9px;
+}
+
+.dorm-occupancy-dots-compact {
+  gap: 6px;
+}
+
+.dorm-occupancy-dots-compact .dorm-occupancy-dot {
+  width: 7px;
+  height: 7px;
+}
+
+.card-body {
+  font-size: calc(0.85rem * var(--font-scale, 1));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.info-row .label {
+  color: var(--co-text-muted);
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.info-row .value {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--co-text);
+  text-align: right;
+}
+
+.dorm-grid-meter {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 120px;
+  justify-content: flex-end;
+}
+
+.meter-track {
+  flex: 1;
+  height: 6px;
+  background: color-mix(in srgb, var(--co-text) 8%, transparent);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .meter-track {
+  background: color-mix(in srgb, var(--co-on-primary) 14%, transparent);
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width var(--co-transition);
+}
+
+.meter-fill.neutral {
+  background: color-mix(in srgb, var(--co-text) 72%, transparent);
+}
+
+.meter-fill.success {
+  background-color: var(--co-success);
+}
+
+.meter-fill.warning {
+  background-color: var(--co-warning);
+}
+
+.meter-fill.error {
+  background-color: var(--co-error);
+}
+
+.meter-text {
+  font-size: calc(0.72rem * var(--font-scale, 1));
+  color: var(--co-text-muted);
+  min-width: 34px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.card-actions {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--co-text) 8%, transparent);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.card-actions-split {
+  justify-content: space-around;
+  gap: 8px;
+  height: 56px;
+  min-height: 56px;
+  margin-right: -14px;
+  margin-bottom: -14px;
+  margin-left: -14px;
+  padding: 0 18px;
+  align-items: center;
+}
+
+.card-actions-split .ant-btn.dorm-table-action-btn {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+}
+
+.card-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--co-text) 8%, transparent);
+}
+
+.value-muted {
+  color: color-mix(in srgb, var(--co-text-muted) 82%, transparent);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.action-btn {
+  font-size: calc(0.8rem * var(--font-scale, 1));
+  background: none;
+  border: none;
+  color: var(--co-primary);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--co-radius-sm);
+}
+
+.action-btn:hover {
+  background: var(--co-btn-hover-bg);
+}
+
+.dorm-grid-card.mini {
+  padding: 12px;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: stretch;
+  text-align: left;
+  min-height: 112px;
+}
+
+.dorm-grid-card.card .card-body .grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dorm-grid-card.card .card-body button {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0 8px;
+  border-radius: 10px;
+}
+
+.dorm-grid-card.card .card-body button > div {
+  gap: 5px !important;
+}
+
+.dorm-grid-card.card .card-body button .font-semibold {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.dorm-grid-card.card .card-body button .text-sm {
+  font-size: 13px;
+  line-height: 1.05;
+}
+
+.dorm-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+@media (min-width: 1440px) {
+  .dorm-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  }
+}
+
+.mini-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+}
+
+.mini-room {
+  font-size: calc(1.28rem * var(--font-scale, 1));
+  font-weight: 700;
+  color: var(--co-text);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.mini-building {
+  font-size: calc(0.72rem * var(--font-scale, 1));
+  color: var(--co-text-muted);
+  line-height: 1.2;
+}
+
+.mini-occupancy {
+  display: flex;
+  align-items: center;
+  min-height: 18px;
+}
+
+.dorm-grid-card.mini.status-full .mini-occupancy {
+  color: var(--co-text);
+}
+
+.dorm-grid-card.mini.status-empty .mini-occupancy {
+  color: var(--co-text);
+}
+
+.dorm-grid-card.mini.selected {
+  border-color: var(--co-primary);
+  background: color-mix(in srgb, var(--co-bg) 92%, var(--co-primary) 5%);
+  box-shadow:
+    0 12px 24px color-mix(in srgb, var(--co-primary) 10%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--co-primary) 35%, transparent);
+}
+
+.dorm-mini-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 12px;
+  width: 100%;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 36rem) {
+  .dorm-mini-grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+  }
+}
+
+.bed-inline-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed color-mix(in srgb, var(--co-text) 8%, transparent);
+  width: 100%;
+}
+
+.bed-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: var(--co-radius-sm);
+  border: 1px solid transparent;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--co-transition-fast);
+  gap: 4px;
+}
+
+.bed-num {
+  font-size: calc(0.8125rem * var(--font-scale, 1));
+  font-family: Consolas, Monaco, "Courier New", monospace;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.bed-name {
+  font-size: calc(0.75rem * var(--font-scale, 1));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60px;
+  opacity: 0.85;
+}
+
+.bed-tag.empty {
+  background: color-mix(in srgb, var(--co-success) 12%, transparent);
+  border-color: color-mix(in srgb, var(--co-success) 35%, transparent);
+  color: var(--co-success);
+}
+
+.bed-tag.empty:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--co-success) 55%, transparent);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--co-success) 25%, transparent);
+}
+
+.bed-tag.occupied {
+  background: color-mix(in srgb, var(--co-text) 4%, transparent);
+  border-color: color-mix(in srgb, var(--co-text) 10%, transparent);
+  color: var(--co-text-muted);
+  cursor: not-allowed;
+  justify-content: flex-start;
+}
+
+.bed-tag.occupied .bed-num {
+  color: color-mix(in srgb, var(--co-text-muted) 75%, transparent);
+}
+
+.bed-tag.occupied.swappable {
+  background: color-mix(in srgb, var(--co-warning) 12%, transparent);
+  border-color: color-mix(in srgb, var(--co-warning) 35%, transparent);
+  justify-content: center;
+  color: var(--co-warning);
+  cursor: pointer;
+}
+
+.bed-tag.occupied.swappable:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--co-warning) 55%, transparent);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--co-warning) 24%, transparent);
+}
+
+.bed-tag.occupied.swappable .bed-num {
+  color: var(--co-warning);
+}
+
+.bed-tag.selected {
+  background: var(--co-primary) !important;
+  border-color: var(--co-primary) !important;
+  color: var(--co-on-primary) !important;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--co-primary) 40%, transparent);
+  justify-content: center;
+  z-index: 1;
+}
+
+.bed-tag.selected .bed-num,
+.bed-tag.selected .bed-name {
+  color: var(--co-on-primary) !important;
+  opacity: 1;
+}
+
+.bed-tag.selected:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--co-primary) 50%, transparent);
+}
+
+.dorm-grid-card.mini.status-full.disabled {
+  opacity: 0.6;
+  background-color: color-mix(in srgb, var(--co-text) 4%, transparent);
+  cursor: not-allowed;
+}
+
+.dorm-grid-card.mini.inline-mode {
+  height: auto;
+  min-height: auto;
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+.room-selector-wrapper {
+  background-color: var(--co-bg);
+  border: 1px solid var(--co-btn-border);
+  border-radius: var(--co-radius);
+  padding: 12px;
+}
+
+[data-theme="dark"] .dorm-grid-card {
+  background: color-mix(in srgb, var(--co-bg) 82%, transparent) !important;
+  border-color: color-mix(in srgb, var(--co-on-primary) 12%, transparent) !important;
+}
+
+[data-theme="dark"] .dorm-grid-card:hover {
+  background: color-mix(in srgb, var(--co-bg) 86%, transparent) !important;
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--co-text) 45%, transparent);
+}
+
+[data-theme="dark"] .dorm-grid-card.mini .mini-room {
+  color: color-mix(in srgb, var(--co-on-primary) 90%, transparent);
+}
+
+[data-theme="dark"] .dorm-grid-card.mini .mini-occupancy {
+  color: color-mix(in srgb, var(--co-on-primary) 88%, transparent);
+}
+
+[data-theme="dark"] .dorm-grid-card.mini.selected {
+  background: color-mix(in srgb, var(--co-bg) 84%, var(--co-primary) 12%) !important;
+  border-color: var(--co-primary) !important;
+  box-shadow:
+    0 14px 28px color-mix(in srgb, var(--co-text) 34%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--co-primary) 45%, transparent);
+}
+
+[data-theme="dark"] .dorm-grid-card.mini.status-full {
+  background: color-mix(in srgb, var(--co-bg) 82%, transparent) !important;
+  opacity: 1;
+}
+
+[data-theme="dark"] .bed-inline-grid {
+  border-top-color: color-mix(in srgb, var(--co-on-primary) 14%, transparent);
+}
+
+[data-theme="dark"] .bed-tag.empty {
+  background: color-mix(in srgb, var(--co-success) 18%, transparent);
+  border-color: color-mix(in srgb, var(--co-success) 40%, transparent);
+  color: var(--co-success);
+}
+
+[data-theme="dark"] .bed-tag.empty:hover {
+  background: color-mix(in srgb, var(--co-success) 28%, transparent);
+  border-color: color-mix(in srgb, var(--co-success) 56%, transparent);
+}
+
+[data-theme="dark"] .bed-tag.empty .bed-num-mini {
+  color: var(--co-success);
+}
+
+[data-theme="dark"] .bed-tag.occupied {
+  background: color-mix(in srgb, var(--co-on-primary) 10%, transparent);
+  border-color: color-mix(in srgb, var(--co-on-primary) 14%, transparent);
+  color: color-mix(in srgb, var(--co-on-primary) 75%, transparent);
+}
+
+[data-theme="dark"] .bed-tag.occupied .bed-num,
+[data-theme="dark"] .bed-tag.occupied .bed-num-mini {
+  color: color-mix(in srgb, var(--co-on-primary) 55%, transparent);
+}
+
+[data-theme="dark"] .bed-tag.occupied .bed-name {
+  opacity: 0.9;
+}
+
+[data-theme="dark"] .bed-tag.occupied:hover {
+  background: color-mix(in srgb, var(--co-on-primary) 14%, transparent);
+}
+
+[data-theme="dark"] .bed-tag.occupied.swappable {
+  background: color-mix(in srgb, var(--co-warning) 20%, transparent);
+  border-color: color-mix(in srgb, var(--co-warning) 42%, transparent);
+  color: var(--co-warning);
+}
+
+[data-theme="dark"] .bed-tag.occupied.swappable:hover {
+  background: color-mix(in srgb, var(--co-warning) 30%, transparent);
+  border-color: color-mix(in srgb, var(--co-warning) 60%, transparent);
+}
+
+[data-theme="dark"] .bed-tag.occupied.swappable .bed-num {
+  color: var(--co-warning);
+}
+
+[data-theme="dark"] .bed-tag.selected {
+  background: var(--co-primary) !important;
+  border-color: var(--co-primary) !important;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--co-primary) 45%, transparent);
+  color: var(--co-on-primary) !important;
+}
+
+[data-theme="dark"] .bed-tag.selected:hover {
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--co-primary) 55%, transparent);
+}
+
+[data-theme="dark"] .bed-tag.selected .bed-num,
+[data-theme="dark"] .bed-tag.selected .bed-name {
+  color: var(--co-on-primary) !important;
+}
+
+[data-theme="dark"] .dorm-grid-card.mini.status-full.disabled {
+  background-color: color-mix(in srgb, var(--co-on-primary) 4%, transparent) !important;
+  opacity: 0.5;
+}
+
+[data-theme="dark"] .room-selector-wrapper,
+[data-theme="dark"] .dark-mode-input-wrapper {
+  background-color: var(--co-input-bg) !important;
+  border-color: var(--co-btn-border) !important;
+}
+
+[data-theme="dark"] .room-selector-wrapper .room-selector-placeholder,
+[data-theme="dark"] .dark-mode-input-wrapper .room-selector-placeholder {
+  color: var(--co-text-muted) !important;
+}
+
+[data-theme="dark"] .dark-mode-readonly-input .ant-input {
+  background-color: var(--co-input-focus-bg) !important;
+  border-color: var(--co-btn-border) !important;
+  color: var(--co-text) !important;
+}
+
+[data-theme="dark"] .dark-mode-readonly-input.has-selection .ant-input,
+[data-theme="dark"] .dark-mode-readonly-input.has-selection.ant-input-affix-wrapper {
+  background-color: color-mix(in srgb, var(--co-success) 18%, transparent) !important;
+  border-color: color-mix(in srgb, var(--co-success) 40%, transparent) !important;
+  color: var(--co-success) !important;
+}
+
+[data-theme="dark"] .ant-input-affix-wrapper-focused {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--co-success) 25%, transparent) !important;
+}

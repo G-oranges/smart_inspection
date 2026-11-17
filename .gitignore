@@ -1,0 +1,43 @@
+# Redis 临时文件
+Redis-x64-3.0.504/dump.rdb
+
+# 开发构建临时文件
+frontend/dev-dist/
+
+# IDE
+.vscode/
+.idea/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# 构建输出
+dist/
+build/
+
+# 本地生成的产品与架构设计文档
+doc/ARCHITECTURE.md
+doc/ARCHITECTURE_迭代版.md
+doc/PRD.md
+doc/PRD_迭代版.md
+doc/产品需求文档_智慧宿舍卫生查寝管理系统.md
+doc/智慧宿舍卫生查寝管理系统-产品需求文档.md
+doc/智慧宿舍卫生查寝管理系统-核心业务流程.md
+doc/智慧宿舍卫生查寝管理系统-技术路线.md
+doc/智慧宿舍卫生查寝管理系统-MVP技术路线.md
+doc/智慧宿舍卫生查寝管理系统-MVP项目骨架.md
+doc/智慧宿舍卫生查寝管理系统-MVP需求与功能梳理.md
+doc/智慧宿舍卫生查寝管理系统-UI设计规范.md
+
+# 敏感配置与数据库备份
+.env
+*.env
+!.env.example
+doc/db-backups/
+*.sql.gz
+*.dump
+*.rdb
