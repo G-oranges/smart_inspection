@@ -30,21 +30,22 @@ const (
 
 // RoleEntity 模型
 type RoleEntity struct {
-	ID           string           `gorm:"column:id;primaryKey;type:char(36)" json:"id"`
-	Code         string           `gorm:"column:code;unique;not null" json:"code"`
-	Name         string           `gorm:"column:name;not null" json:"name"`
-	TypeCode     string           `gorm:"column:typeCode;size:32;default:'SYSTEM'" json:"typeCode"`
-	TypeName     string           `gorm:"-" json:"typeName,omitempty"`
-	Description  *string          `gorm:"column:description;type:text" json:"description"`
-	IsSystem     bool             `gorm:"column:isSystem;default:false" json:"isSystem"`
-	Sort         int              `gorm:"column:sort;default:100" json:"sort"`
-	Status       string           `gorm:"column:status;size:16;default:'ACTIVE'" json:"status"`
-	CreatedAt    time.Time        `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
-	UpdatedAt    time.Time        `gorm:"column:updatedAt;autoUpdateTime" json:"updatedAt"`
-	Permissions  []RolePermission `gorm:"foreignKey:RoleID" json:"permissions,omitempty"`
-	Users        []User           `gorm:"many2many:_roleentitytouser;joinForeignKey:A;joinReferences:id;MemberForeignKey:B;MemberReferences:id" json:"users,omitempty"`
-	TableConfigs []TableConfig    `gorm:"foreignKey:RoleID" json:"tableConfigs,omitempty"`
-	DataScope    *RoleDataScope   `gorm:"foreignKey:RoleID" json:"dataScope,omitempty"`
+	ID          string           `gorm:"column:id;primaryKey;type:char(36)" json:"id"`
+	Code        string           `gorm:"column:code;unique;not null" json:"code"`
+	Name        string           `gorm:"column:name;not null" json:"name"`
+	TypeCode    string           `gorm:"column:typeCode;size:32;default:'SYSTEM'" json:"typeCode"`
+	TypeName    string           `gorm:"-" json:"typeName,omitempty"`
+	Description *string          `gorm:"column:description;type:text" json:"description"`
+	IsSystem    bool             `gorm:"column:isSystem;default:false" json:"isSystem"`
+	Sort        int              `gorm:"column:sort;default:100" json:"sort"`
+	Status      string           `gorm:"column:status;size:16;default:'ACTIVE'" json:"status"`
+	CreatedAt   time.Time        `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
+	UpdatedAt   time.Time        `gorm:"column:updatedAt;autoUpdateTime" json:"updatedAt"`
+	Permissions []RolePermission `gorm:"foreignKey:RoleID" json:"permissions,omitempty"`
+	// Join table columns follow the legacy Prisma layout: A = roleentity.id, B = user.id.
+	Users        []User         `gorm:"many2many:_roleentitytouser;joinForeignKey:A;joinReferences:B" json:"users,omitempty"`
+	TableConfigs []TableConfig  `gorm:"foreignKey:RoleID" json:"tableConfigs,omitempty"`
+	DataScope    *RoleDataScope `gorm:"foreignKey:RoleID" json:"dataScope,omitempty"`
 }
 
 func (RoleEntity) TableName() string {
@@ -112,6 +113,31 @@ func (RoleDataScope) TableName() string {
 	return "roledatascope"
 }
 
+// UserDataScope 给单个账号单独设置的数据范围；存在时以它为准，不再按角色计算。
+type UserDataScope struct {
+	ID        string         `gorm:"column:id;primaryKey;type:char(36)" json:"id"`
+	UserID    string         `gorm:"column:userId;type:char(36);uniqueIndex:idx_user_data_scope" json:"userId"`
+	ScopeMode string         `gorm:"column:scopeMode;size:32;not null" json:"scopeMode"`
+	RulesJSON datatypes.JSON `gorm:"column:rulesJson;type:json" json:"rules"`
+	UpdatedBy *string        `gorm:"column:updatedBy;type:char(36)" json:"updatedBy"`
+	CreatedAt time.Time      `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
+	UpdatedAt time.Time      `gorm:"column:updatedAt;autoUpdateTime" json:"updatedAt"`
+}
+
+func (UserDataScope) TableName() string {
+	return "userdatascope"
+}
+
+// AppMigration 记录已执行过的一次性数据迁移，防止重复执行。
+type AppMigration struct {
+	Name      string    `gorm:"column:name;primaryKey;size:128" json:"name"`
+	AppliedAt time.Time `gorm:"column:appliedAt;autoCreateTime" json:"appliedAt"`
+}
+
+func (AppMigration) TableName() string {
+	return "appmigration"
+}
+
 // UserPermissionOverride 模型
 type UserPermissionOverride struct {
 	ID           string     `gorm:"column:id;primaryKey;type:char(36)" json:"id"`
@@ -119,7 +145,8 @@ type UserPermissionOverride struct {
 	User         User       `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	PermissionID string     `gorm:"column:permissionId;type:char(36);uniqueIndex:idx_user_permission" json:"permissionId"`
 	Permission   Permission `gorm:"foreignKey:PermissionID" json:"permission,omitempty"`
-	Allow        bool       `gorm:"column:allow;default:true" json:"allow"`
+	// No GORM default here: with default:true, GORM would turn an explicit false (deny) into true.
+	Allow bool `gorm:"column:allow" json:"allow"`
 }
 
 func (UserPermissionOverride) TableName() string {
@@ -138,6 +165,7 @@ type User struct {
 	Department          *string                  `gorm:"column:department" json:"department"`
 	IsDisabled          bool                     `gorm:"column:isDisabled;default:false" json:"isDisabled"`
 	TokenVersion        int                      `gorm:"column:tokenVersion;default:1" json:"-"` // Token 版本号，禁用/改密时递增
+	MustChangePassword  bool                     `gorm:"column:mustChangePassword;not null;default:false" json:"mustChangePassword"`
 	UserType            *string                  `gorm:"column:userType" json:"userType"`
 	Dorm                *Dormitory               `gorm:"foreignKey:DormID" json:"dorm,omitempty"`
 	DormID              *string                  `gorm:"column:dormId;type:char(36)" json:"dormId"`
@@ -149,10 +177,11 @@ type User struct {
 	ReviewedInspections []Inspection             `gorm:"foreignKey:ReviewedByID" json:"reviewedInspections,omitempty"`
 	ExecutorTasks       []TaskExecutor           `gorm:"foreignKey:ExecutorID" json:"executorTasks,omitempty"`
 	ExecutorDorms       []TaskExecutorDorm       `gorm:"foreignKey:ExecutorID" json:"executorDorms,omitempty"`
-	Roles               []RoleEntity             `gorm:"many2many:_roleentitytouser;joinForeignKey:B;joinReferences:id;MemberForeignKey:A;MemberReferences:id" json:"roles,omitempty"`
-	TableConfigs        []TableConfig            `gorm:"foreignKey:UserID" json:"tableConfigs,omitempty"`
-	AuditLogs           []AuditLog               `gorm:"foreignKey:OperatorID" json:"auditLogs,omitempty"`
-	AvatarURL           *string                  `gorm:"column:avatarUrl;type:varchar(512)" json:"avatarUrl"`
+	// Join table columns follow the legacy Prisma layout: A = roleentity.id, B = user.id.
+	Roles        []RoleEntity  `gorm:"many2many:_roleentitytouser;joinForeignKey:B;joinReferences:A" json:"roles,omitempty"`
+	TableConfigs []TableConfig `gorm:"foreignKey:UserID" json:"tableConfigs,omitempty"`
+	AuditLogs    []AuditLog    `gorm:"foreignKey:OperatorID" json:"auditLogs,omitempty"`
+	AvatarURL    *string       `gorm:"column:avatarUrl;type:varchar(512)" json:"avatarUrl"`
 }
 
 func (User) TableName() string {

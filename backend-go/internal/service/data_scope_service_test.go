@@ -12,7 +12,7 @@ import (
 
 func TestResolveUserDataScope_MergesScopes(t *testing.T) {
 	db := openDataScopeTestDB(t)
-	if err := db.AutoMigrate(&model.RoleEntity{}, &model.RoleDataScope{}); err != nil {
+	if err := db.AutoMigrate(&model.RoleEntity{}, &model.RoleDataScope{}, &model.Student{}); err != nil {
 		t.Fatalf("migrate failed: %v", err)
 	}
 
@@ -60,14 +60,15 @@ func TestResolveUserDataScope_MergesScopes(t *testing.T) {
 	}
 }
 
-func TestResolveUserDataScope_DefaultsToAllWhenRoleScopeMissing(t *testing.T) {
+func TestResolveUserDataScope_MissingScopeDefaultsToSelfExceptAdmin(t *testing.T) {
 	db := openDataScopeTestDB(t)
-	if err := db.AutoMigrate(&model.RoleEntity{}, &model.RoleDataScope{}); err != nil {
+	if err := db.AutoMigrate(&model.RoleEntity{}, &model.RoleDataScope{}, &model.Student{}, &model.Dormitory{}); err != nil {
 		t.Fatalf("migrate failed: %v", err)
 	}
 
 	role := model.RoleEntity{ID: uuid.NewString(), Code: "NO_SCOPE_ROLE", Name: "No Scope", Status: "ACTIVE", TypeCode: "CUSTOM"}
-	if err := db.Create(&role).Error; err != nil {
+	admin := model.RoleEntity{ID: uuid.NewString(), Code: model.RoleAdmin, Name: "管理员", Status: "ACTIVE", TypeCode: "SYSTEM"}
+	if err := db.Create(&[]model.RoleEntity{role, admin}).Error; err != nil {
 		t.Fatalf("seed role failed: %v", err)
 	}
 
@@ -79,8 +80,16 @@ func TestResolveUserDataScope_DefaultsToAllWhenRoleScopeMissing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("resolve scope failed: %v", err)
 	}
-	if !scope.All {
-		t.Fatalf("expected missing role scope to default to all access")
+	if scope.All || scope.HasAcademicAccess() || scope.HasDormitoryAccess() {
+		t.Fatalf("a role without configured scope must not see other people's data")
+	}
+
+	adminScope, err := ResolveUserDataScope(db, &model.User{ID: uuid.NewString(), Role: admin.Code, Roles: []model.RoleEntity{admin}})
+	if err != nil {
+		t.Fatalf("resolve admin scope failed: %v", err)
+	}
+	if !adminScope.All {
+		t.Fatalf("admin without configured scope should see all data")
 	}
 }
 

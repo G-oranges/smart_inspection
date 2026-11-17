@@ -48,6 +48,9 @@ func scopeAllowsDorm(scope *service.ResolvedUserDataScope, dorm *model.Dormitory
 	if dorm == nil {
 		return false
 	}
+	if dorm.ID != "" && scope.AllowsDormID(dorm.ID) {
+		return true
+	}
 
 	building := strings.TrimSpace(ptrToStr(dorm.Building))
 	if building == "" {

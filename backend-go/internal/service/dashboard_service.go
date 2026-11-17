@@ -122,7 +122,7 @@ func (s *dashboardService) GetSummary(userID string) (*DashboardStats, error) {
 		if err := s.db.Model(&model.Inspection{}).
 			Where("dormId IN (?)", visibleDormIDs).
 			Where("createdAt >= ?", sixMonthsAgoStart).
-			Select(monthBucketExpr(s.db)+" as month, AVG(totalScore) as avg").
+			Select(monthBucketExpr(s.db) + " as month, AVG(totalScore) as avg").
 			Group("month").
 			Scan(&trendResults).Error; err != nil {
 			return nil, err
@@ -227,6 +227,9 @@ func scopeAllowsDormForDashboard(scope *ResolvedUserDataScope, dorm *model.Dormi
 	}
 	if dorm == nil || !scope.HasDormitoryAccess() {
 		return false
+	}
+	if dorm.ID != "" && scope.AllowsDormID(dorm.ID) {
+		return true
 	}
 	building := ptrToStr(dorm.Building)
 	roomNo := ptrToStr(dorm.RoomNo)

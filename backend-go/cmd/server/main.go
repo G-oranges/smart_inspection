@@ -74,9 +74,9 @@ func initDB() {
 			NoLowerCase:   true, // 为兼容 Prisma 的 PascalCase 字段
 			SingularTable: true, // 为兼容 Prisma 的单数表名
 		},
-		PrepareStmt:                            false, // 暂时禁用预编译缓存，提升在不稳定本地网络环境下的容错性
-		DisableForeignKeyConstraintWhenMigrating: true, // 启动期只补基础结构，不在运行时隐式修复/新增外键
-		IgnoreRelationshipsWhenMigrating:         true, // 关系表与关联约束统一由脚本管理，避免启动期重塑隐式 join table
+		PrepareStmt:                              false, // 暂时禁用预编译缓存，提升在不稳定本地网络环境下的容错性
+		DisableForeignKeyConstraintWhenMigrating: true,  // 启动期只补基础结构，不在运行时隐式修复/新增外键
+		IgnoreRelationshipsWhenMigrating:         true,  // 关系表与关联约束统一由脚本管理，避免启动期重塑隐式 join table
 	})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
@@ -104,14 +104,60 @@ func initDB() {
 	); err != nil {
 		log.Printf("Warning: Failed to auto-migrate auth models: %v", err)
 	}
+	ensureUserColumns(DB)
+	ensureUserRoleColumnIsText(DB)
 	if err := service.EnsureRoleTypeCatalog(DB); err != nil {
 		log.Printf("Warning: Failed to initialize role types: %v", err)
+	}
+	if err := service.EnsurePermissionCatalog(DB); err != nil {
+		log.Printf("Warning: Failed to sync permission catalog: %v", err)
+	}
+	if err := service.EnsureDataScopeDefaults(DB); err != nil {
+		log.Printf("Warning: Failed to migrate data scope defaults: %v", err)
 	}
 	if err := service.WarnRoleManagementSchemaStatus(DB); err != nil {
 		log.Printf("Warning: Failed to inspect role management schema status: %v", err)
 	}
 
 	log.Println("Database connection established with connection pool configured")
+}
+
+// ensureUserColumns adds user columns that newer code depends on but older databases
+// (for example the bundled backup) may lack. It only adds missing columns and never drops data.
+func ensureUserColumns(db *gorm.DB) {
+	for _, field := range []string{"AvatarURL", "MustChangePassword"} {
+		if db.Migrator().HasColumn(&model.User{}, field) {
+			continue
+		}
+		if err := db.Migrator().AddColumn(&model.User{}, field); err != nil {
+			log.Printf("Warning: Failed to add user column %s: %v", field, err)
+			continue
+		}
+		log.Printf("Added missing user column %s", field)
+	}
+}
+
+// ensureUserRoleColumnIsText 把旧库中 user.role 的 ENUM('ADMIN','COUNSELOR','LEADER','STUDENT')
+// 改为普通字符串，使自定义角色也能作为主角色。只放宽类型，不改动已有数据。
+func ensureUserRoleColumnIsText(db *gorm.DB) {
+	if db.Dialector.Name() != "mysql" {
+		return
+	}
+	var dataType string
+	if err := db.Raw(
+		"SELECT DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user' AND COLUMN_NAME = 'role'",
+	).Scan(&dataType).Error; err != nil {
+		log.Printf("Warning: Failed to inspect user.role column: %v", err)
+		return
+	}
+	if !strings.EqualFold(dataType, "enum") {
+		return
+	}
+	if err := db.Exec("ALTER TABLE `user` MODIFY COLUMN `role` VARCHAR(64) NOT NULL").Error; err != nil {
+		log.Printf("Warning: Failed to widen user.role column: %v", err)
+		return
+	}
+	log.Println("Changed user.role from ENUM to VARCHAR(64)")
 }
 
 func convertPrismaDSN(prismaDSN string) string {

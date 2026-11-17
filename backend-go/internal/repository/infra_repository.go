@@ -56,6 +56,8 @@ type DormPageParams struct {
 }
 
 type DormitoryScope struct {
+	// DormIDs 由学生学院范围推导出的可见宿舍
+	DormIDs   []string
 	Buildings []string
 	Floors    []DormitoryScopeFloor
 	Rooms     []DormitoryScopeRoom
@@ -343,51 +345,45 @@ func (r *infraRepository) FindDormsPaged(params DormPageParams) ([]model.Dormito
 	return dorms, total, err
 }
 
+// applyDormitoryScope 按数据范围过滤宿舍：命中任一条件（推导出的宿舍、楼栋、楼层、房间）即可见。
+// 条件需用 gorm.DB 分组（gorm 的 Where 不支持传入函数），否则会在执行时报错。
 func applyDormitoryScope(query *gorm.DB, scope *DormitoryScope) *gorm.DB {
 	if scope == nil {
 		return query
 	}
 
-	hasAnyScope := len(scope.Buildings) > 0 || len(scope.Floors) > 0 || len(scope.Rooms) > 0
-	if !hasAnyScope {
-		return query.Where("1 = 0")
-	}
-
-	return query.Where(func(tx *gorm.DB) *gorm.DB {
-		started := false
-
-		if len(scope.Buildings) > 0 {
-			tx = tx.Where("building IN ?", scope.Buildings)
+	condition := query.Session(&gorm.Session{NewDB: true})
+	started := false
+	or := func(clause string, args ...interface{}) {
+		if started {
+			condition = condition.Or(clause, args...)
+		} else {
+			condition = condition.Where(clause, args...)
 			started = true
 		}
-		for _, floor := range scope.Floors {
-			if floor.Building == "" {
-				continue
-			}
-			if started {
-				tx = tx.Or("(building = ? AND floor = ?)", floor.Building, floor.Floor)
-			} else {
-				tx = tx.Where("(building = ? AND floor = ?)", floor.Building, floor.Floor)
-				started = true
-			}
-		}
-		for _, room := range scope.Rooms {
-			if room.Building == "" || room.RoomNo == "" {
-				continue
-			}
-			if started {
-				tx = tx.Or("(building = ? AND floor = ? AND roomNo = ?)", room.Building, room.Floor, room.RoomNo)
-			} else {
-				tx = tx.Where("(building = ? AND floor = ? AND roomNo = ?)", room.Building, room.Floor, room.RoomNo)
-				started = true
-			}
-		}
+	}
 
-		if !started {
-			return tx.Where("1 = 0")
+	if len(scope.DormIDs) > 0 {
+		or("dormitory.id IN ?", scope.DormIDs)
+	}
+	if len(scope.Buildings) > 0 {
+		or("dormitory.building IN ?", scope.Buildings)
+	}
+	for _, floor := range scope.Floors {
+		if floor.Building != "" {
+			or("(dormitory.building = ? AND dormitory.floor = ?)", floor.Building, floor.Floor)
 		}
-		return tx
-	})
+	}
+	for _, room := range scope.Rooms {
+		if room.Building != "" && room.RoomNo != "" {
+			or("(dormitory.building = ? AND dormitory.floor = ? AND dormitory.roomNo = ?)", room.Building, room.Floor, room.RoomNo)
+		}
+	}
+
+	if !started {
+		return query.Where("1 = 0")
+	}
+	return query.Where(condition)
 }
 
 func (r *infraRepository) FindByID(id string) (*model.Dormitory, error) {
