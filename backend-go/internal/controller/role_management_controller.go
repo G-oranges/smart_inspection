@@ -417,9 +417,23 @@ func (c *RoleController) UpdateRole(ctx *gin.Context) {
 		return
 	}
 
+	statusChanged := false
+	var affectedUserIDs []string
+	if nextStatus, ok := updates["status"].(string); ok && !strings.EqualFold(nextStatus, role.Status) {
+		statusChanged = true
+		affectedUserIDs, err = c.listAssignedUserIDs(role.ID, role.Code)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			return
+		}
+	}
+
 	if err := c.db.Model(&model.RoleEntity{}).Where("id = ?", roleID).Updates(updates).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
+	}
+	if statusChanged && c.permissionService != nil {
+		c.permissionService.InvalidateCacheForUsers(affectedUserIDs...)
 	}
 
 	updatedRole, err := c.findRole(roleID)

@@ -116,8 +116,8 @@ func TestSaveRoleDataScope_RejectsInvalidPayload(t *testing.T) {
 		PresetCode: roleDataScopeAcademic,
 		Rules: RoleDataScopeRules{
 			Academic: map[string][]string{
-				"college": {},
-				"major":   {},
+				"college":   {},
+				"major":     {},
 				"className": {},
 			},
 			Dormitory: map[string][]string{

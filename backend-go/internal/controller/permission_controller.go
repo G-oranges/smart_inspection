@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,21 @@ type PermissionController struct {
 
 func NewPermissionController(s *service.PermissionService) *PermissionController {
 	return &PermissionController{service: s}
+}
+
+// respondPermissionError 把服务层错误映射为 404/400/500，并避免把数据库原始报错返回给前端。
+func respondPermissionError(c *gin.Context, err error, notFoundMessage string) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"message": notFoundMessage})
+		return
+	}
+	var validationErr *service.ValidationError
+	if errors.As(err, &validationErr) {
+		c.JSON(http.StatusBadRequest, gin.H{"message": validationErr.Error()})
+		return
+	}
+	log.Printf("permission update failed: %v", err)
+	c.JSON(http.StatusInternalServerError, gin.H{"message": "保存失败，请稍后重试"})
 }
 
 // GetMyPermissions 获取当前用户的有效权限
@@ -67,7 +83,7 @@ func (ctrl *PermissionController) UpdateRolePermissions(c *gin.Context) {
 	}
 
 	if err := ctrl.service.UpdateRolePermissions(roleId, req.PermissionIds); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		respondPermissionError(c, err, "角色不存在")
 		return
 	}
 
@@ -119,7 +135,7 @@ func (ctrl *PermissionController) UpdateUserOverrides(c *gin.Context) {
 	}
 
 	if err := ctrl.service.UpdateUserOverrides(userId, req.Overrides); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		respondPermissionError(c, err, "用户不存在")
 		return
 	}
 
@@ -158,7 +174,7 @@ func (ctrl *PermissionController) BatchUpdateUserOverrides(c *gin.Context) {
 	}
 
 	if err := ctrl.service.BatchUpdateUserOverrides(req.UserIds, req.Overrides); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		respondPermissionError(c, err, "部分用户不存在，请刷新后重试")
 		return
 	}
 
@@ -242,4 +258,81 @@ func (ctrl *PermissionController) SaveRoleDataScope(c *gin.Context) {
 	})
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "dataScope": scope})
+}
+
+// GetScopeOptions 配置数据范围时可选的学院/专业/班级与楼栋/楼层/房间。
+func (ctrl *PermissionController) GetScopeOptions(c *gin.Context) {
+	options, err := ctrl.service.GetScopeOptions()
+	if err != nil {
+		respondPermissionError(c, err, "")
+		return
+	}
+	c.JSON(http.StatusOK, options)
+}
+
+// GetUserDataScope 获取账号单独设置的数据范围
+func (ctrl *PermissionController) GetUserDataScope(c *gin.Context) {
+	scope, err := ctrl.service.GetUserDataScope(c.Param("userId"))
+	if err != nil {
+		respondPermissionError(c, err, "用户不存在")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"dataScope": scope})
+}
+
+// SaveUserDataScope 给账号单独设置数据范围
+func (ctrl *PermissionController) SaveUserDataScope(c *gin.Context) {
+	if !middleware.CheckPermissionInController(c, "PERMISSION_MANAGE") {
+		c.JSON(http.StatusForbidden, gin.H{"message": "Forbidden: 权限不足"})
+		return
+	}
+	userID := c.Param("userId")
+	var req service.RoleDataScopePayload
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "参数错误"})
+		return
+	}
+	operatorID, _ := c.Get("userId")
+	scope, err := ctrl.service.SaveUserDataScope(userID, fmt.Sprintf("%v", operatorID), req)
+	if err != nil {
+		respondPermissionError(c, err, "用户不存在")
+		return
+	}
+	operatorName, _ := c.Get("fullName")
+	service.LogAudit(service.AuditLogParams{
+		Action:       service.AuditActionPermissionChange,
+		Module:       service.AuditModulePermission,
+		TargetID:     userID,
+		Description:  fmt.Sprintf("设置账号数据范围: mode=%s", scope.ScopeMode),
+		NewValue:     map[string]interface{}{"scopeMode": scope.ScopeMode},
+		OperatorID:   fmt.Sprintf("%v", operatorID),
+		OperatorName: fmt.Sprintf("%v", operatorName),
+		IPAddress:    c.ClientIP(),
+	})
+	c.JSON(http.StatusOK, gin.H{"success": true, "dataScope": scope})
+}
+
+// DeleteUserDataScope 取消账号单独设置，恢复按角色计算
+func (ctrl *PermissionController) DeleteUserDataScope(c *gin.Context) {
+	if !middleware.CheckPermissionInController(c, "PERMISSION_MANAGE") {
+		c.JSON(http.StatusForbidden, gin.H{"message": "Forbidden: 权限不足"})
+		return
+	}
+	userID := c.Param("userId")
+	if err := ctrl.service.DeleteUserDataScope(userID); err != nil {
+		respondPermissionError(c, err, "用户不存在")
+		return
+	}
+	operatorID, _ := c.Get("userId")
+	operatorName, _ := c.Get("fullName")
+	service.LogAudit(service.AuditLogParams{
+		Action:       service.AuditActionPermissionChange,
+		Module:       service.AuditModulePermission,
+		TargetID:     userID,
+		Description:  "取消账号单独数据范围，恢复按角色计算",
+		OperatorID:   fmt.Sprintf("%v", operatorID),
+		OperatorName: fmt.Sprintf("%v", operatorName),
+		IPAddress:    c.ClientIP(),
+	})
+	c.JSON(http.StatusOK, gin.H{"success": true})
 }

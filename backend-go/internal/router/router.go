@@ -1,6 +1,9 @@
 package router
 
 import (
+	"log"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,8 +14,29 @@ import (
 	"gorm.io/gorm"
 )
 
+// trustedProxiesFromEnv 读取 TRUSTED_PROXIES（逗号分隔的 IP/CIDR）；未配置时返回 nil，表示不信任任何代理。
+func trustedProxiesFromEnv() []string {
+	raw := strings.TrimSpace(os.Getenv("TRUSTED_PROXIES"))
+	if raw == "" {
+		return nil
+	}
+	proxies := make([]string, 0)
+	for _, item := range strings.Split(raw, ",") {
+		if trimmed := strings.TrimSpace(item); trimmed != "" {
+			proxies = append(proxies, trimmed)
+		}
+	}
+	return proxies
+}
+
 func SetupRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
+	// 默认不信任任何代理转发的 IP（防止伪造 X-Forwarded-For 绕过限流）；
+	// 部署在反向代理后时，通过 TRUSTED_PROXIES（逗号分隔）显式配置代理地址。
+	if err := r.SetTrustedProxies(trustedProxiesFromEnv()); err != nil {
+		log.Printf("Warning: invalid TRUSTED_PROXIES: %v", err)
+		_ = r.SetTrustedProxies(nil)
+	}
 	// 启用尾随斜杠重定向，这样 /api/users/ 会自动重定向到 /api/users
 	r.RedirectTrailingSlash = true
 	r.RedirectFixedPath = false
@@ -21,8 +45,10 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	authService := service.NewAuthService(db)
 	authController := controller.NewAuthControllerWithDB(authService, db)
 
+	permissionService := service.NewPermissionService(db)
+
 	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo, db)
+	userService := service.NewUserService(userRepo, db, service.WithPermissionCacheInvalidator(permissionService.InvalidateCacheForUsers))
 	userController := controller.NewUserController(userService)
 
 	infraRepo := repository.NewInfrastructureRepository(db)
@@ -57,7 +83,6 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	teacherService := service.NewTeacherService(teacherRepo, db)
 	teacherController := controller.NewTeacherController(db, teacherService)
 
-	permissionService := service.NewPermissionService(db)
 	buildingController := controller.NewBuildingController(db, infraService)
 	roleController := controller.NewRoleController(db, permissionService)
 	permissionController := controller.NewPermissionController(permissionService)
@@ -65,9 +90,13 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	// 静态资源服务
 	r.Static("/uploads", "./data/uploads")
 
-	// 创建分布式登录限流器: 5分钟窗口内最多5次尝试
+	// 登录失败限流：同一 IP+账号 15 分钟内最多失败 5 次；同一 IP 15 分钟内最多失败 30 次。
 	// 使用 Redis 实现，支持多实例部署；Redis 不可用时自动降级为内存模式
-	loginRateLimiter := middleware.NewDistributedRateLimiter("login", 5*time.Minute, 5)
+	loginAccountLimiter := middleware.NewDistributedRateLimiter("login-account", 15*time.Minute, 5)
+	loginIPLimiter := middleware.NewDistributedRateLimiter("login-ip", 15*time.Minute, 30)
+	// 找回密码相关公开接口：同一 IP 15 分钟内最多 10 次
+	passwordRecoveryLimiter := middleware.NewDistributedRateLimiter("password-recovery", 15*time.Minute, 10)
+	recoveryLimit := middleware.SimpleRateLimiter(passwordRecoveryLimiter, "操作过于频繁，请稍后再试")
 
 	// API 路由组
 	api := r.Group("/api")
@@ -75,12 +104,12 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 		// 公开路由
 		auth := api.Group("/auth")
 		{
-			auth.POST("/login", middleware.DistributedLoginRateLimiter(loginRateLimiter), authController.Login)
+			auth.POST("/login", middleware.LoginFailureRateLimiter(loginAccountLimiter, loginIPLimiter), authController.Login)
 			auth.POST("/refresh", authController.Refresh)
 			// 忘记密码相关（公开接口，无需登录）
-			auth.POST("/check-email", authController.CheckUserEmail) // 检查用户绑定的邮箱
-			auth.POST("/forgot-password", authController.ForgotPassword)
-			auth.POST("/reset-password", authController.ResetPassword)
+			auth.POST("/check-email", recoveryLimit, authController.CheckUserEmail) // 检查用户绑定的邮箱
+			auth.POST("/forgot-password", recoveryLimit, authController.ForgotPassword)
+			auth.POST("/reset-password", recoveryLimit, authController.ResetPassword)
 		}
 
 		// 受保护路由
@@ -96,13 +125,14 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 				users.GET("/me", userController.GetMe)
 				users.PUT("/me", userController.UpdateMe)
 
-				users.GET("/executors", userController.GetExecutors)
-				users.GET("", middleware.RequirePermission("USER_MANAGE", "ACCOUNT_MANAGE"), userController.GetUsers)
-				users.POST("", middleware.RequirePermission("USER_MANAGE", "ACCOUNT_MANAGE"), userController.CreateUser)
-				users.PUT("/:id", middleware.RequirePermission("USER_MANAGE", "ACCOUNT_MANAGE"), userController.UpdateUser)
-				users.PUT("/:id/reset-password", middleware.RequirePermission("USER_MANAGE", "ACCOUNT_MANAGE"), userController.ResetPassword)
-				users.POST("/:id/temporary-password", middleware.RequirePermission("USER_MANAGE", "ACCOUNT_MANAGE"), userController.GenerateTemporaryPassword)
-				users.DELETE("", middleware.RequirePermission("USER_MANAGE", "ACCOUNT_MANAGE"), userController.DeleteUsers)
+				// 执行人列表含教职工联系方式，仅发布任务的人需要
+				users.GET("/executors", middleware.RequirePermission("TASK_PUBLISH", "TASK_EDIT"), userController.GetExecutors)
+				users.GET("", middleware.RequirePermission("USER_MANAGE"), userController.GetUsers)
+				users.POST("", middleware.RequirePermission("USER_MANAGE"), userController.CreateUser)
+				users.PUT("/:id", middleware.RequirePermission("USER_MANAGE"), userController.UpdateUser)
+				users.PUT("/:id/reset-password", middleware.RequirePermission("USER_MANAGE"), userController.ResetPassword)
+				users.POST("/:id/temporary-password", middleware.RequirePermission("USER_MANAGE"), userController.GenerateTemporaryPassword)
+				users.DELETE("", middleware.RequirePermission("USER_MANAGE"), userController.DeleteUsers)
 			}
 
 			// 学生模块
@@ -261,10 +291,10 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 			tasks := protected.Group("/tasks")
 			{
 				tasks.POST("", middleware.RequirePermission("TASK_PUBLISH"), taskController.CreateTask)
-				tasks.GET("", middleware.RequirePermission("TASK_PUBLISH", "RESULT_RECORD", "RESULT_VIEW"), taskController.GetTasks)
-				tasks.GET("/:id", middleware.RequirePermission("TASK_PUBLISH", "RESULT_RECORD", "RESULT_VIEW"), taskController.GetTaskByID)
-				tasks.PUT("/:id", middleware.RequirePermission("TASK_PUBLISH"), taskController.UpdateTask)
-				tasks.DELETE("/:id", middleware.RequirePermission("TASK_PUBLISH"), taskController.DeleteTask)
+				tasks.GET("", middleware.RequirePermission("TASK_PUBLISH", "TASK_EDIT", "TASK_DELETE", "RESULT_RECORD", "RESULT_VIEW"), taskController.GetTasks)
+				tasks.GET("/:id", middleware.RequirePermission("TASK_PUBLISH", "TASK_EDIT", "TASK_DELETE", "RESULT_RECORD", "RESULT_VIEW"), taskController.GetTaskByID)
+				tasks.PUT("/:id", middleware.RequirePermission("TASK_EDIT"), taskController.UpdateTask)
+				tasks.DELETE("/:id", middleware.RequirePermission("TASK_DELETE"), taskController.DeleteTask)
 				tasks.POST("/:id/inspections", middleware.RequirePermission("RESULT_RECORD"), taskController.SubmitTaskInspection) // 新增查寝结果提交接口
 				tasks.GET("/:id/dorms/my", middleware.RequirePermission("RESULT_RECORD"), taskController.GetMyAssignedDorms)       // 移动端分配宿舍
 				// 兼容路由：GET /api/tasks/:id/inspections -> 获取任务的查寝结果
@@ -281,8 +311,8 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 				inspections.GET("", middleware.RequirePermission("RESULT_VIEW", "RESULT_RECORD"), inspectionController.GetInspections)
 				inspections.GET("/mine", middleware.RequirePermission("RESULT_RECORD"), inspectionController.GetMyInspections) // 移动端我的检查
 				inspections.PUT("/:id", middleware.RequirePermission("RESULT_RECORD"), inspectionController.SubmitResult)
-				inspections.POST("/:id", middleware.RequirePermission("RESULT_RECORD"), inspectionController.SubmitResult)  // 兼容前端可能使用的 POST
-				inspections.GET("/export", middleware.RequirePermission("RESULT_VIEW"), inspectionController.ExportResults) // 导出
+				inspections.POST("/:id", middleware.RequirePermission("RESULT_RECORD"), inspectionController.SubmitResult)    // 兼容前端可能使用的 POST
+				inspections.GET("/export", middleware.RequirePermission("RESULT_EXPORT"), inspectionController.ExportResults) // 导出
 			}
 
 			// 申诉模块
@@ -333,6 +363,11 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 			protected.GET("/permissions/users/:userId", middleware.RequirePermission("PERMISSION_MANAGE"), permissionController.GetUserOverrides)
 			protected.PUT("/permissions/users/:userId", middleware.RequirePermission("PERMISSION_MANAGE"), permissionController.UpdateUserOverrides)
 			protected.PUT("/permissions/batch-overrides", middleware.RequirePermission("PERMISSION_MANAGE"), permissionController.BatchUpdateUserOverrides)
+			// 账号单独数据范围（存在时覆盖角色范围）与数据范围可选项
+			protected.GET("/permissions/users/:userId/data-scope", middleware.RequirePermission("PERMISSION_MANAGE"), permissionController.GetUserDataScope)
+			protected.PUT("/permissions/users/:userId/data-scope", middleware.RequirePermission("PERMISSION_MANAGE"), permissionController.SaveUserDataScope)
+			protected.DELETE("/permissions/users/:userId/data-scope", middleware.RequirePermission("PERMISSION_MANAGE"), permissionController.DeleteUserDataScope)
+			protected.GET("/permissions/scope-options", middleware.RequirePermission("PERMISSION_MANAGE"), permissionController.GetScopeOptions)
 
 			// 兼容旧版的测试路由
 			protected.GET("/me", authController.GetMe)

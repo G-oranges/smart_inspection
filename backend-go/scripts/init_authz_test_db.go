@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/my-project/backend-go/internal/model"
+	"github.com/my-project/backend-go/internal/service"
 	"github.com/my-project/backend-go/pkg/utils"
 	gormmysql "gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -159,30 +160,8 @@ func seedAuthzData(db *gorm.DB) error {
 		roles[def.Code] = role
 	}
 
-	permDefs := []struct {
-		Code   string
-		Module string
-	}{
-		{Code: "USER_MANAGE", Module: "USER"},
-		{Code: "ACCOUNT_MANAGE", Module: "USER"},
-		{Code: "PERMISSION_MANAGE", Module: "PERMISSION"},
-		{Code: "SYSTEM_SETTINGS", Module: "SYSTEM"},
-		{Code: "STUDENT_VIEW", Module: "STUDENT"},
-		{Code: "STUDENT_EDIT", Module: "STUDENT"},
-		{Code: "STUDENT_IMPORT", Module: "STUDENT"},
-		{Code: "STUDENT_EXPORT", Module: "STUDENT"},
-		{Code: "TEACHER_MANAGE", Module: "TEACHER"},
-		{Code: "TEACHER_IMPORT", Module: "TEACHER"},
-		{Code: "TEACHER_EXPORT", Module: "TEACHER"},
-		{Code: "DORM_VIEW", Module: "DORM"},
-		{Code: "DORM_EDIT", Module: "DORM"},
-		{Code: "DORM_IMPORT", Module: "DORM"},
-		{Code: "DORM_EXPORT", Module: "DORM"},
-		{Code: "DORM_CHECKIN_MANAGE", Module: "DORM"},
-		{Code: "TASK_PUBLISH", Module: "TASK"},
-		{Code: "RESULT_VIEW", Module: "RESULT"},
-		{Code: "RESULT_RECORD", Module: "RESULT"},
-	}
+	// 权限编码以 service.PermissionCatalog 为准，避免测试库与路由不一致
+	permDefs := service.PermissionCatalog
 
 	perms := map[string]model.Permission{}
 	for _, def := range permDefs {
@@ -190,7 +169,7 @@ func seedAuthzData(db *gorm.DB) error {
 		if err := db.Where("code = ?", def.Code).FirstOrCreate(&perm, model.Permission{
 			ID:     uuid.NewString(),
 			Code:   def.Code,
-			Name:   def.Code,
+			Name:   def.Name,
 			Module: def.Module,
 		}).Error; err != nil {
 			return err
@@ -199,16 +178,10 @@ func seedAuthzData(db *gorm.DB) error {
 	}
 
 	rolePerms := map[string][]string{
-		"ADMIN": {
-			"USER_MANAGE", "ACCOUNT_MANAGE", "PERMISSION_MANAGE", "SYSTEM_SETTINGS",
-			"STUDENT_VIEW", "STUDENT_EDIT", "STUDENT_IMPORT", "STUDENT_EXPORT",
-			"TEACHER_MANAGE", "TEACHER_IMPORT", "TEACHER_EXPORT",
-			"DORM_VIEW", "DORM_EDIT", "DORM_IMPORT", "DORM_EXPORT", "DORM_CHECKIN_MANAGE",
-			"TASK_PUBLISH", "RESULT_VIEW", "RESULT_RECORD",
-		},
+		"ADMIN": allPermissionCodes(),
 		"COUNSELOR": {
 			"STUDENT_VIEW", "STUDENT_EDIT", "STUDENT_IMPORT", "STUDENT_EXPORT",
-			"DORM_VIEW", "RESULT_VIEW", "RESULT_RECORD", "TASK_PUBLISH",
+			"DORM_VIEW", "RESULT_VIEW", "RESULT_RECORD", "RESULT_EXPORT", "TASK_PUBLISH", "TASK_EDIT",
 		},
 		"LEADER": {
 			"RESULT_VIEW", "RESULT_RECORD",
@@ -294,4 +267,12 @@ func seedAuthzData(db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func allPermissionCodes() []string {
+	codes := make([]string, 0, len(service.PermissionCatalog))
+	for _, def := range service.PermissionCatalog {
+		codes = append(codes, def.Code)
+	}
+	return codes
 }
