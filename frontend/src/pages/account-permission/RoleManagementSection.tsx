@@ -6,13 +6,11 @@ import {
   Empty,
   Input,
   Modal,
-  Radio,
   Select,
   Space,
   Spin,
   Switch,
   Tag,
-  TreeSelect,
   message,
 } from 'antd';
 import {
@@ -24,24 +22,18 @@ import {
 } from '@ant-design/icons';
 
 import PermissionDeniedState from '../../components/common/PermissionDeniedState';
+import DataScopeEditor from './DataScopeEditor';
+import { useScopeOptions } from './useScopeOptions';
+import { createDefaultScope, normalizeScope, permissionModuleLabel } from './scopeUtils';
 import type { RoleLike } from '../../types/app';
 import type {
   EntityId,
   PermissionDefinition,
   RoleDataScope,
-  RoleDataScopeRules,
   RoleMatrixResponse,
   RoleType,
-  ScopePresetCode,
 } from '../../types/service';
 import type { AccountPermissionActions, AccountPermissionData } from './types';
-
-const PRESET_OPTIONS: Array<{ value: ScopePresetCode; label: string }> = [
-  { value: 'ALL', label: '全部数据' },
-  { value: 'ACADEMIC', label: '按学院范围' },
-  { value: 'DORMITORY', label: '按楼栋范围' },
-  { value: 'CUSTOM', label: '自定义组合' },
-];
 
 const ROLE_CODE_PATTERN = /^[A-Z][A-Z0-9_]*$/;
 
@@ -61,60 +53,6 @@ type RoleTypeFormState = {
   status: string;
   sort: number;
 };
-
-type TreeNode = {
-  title: string;
-  value: string;
-  key: string;
-  children?: TreeNode[];
-};
-
-function createEmptyRules(): RoleDataScopeRules {
-  return {
-    academic: {
-      college: [],
-      major: [],
-      className: [],
-    },
-    dormitory: {
-      building: [],
-      floor: [],
-      room: [],
-    },
-  };
-}
-
-function createDefaultScope(roleId?: EntityId): RoleDataScope {
-  return {
-    roleId,
-    scopeMode: 'ALL',
-    presetCode: 'ALL',
-    rules: createEmptyRules(),
-  };
-}
-
-function normalizeScope(roleId: EntityId | undefined, value?: RoleDataScope | null): RoleDataScope {
-  const fallback = createDefaultScope(roleId);
-  return {
-    ...fallback,
-    ...value,
-    roleId: value?.roleId ?? roleId,
-    scopeMode: value?.scopeMode || value?.presetCode || 'ALL',
-    presetCode: (value?.presetCode as ScopePresetCode | string) || 'ALL',
-    rules: {
-      ...createEmptyRules(),
-      ...(value?.rules || {}),
-      academic: {
-        ...createEmptyRules().academic,
-        ...(value?.rules?.academic || {}),
-      },
-      dormitory: {
-        ...createEmptyRules().dormitory,
-        ...(value?.rules?.dormitory || {}),
-      },
-    },
-  };
-}
 
 function makeRoleForm(role?: RoleLike | null): RoleFormState {
   return {
@@ -220,121 +158,12 @@ function groupPermissions(permissions: PermissionDefinition[] = []) {
   return Array.from(groups.entries())
     .map(([module, items]) => ({
       module,
-      label: module,
+      label: permissionModuleLabel(module),
       items: [...items].sort((left, right) =>
         String(left.name || left.code || '').localeCompare(String(right.name || right.code || ''), 'zh-CN'),
       ),
     }))
     .sort((left, right) => left.label.localeCompare(right.label, 'zh-CN'));
-}
-
-function uniqueStrings(values: Array<string | null | undefined>) {
-  return Array.from(new Set(values.filter((value): value is string => Boolean(value && value.trim()))));
-}
-
-function buildAcademicOptions(students: AccountPermissionData['students']) {
-  const items = Array.isArray(students) ? students : [];
-  return {
-    colleges: uniqueStrings(items.map((item) => String(item.college || ''))),
-    majors: uniqueStrings(items.map((item) => String(item.major || ''))),
-    classNames: uniqueStrings(items.map((item) => String(item.className || ''))),
-  };
-}
-
-function buildDormTree(dorms: AccountPermissionData['dorms']) {
-  const roleMap = new Map<string, Map<string, string[]>>();
-  (Array.isArray(dorms) ? dorms : []).forEach((item) => {
-    const building = String(item.building || '').trim();
-    const floor = String(item.floor ?? '').trim();
-    const room = String(item.roomNo || '').trim();
-    if (!building) {
-      return;
-    }
-    const floorMap = roleMap.get(building) || new Map<string, string[]>();
-    const rooms = floorMap.get(floor) || [];
-    if (room) {
-      rooms.push(room);
-    }
-    floorMap.set(floor, rooms);
-    roleMap.set(building, floorMap);
-  });
-
-  const treeData: TreeNode[] = [];
-  roleMap.forEach((floorMap, building) => {
-    treeData.push({
-      title: building,
-      key: `B::${building}`,
-      value: `B::${building}`,
-      children: Array.from(floorMap.entries()).map(([floor, rooms]) => ({
-        title: floor ? `${floor} 层` : '未分层',
-        key: `F::${building}::${floor}`,
-        value: `F::${building}::${floor}`,
-        children: rooms
-          .sort((left, right) => left.localeCompare(right, 'zh-CN'))
-          .map((room) => ({
-            title: room,
-            key: `R::${building}::${floor}::${room}`,
-            value: `R::${building}::${floor}::${room}`,
-          })),
-      })),
-    });
-  });
-
-  return treeData.sort((left, right) => left.title.localeCompare(right.title, 'zh-CN'));
-}
-
-function dormTreeValuesFromRules(scope: RoleDataScope) {
-  const dormitory = scope.rules?.dormitory;
-  return [
-    ...(dormitory?.building || []).map((value) => `B::${value}`),
-    ...(dormitory?.floor || []).map((value) => `F::${value}`),
-    ...(dormitory?.room || []).map((value) => `R::${value}`),
-  ];
-}
-
-function updateDormRulesFromTree(scope: RoleDataScope, values: string[]): RoleDataScope {
-  const nextScope = normalizeScope(scope.roleId, scope);
-  const building = values
-    .filter((value) => value.startsWith('B::'))
-    .map((value) => value.slice(3));
-  const floor = values
-    .filter((value) => value.startsWith('F::'))
-    .map((value) => value.slice(3));
-  const room = values
-    .filter((value) => value.startsWith('R::'))
-    .map((value) => value.slice(3));
-
-  nextScope.rules = {
-    ...nextScope.rules,
-    dormitory: {
-      building,
-      floor,
-      room,
-    },
-  };
-  return nextScope;
-}
-
-function resetScopeForPreset(scope: RoleDataScope, preset: ScopePresetCode): RoleDataScope {
-  const nextScope = normalizeScope(scope.roleId, scope);
-  nextScope.scopeMode = preset;
-  nextScope.presetCode = preset;
-  if (preset === 'ALL') {
-    nextScope.rules = createEmptyRules();
-  }
-  if (preset === 'ACADEMIC') {
-    nextScope.rules = {
-      ...nextScope.rules,
-      dormitory: createEmptyRules().dormitory,
-    };
-  }
-  if (preset === 'DORMITORY') {
-    nextScope.rules = {
-      ...nextScope.rules,
-      academic: createEmptyRules().academic,
-    };
-  }
-  return nextScope;
 }
 
 interface RoleManagementSectionProps {
@@ -360,7 +189,6 @@ export default function RoleManagementSection({
   permissionMessage,
   setPermissionMessage,
   accountActions,
-  accountData,
   refreshRoles,
   refreshMatrix,
 }: RoleManagementSectionProps) {
@@ -385,8 +213,7 @@ export default function RoleManagementSection({
   const [permissionsExpanded, setPermissionsExpanded] = useState(true);
   const [scopeExpanded, setScopeExpanded] = useState(true);
 
-  const academicOptions = useMemo(() => buildAcademicOptions(accountData.students), [accountData.students]);
-  const dormTreeData = useMemo(() => buildDormTree(accountData.dorms), [accountData.dorms]);
+  const { options: scopeOptions, error: scopeOptionsError } = useScopeOptions(canManagePermissions);
   const permissionGroups = useMemo(
     () => groupPermissions(matrix?.permissions || []),
     [matrix?.permissions],
@@ -843,11 +670,20 @@ export default function RoleManagementSection({
               {roles.map((role) => {
                 const selected = role.id === selectedRoleId;
                 return (
-                  <button
+                  // 外层用 div + role="button"：内部还有开关和按钮，<button> 不能嵌套 <button>
+                  <div
                     key={String(role.id ?? role.code)}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={selected}
                     className={`role-list-item${selected ? ' role-list-item--active' : ''}`}
                     onClick={() => setSelectedRoleId(role.id ?? null)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setSelectedRoleId(role.id ?? null);
+                      }
+                    }}
                   >
                     <div className="role-list-item__content">
                       <div className="role-list-item__title">
@@ -878,7 +714,7 @@ export default function RoleManagementSection({
                         onClick={() => void handleDeleteRole(role)}
                       />
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -980,125 +816,13 @@ export default function RoleManagementSection({
 
                 <div className={`role-config-panel${scopeExpanded ? ' role-config-panel--expanded' : ''}`}>
                   <div className="role-config-panel__inner">
-                    {dataScopeLoading ? (
-                      <div className="role-list-empty">
-                        <Spin />
-                      </div>
-                    ) : (
-                      <div className="stack">
-                        <Radio.Group
-                          value={draftScope.presetCode || 'ALL'}
-                          onChange={(event) =>
-                            setDraftScope((prev) =>
-                              resetScopeForPreset(prev, event.target.value as ScopePresetCode),
-                            )
-                          }
-                        >
-                          <Space direction="vertical">
-                            {PRESET_OPTIONS.map((item) => (
-                              <Radio key={item.value} value={item.value}>
-                                {item.label}
-                              </Radio>
-                            ))}
-                          </Space>
-                        </Radio.Group>
-
-                        {(draftScope.presetCode === 'ACADEMIC' || draftScope.presetCode === 'CUSTOM') ? (
-                          <div className="role-scope-block">
-                            <div className="role-scope-block__title">学院范围</div>
-                            <div className="modal-grid">
-                              <label className="field-block">
-                                <span className="field-label">学院</span>
-                                <Select
-                                  mode="multiple"
-                                  value={draftScope.rules?.academic?.college || []}
-                                  options={academicOptions.colleges.map((value) => ({ value, label: value }))}
-                                  onChange={(value) =>
-                                    setDraftScope((prev) =>
-                                      normalizeScope(prev.roleId, {
-                                        ...prev,
-                                        rules: {
-                                          ...prev.rules,
-                                          academic: {
-                                            ...prev.rules?.academic,
-                                            college: value,
-                                          },
-                                        },
-                                      }),
-                                    )
-                                  }
-                                />
-                              </label>
-                              <label className="field-block">
-                                <span className="field-label">专业</span>
-                                <Select
-                                  mode="multiple"
-                                  value={draftScope.rules?.academic?.major || []}
-                                  options={academicOptions.majors.map((value) => ({ value, label: value }))}
-                                  onChange={(value) =>
-                                    setDraftScope((prev) =>
-                                      normalizeScope(prev.roleId, {
-                                        ...prev,
-                                        rules: {
-                                          ...prev.rules,
-                                          academic: {
-                                            ...prev.rules?.academic,
-                                            major: value,
-                                          },
-                                        },
-                                      }),
-                                    )
-                                  }
-                                />
-                              </label>
-                              <label className="field-block full-row">
-                                <span className="field-label">班级</span>
-                                <Select
-                                  mode="multiple"
-                                  value={draftScope.rules?.academic?.className || []}
-                                  options={academicOptions.classNames.map((value) => ({ value, label: value }))}
-                                  onChange={(value) =>
-                                    setDraftScope((prev) =>
-                                      normalizeScope(prev.roleId, {
-                                        ...prev,
-                                        rules: {
-                                          ...prev.rules,
-                                          academic: {
-                                            ...prev.rules?.academic,
-                                            className: value,
-                                          },
-                                        },
-                                      }),
-                                    )
-                                  }
-                                />
-                              </label>
-                            </div>
-                          </div>
-                        ) : null}
-
-                        {(draftScope.presetCode === 'DORMITORY' || draftScope.presetCode === 'CUSTOM') ? (
-                          <div className="role-scope-block">
-                            <div className="role-scope-block__title">楼栋范围</div>
-                            <TreeSelect
-                              treeCheckable
-                              showSearch
-                              allowClear
-                              treeData={dormTreeData}
-                              value={dormTreeValuesFromRules(draftScope)}
-                              onChange={(value) =>
-                                setDraftScope((prev) =>
-                                  updateDormRulesFromTree(prev, (value as string[]) || []),
-                                )
-                              }
-                              placeholder="选择楼栋 / 楼层 / 房间"
-                              style={{ width: '100%' }}
-                              dropdownStyle={{ maxHeight: 360, overflow: 'auto' }}
-                            />
-                          </div>
-                        ) : null}
-                      </div>
-                    )}
+                    <DataScopeEditor
+                      value={draftScope}
+                      onChange={setDraftScope}
+                      options={scopeOptions}
+                      optionsError={scopeOptionsError}
+                      loading={dataScopeLoading}
+                    />
                   </div>
                 </div>
               </Card>

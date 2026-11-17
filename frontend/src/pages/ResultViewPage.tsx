@@ -103,7 +103,7 @@ interface ResultViewContentProps {
   handleAppealHandle: () => Promise<void>;
   handleAppealSubmit: () => Promise<void>;
   handleDeleteResults: (ids: EntityId[]) => Promise<void>;
-  handleExport: () => Promise<void>;
+  handleExport?: () => Promise<void>;
   handleForm: { appealId: EntityId | ''; status: string; reply: string };
   handleRefresh: () => Promise<void>;
   handleResetFilters: () => void;
@@ -647,9 +647,13 @@ function ResultViewContent({
             handleRefresh={() => {
               void handleRefresh();
             }}
-            handleExport={() => {
-              void handleExport();
-            }}
+            handleExport={
+              handleExport
+                ? () => {
+                    void handleExport();
+                  }
+                : undefined
+            }
             exporting={exporting}
             totalCount={totalCount}
             canAdjust={canAdjust}
@@ -1029,6 +1033,8 @@ export default function ResultViewPage() {
 
   const canView = hasPermission('RESULT_VIEW');
   const canAdjust = hasPermission('RESULT_RECORD');
+  // 导出与查看分开授权：只有拥有 RESULT_EXPORT 的角色才显示导出按钮
+  const canExport = hasPermission('RESULT_EXPORT');
   const canEditContact = Boolean(settings?.studentContactEditable);
 
   const ratingForScore = useMemo<RatingForScore>(
@@ -1194,7 +1200,7 @@ export default function ResultViewPage() {
         handleAppealHandle={handleAppealHandle}
         handleAppealSubmit={handleAppealSubmit}
         handleDeleteResults={handleDeleteResults}
-        handleExport={handleExport}
+        handleExport={canExport ? handleExport : undefined}
         handleForm={handleForm}
         handleRefresh={handleRefresh}
         handleResetFilters={handleResetFilters}

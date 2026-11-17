@@ -7,6 +7,7 @@ import type {
 
 export const TaskPublishActionSheet = ({
   canEditTasks,
+  canDeleteTasks,
   open,
   onClose,
   selectedTaskIds,
@@ -16,14 +17,14 @@ export const TaskPublishActionSheet = ({
   handleBulkDeleteTasks,
 }: TaskPublishActionSheetProps) => {
   const getActions = (): TaskPublishActionSheetItem[] => {
-    if (!canEditTasks) {
+    if (!canEditTasks && !canDeleteTasks) {
       return [];
     }
 
     if (selectedTaskIds.length === 1) {
       const task = sortedTasks.find((item) => item.id === selectedTaskIds[0]);
       if (!task) return [];
-      return [
+      const singleActions: TaskPublishActionSheetItem[] = [
         {
           key: "edit",
           label: "编辑任务",
@@ -45,7 +46,11 @@ export const TaskPublishActionSheet = ({
           },
         },
       ];
+      return singleActions.filter((item) => (item.key === "edit" ? canEditTasks : canDeleteTasks));
     } else {
+      if (!canDeleteTasks) {
+        return [];
+      }
       return [
         {
           key: "batch-delete",

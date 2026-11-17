@@ -1762,14 +1762,13 @@ function useAccountPermissionPermissionState({
 
 // Page-level orchestrator keeps tab state, data loading, and modal wiring in one place.
 export default function AccountPermissionPage() {
-  const { data, actions, hasPermission, setSelection } = useAppContext();
+  const { data, actions, hasPermission, permissionsReady, setSelection } = useAppContext();
   const accountActions = useMemo(() => createAccountPermissionActions(actions), [actions]);
   const accountData = data as AccountPermissionData;
   const isMobile = useMobile();
   const [activeTab, setActiveTab] = useState<AccountPermissionTab>('users');
 
-  const canManageUsers =
-    hasPermission('USER_MANAGE') || hasPermission('ACCOUNT_MANAGE');
+  const canManageUsers = hasPermission('USER_MANAGE');
   const canManagePermissions = hasPermission('PERMISSION_MANAGE');
   const userState = useAccountPermissionUserState({
     accountActions,
@@ -1851,10 +1850,11 @@ export default function AccountPermissionPage() {
     setTempPasswordModal: permissionState.setTempPasswordModal,
   });
 
-  const handleBatchSaveOverrides = useCallback(async (): Promise<void> => {
+  const handleBatchSaveOverrides = useCallback(async (baseline?: BatchPermissionState): Promise<void> => {
     const success = await accountActionHandlers.handleBatchSaveOverrides(
       permissionState.batchUserIds,
       permissionState.batchPermissions,
+      baseline,
     );
     if (!success) {
       return;
@@ -1880,7 +1880,7 @@ export default function AccountPermissionPage() {
     [accountActionHandlers, userState.closeModal, userState.editingId, userState.form],
   );
 
-  if (!canManageUsers && !canManagePermissions) {
+  if (permissionsReady && !canManageUsers && !canManagePermissions) { // 权限加载完成前不显示“访问受限”
     return (
       <div className="account-permission-page management-theme-page">
         <PermissionDeniedState {...accountPermissionAccessPreset} />
@@ -2034,9 +2034,7 @@ export default function AccountPermissionPage() {
                         permissions={permissionState.matrix?.permissions}
                         batchPermissions={permissionState.batchPermissions}
                         setBatchPermissions={permissionState.setBatchPermissions}
-                        onSave={() => {
-                          void handleBatchSaveOverrides();
-                        }}
+                        onSave={(baseline) => void handleBatchSaveOverrides(baseline)}
                       />
                       {permissionState.permissionMessage ? (
                         <p className="muted hero-hint">{permissionState.permissionMessage}</p>

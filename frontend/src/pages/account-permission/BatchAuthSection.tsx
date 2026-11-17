@@ -3,15 +3,19 @@
  * @module pages/account-permission/BatchAuthSection
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { Button, Card, Input, Select, Tag } from 'antd';
+import { Button, Card, Input, Select, Tag, message } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 
 import GlassTable from '../../components/GlassTable';
 import { useMobile } from '../../hooks/useMobile';
-import type { PermissionDefinition, EntityId } from '../../types/service';
+import { commonService } from '../../services/commonService';
+import type { PermissionDefinition, EntityId, RoleDataScope } from '../../types/service';
+import DataScopeEditor from './DataScopeEditor';
+import { useScopeOptions } from './useScopeOptions';
+import { normalizeScope } from './scopeUtils';
 import type { BatchPermissionState, PermissionMode, AccountUser, TableListState } from './types';
 
 interface BatchAuthSectionProps {
@@ -27,7 +31,95 @@ interface BatchAuthSectionProps {
   permissions?: PermissionDefinition[];
   batchPermissions: BatchPermissionState;
   setBatchPermissions: Dispatch<SetStateAction<BatchPermissionState>>;
-  onSave: () => void | Promise<void>;
+  /** baseline：单选账号时该账号已有的例外，用于只提交改动过的功能点 */
+  onSave: (baseline: BatchPermissionState) => void | Promise<void>;
+}
+
+function overridesToState(result: unknown): BatchPermissionState {
+  const list = (result as { overrides?: Array<{ permissionId?: EntityId; grant?: boolean }> })?.overrides || [];
+  const state: BatchPermissionState = {};
+  list.forEach((item) => {
+    if (item.permissionId !== undefined && item.permissionId !== null) {
+      state[String(item.permissionId)] = item.grant ? 'grant' : 'deny';
+    }
+  });
+  return state;
+}
+
+/** 单选账号时：载入其已有例外作为基线，并提供账号数据范围的单独设置。 */
+function useSingleAccountState(
+  selectedUserIds: EntityId[],
+  setBatchPermissions: Dispatch<SetStateAction<BatchPermissionState>>,
+) {
+  const singleUserId = selectedUserIds.length === 1 ? selectedUserIds[0] : null;
+  const [baseline, setBaseline] = useState<BatchPermissionState>({});
+  const [scope, setScope] = useState<RoleDataScope>(() => normalizeScope(undefined, { presetCode: 'INHERIT' }));
+  const [scopeLoading, setScopeLoading] = useState(false);
+  const [scopeSaving, setScopeSaving] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setBaseline({});
+    setBatchPermissions({});
+    if (singleUserId === null) {
+      return undefined;
+    }
+    setScopeLoading(true);
+    Promise.all([commonService.getUserOverrides(singleUserId), commonService.getUserDataScope(singleUserId)])
+      .then(([overrides, dataScope]) => {
+        if (cancelled) {
+          return;
+        }
+        const loaded = overridesToState(overrides);
+        setBaseline(loaded);
+        setBatchPermissions(loaded);
+        const value = dataScope.dataScope;
+        setScope(
+          normalizeScope(undefined, {
+            presetCode: value?.inherited ? 'INHERIT' : value?.scopeMode,
+            rules: value?.rules,
+          }),
+        );
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          message.error(error instanceof Error ? error.message : '加载账号授权失败');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setScopeLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [singleUserId, setBatchPermissions]);
+
+  const saveScope = async () => {
+    if (singleUserId === null) {
+      return;
+    }
+    setScopeSaving(true);
+    try {
+      if (scope.presetCode === 'INHERIT') {
+        await commonService.deleteUserDataScope(singleUserId);
+      } else {
+        await commonService.saveUserDataScope(singleUserId, {
+          scopeMode: scope.presetCode,
+          presetCode: scope.presetCode,
+          rules: scope.rules,
+        });
+      }
+      message.success('账号数据范围已保存');
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : '保存数据范围失败');
+    } finally {
+      setScopeSaving(false);
+    }
+  };
+
+  return { singleUserId, baseline, scope, setScope, scopeLoading, scopeSaving, saveScope };
 }
 
 const USER_TABLE_COLUMNS: TableColumnsType<AccountUser> = [
@@ -73,6 +165,8 @@ export default function BatchAuthSection({
   onSave,
 }: BatchAuthSectionProps) {
   const isMobile = useMobile();
+  const account = useSingleAccountState(selectedUserIds, setBatchPermissions);
+  const { options: scopeOptions, error: scopeOptionsError } = useScopeOptions(account.singleUserId !== null);
   const permissionDataSource = useMemo(
     () =>
       (permissions || []).map((permission) => ({
@@ -193,7 +287,7 @@ export default function BatchAuthSection({
           <Tag color="blue">已选择 {selectedUserIds.length} 个账号</Tag>
           <Button
             type="primary"
-            onClick={onSave}
+            onClick={() => onSave(account.baseline)}
             disabled={!selectedUserIds.length}
             className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary"
           >
@@ -216,6 +310,37 @@ export default function BatchAuthSection({
     </>
   ) : null;
 
+  // 单选账号时可单独设置数据范围（覆盖角色范围）
+  const scopeSection =
+    account.singleUserId !== null ? (
+      <>
+        <div className="table-head dorm-table-head mb-4">
+          <div className="flex items-center gap-2">
+            <div className="dorm-table-head-accent" />
+            <h3 className="dorm-table-head-title">数据范围</h3>
+          </div>
+          <div className="table-head-actions">
+            <Button
+              type="primary"
+              loading={account.scopeSaving}
+              onClick={() => void account.saveScope()}
+              className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary"
+            >
+              保存数据范围
+            </Button>
+          </div>
+        </div>
+        <DataScopeEditor
+          value={account.scope}
+          onChange={account.setScope}
+          options={scopeOptions}
+          optionsError={scopeOptionsError}
+          loading={account.scopeLoading}
+          allowInherit
+        />
+      </>
+    ) : null;
+
   if (!isMobile) {
     return (
       <>
@@ -232,6 +357,7 @@ export default function BatchAuthSection({
           {userTable}
         </div>
         {permissionTable ? <div className="mb-6">{permissionTable}</div> : null}
+        {scopeSection ? <div className="mb-6">{scopeSection}</div> : null}
       </>
     );
   }
@@ -248,6 +374,7 @@ export default function BatchAuthSection({
       </div>
       {userTable}
       {permissionTable ? <div className="pt-2">{permissionTable}</div> : null}
+      {scopeSection ? <div className="pt-2">{scopeSection}</div> : null}
     </Card>
   );
 }

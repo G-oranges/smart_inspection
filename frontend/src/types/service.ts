@@ -153,7 +153,7 @@ export interface RoleTypeMutationPayload extends ServiceRecord {
   sort?: number;
 }
 
-export type ScopePresetCode = 'ALL' | 'ACADEMIC' | 'DORMITORY' | 'CUSTOM';
+export type ScopePresetCode = 'ALL' | 'ACADEMIC' | 'DORMITORY' | 'CUSTOM' | 'SELF' | 'OWN_COLLEGE';
 
 export interface RoleDataScopeRules {
   academic?: {
@@ -179,6 +179,21 @@ export interface RoleDataScope extends ServiceRecord {
 
 export interface RoleDataScopeResponse {
   dataScope?: RoleDataScope | null;
+}
+
+export interface UserDataScopeResponse {
+  dataScope?: {
+    userId?: EntityId;
+    /** true 表示账号未单独设置，按角色计算 */
+    inherited?: boolean;
+    scopeMode?: ScopePresetCode | string;
+    rules?: RoleDataScopeRules;
+  } | null;
+}
+
+export interface ScopeOptionsResponse {
+  academic?: Array<{ college: string; major: string; className: string }>;
+  dorms?: Array<{ building: string; floor: number | null; roomNo: string }>;
 }
 
 export interface RoleMutationPayload extends ServiceRecord {

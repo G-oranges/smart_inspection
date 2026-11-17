@@ -127,6 +127,8 @@ interface PasswordFormValues {
 }
 
 const EMPTY_PREFETCH_PROPS = {};
+// 与后端 utils.IsStrongPassword 保持一致
+const STRONG_PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{}|;:,.<>?]).{8,}$/;
 
 function getTargetPath(item: AppLayoutNavItem): string {
   return item.children?.[0]?.key || item.key;
@@ -323,6 +325,9 @@ const DesktopLayout = ({ navItems, userMenuProps, location, user, activeRole }: 
       return isDirect || isChild;
     });
   }, [navItems, location.pathname]);
+  // 标题显示当前页面（子菜单）名称，而不是所在分组名称；与移动端保持一致
+  const currentTitle =
+    currentNav?.children?.find((child) => location.pathname.startsWith(child.key))?.label || currentNav?.label;
   const displayName = user?.fullName || user?.username || '用户';
   const roleLabel = activeRole?.name || user?.role || '角色';
 
@@ -426,7 +431,7 @@ const DesktopLayout = ({ navItems, userMenuProps, location, user, activeRole }: 
         <header className="sticky top-0 h-14 bg-white/60 dark:bg-black/40 backdrop-blur-xl z-20 px-8 flex items-center justify-between border-b border-black/[0.03] dark:border-white/[0.03]">
           <div className="flex items-center gap-4">
             <h2 className="text-[16px] font-bold text-co-text">
-              {currentNav?.label}
+              {currentTitle}
             </h2>
           </div>
 
@@ -476,6 +481,7 @@ const AppLayout = () => {
   const navigate = useNavigate();
   const previousRouteRef = useRef<string | null>(null);
   const [changePasswordModal, setChangePasswordModal] = useState(false);
+  const mustChangePassword = Boolean(layoutUser?.mustChangePassword);
   const [profileOpen, setProfileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [userSheetOpen, setUserSheetOpen] = useState(false);
@@ -548,7 +554,7 @@ const AppLayout = () => {
         label: '查寝中心',
         icon: <ScheduleOutlined />,
         children: [
-          { key: '/tasks/publish', label: '任务发布', permission: 'TASK_PUBLISH' },
+          { key: '/tasks/publish', label: '任务发布', permission: ['TASK_PUBLISH', 'TASK_EDIT', 'TASK_DELETE'] },
           { key: '/tasks/entry', label: '分数录入', permission: 'RESULT_RECORD' },
           { key: '/results', label: '结果查看', permission: 'RESULT_VIEW' },
         ],
@@ -562,7 +568,7 @@ const AppLayout = () => {
           {
             key: '/accounts',
             label: '角色权限',
-            permission: ['ACCOUNT_MANAGE', 'PERMISSION_MANAGE', 'USER_MANAGE'],
+            permission: ['PERMISSION_MANAGE', 'USER_MANAGE'],
           },
           { key: '/audit-logs', label: '审计日志', permission: 'PERMISSION_MANAGE' },
         ],
@@ -598,12 +604,12 @@ const AppLayout = () => {
       { prefix: '/occupancy', permission: 'DORM_VIEW' },
       { prefix: '/students', permission: 'STUDENT_VIEW' },
       { prefix: '/teachers', permission: 'TEACHER_MANAGE' },
-      { prefix: '/tasks/publish', permission: 'TASK_PUBLISH' },
+      { prefix: '/tasks/publish', permission: ['TASK_PUBLISH', 'TASK_EDIT', 'TASK_DELETE'] },
       { prefix: '/tasks/entry', permission: 'RESULT_RECORD' },
       { prefix: '/results', permission: 'RESULT_VIEW' },
       {
         prefix: '/accounts',
-        permission: ['ACCOUNT_MANAGE', 'PERMISSION_MANAGE', 'USER_MANAGE'],
+        permission: ['PERMISSION_MANAGE', 'USER_MANAGE'],
       },
       { prefix: '/settings', permission: 'SYSTEM_SETTINGS' },
       { prefix: '/audit-logs', permission: 'PERMISSION_MANAGE' },
@@ -663,9 +669,11 @@ const AppLayout = () => {
   const handleChangePassword = async (values: PasswordFormValues) => {
     try {
       await layoutActions.changePassword?.(values.oldPassword, values.newPassword);
-      antMessage.success("密码修改成功");
       setChangePasswordModal(false);
       pwdForm.resetFields();
+      // 改密后后端会使所有旧 Token 失效，直接退出并提示用新密码登录
+      antMessage.success("密码修改成功，请使用新密码重新登录");
+      onLogout?.();
     } catch (err) {
       antMessage.error((err as ServiceError).message || "修改失败");
     }
@@ -1370,21 +1378,45 @@ const AppLayout = () => {
 
 
       <Modal
-        title="修改密码"
-        open={changePasswordModal}
-        onCancel={() => setChangePasswordModal(false)}
+        title={mustChangePassword ? "请先修改密码" : "修改密码"}
+        open={changePasswordModal || mustChangePassword}
+        onCancel={() => {
+          if (!mustChangePassword) {
+            setChangePasswordModal(false);
+          }
+        }}
+        closable={!mustChangePassword}
+        maskClosable={!mustChangePassword}
+        keyboard={!mustChangePassword}
+        cancelButtonProps={mustChangePassword ? { style: { display: "none" } } : undefined}
         onOk={() => pwdForm.submit()}
         okText="确认修改"
         cancelText="取消"
         centered
         className="apple-modal"
       >
+        {mustChangePassword ? (
+          <p className="muted mt-2">
+            您正在使用初始密码、管理员重置的密码或临时密码登录。为保护账号安全，请设置新密码后再继续使用系统。
+          </p>
+        ) : null}
         <Form form={pwdForm} layout="vertical" onFinish={handleChangePassword} className="mt-4">
           <Form.Item name="oldPassword" label="当前密码" rules={[{ required: true, message: '请输入当前密码' }]}>
             <Input.Password placeholder="请输入当前使用的密码" className="apple-input h-11" />
           </Form.Item>
-          <Form.Item name="newPassword" label="新密码" rules={[{ required: true, message: '请输入新密码' }, { min: 8, message: '密码不少于8位' }]}>
-            <Input.Password placeholder="8位以上，包含字母与数字" className="apple-input h-11" />
+          <Form.Item
+            name="newPassword"
+            label="新密码"
+            rules={[
+              { required: true, message: '请输入新密码' },
+              { min: 8, message: '密码不少于8位' },
+              {
+                pattern: STRONG_PASSWORD_PATTERN,
+                message: '需同时包含大写字母、小写字母、数字和标点符号',
+              },
+            ]}
+          >
+            <Input.Password placeholder="不少于8位，含大小写字母、数字和标点" className="apple-input h-11" />
           </Form.Item>
         </Form>
       </Modal>

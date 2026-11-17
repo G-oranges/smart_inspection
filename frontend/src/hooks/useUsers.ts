@@ -63,9 +63,10 @@ export function useUsers(
     [],
   );
 
-  const createUser = async (payload: ServiceRecord): Promise<void> => {
-    await userService.createUser(payload);
+  const createUser = async (payload: ServiceRecord): Promise<unknown> => {
+    const result = await userService.createUser(payload);
     await fetchUsers(true);
+    return result;
   };
 
   const updateUser = async (
@@ -81,8 +82,8 @@ export function useUsers(
     await userService.deleteUsers(payload.ids || []);
   };
 
-  const resetUserPassword = async (id: EntityId): Promise<void> => {
-    await userService.resetPassword(id);
+  const resetUserPassword = async (id: EntityId): Promise<unknown> => {
+    return userService.resetPassword(id);
   };
 
   const generateTemporaryPassword = async (

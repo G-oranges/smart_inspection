@@ -102,7 +102,7 @@ const NAV_CONFIG: {
     label: '系统设置',
     icon: <SettingOutlined />,
     children: [
-      { key: '/accounts', label: '账号与权限管理', permission: ['ACCOUNT_MANAGE', 'PERMISSION_MANAGE', 'USER_MANAGE'] },
+      { key: '/accounts', label: '账号与权限管理', permission: ['PERMISSION_MANAGE', 'USER_MANAGE'] },
       { key: '/settings', label: '管理员设置', permission: 'SYSTEM_SETTINGS', exactMatch: true },
       { key: '/audit-logs', label: '审计日志', permission: 'PERMISSION_MANAGE' },
     ],
@@ -401,8 +401,8 @@ export default function Layout() {
       { prefix: '/tasks/publish', permission: 'TASK_PUBLISH' },
       { prefix: '/tasks/entry', permission: 'RESULT_RECORD' },
       { prefix: '/results', permission: 'RESULT_VIEW' },
-      { prefix: '/accounts', permission: ['ACCOUNT_MANAGE', 'PERMISSION_MANAGE', 'USER_MANAGE'] },
-      { prefix: '/users', permission: ['ACCOUNT_MANAGE', 'PERMISSION_MANAGE', 'USER_MANAGE'] },
+      { prefix: '/accounts', permission: ['PERMISSION_MANAGE', 'USER_MANAGE'] },
+      { prefix: '/users', permission: ['PERMISSION_MANAGE', 'USER_MANAGE'] },
       { prefix: '/settings', permission: 'SYSTEM_SETTINGS' },
       { prefix: '/audit-logs', permission: 'PERMISSION_MANAGE' },
     ];

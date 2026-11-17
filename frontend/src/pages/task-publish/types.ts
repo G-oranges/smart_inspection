@@ -129,7 +129,9 @@ export interface TaskPublishActions {
 
 export interface UseTaskPublishActionsProps {
   actions: TaskPublishActions;
+  canCreateTasks: boolean;
   canEditTasks: boolean;
+  canDeleteTasks: boolean;
   form: TaskPublishFormState;
   setForm: Dispatch<SetStateAction<TaskPublishFormState>>;
   selectedTaskIds: EntityId[];
@@ -181,7 +183,7 @@ export interface TaskPublishStatsProps {
 }
 
 export interface TaskPublishToolbarProps {
-  canEditTasks: boolean;
+  canCreateTasks: boolean;
   isMobile: boolean;
   draftTaskSearch: string;
   setDraftTaskSearch: Dispatch<SetStateAction<string>>;
@@ -196,6 +198,7 @@ export interface TaskPublishToolbarProps {
 
 export interface TaskPublishTableProps {
   canEditTasks: boolean;
+  canDeleteTasks: boolean;
   filteredTasks: TaskPublishTask[];
   userLookup: TaskPublishUserLookup;
   handleOpenEditModal: (task: TaskPublishTask) => void;
@@ -210,6 +213,7 @@ export interface TaskPublishMobileCardProps {
 
 export interface TaskPublishActionSheetProps {
   canEditTasks: boolean;
+  canDeleteTasks: boolean;
   open: boolean;
   onClose: () => void;
   selectedTaskIds: EntityId[];

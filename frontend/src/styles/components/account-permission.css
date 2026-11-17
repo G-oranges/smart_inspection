@@ -350,7 +350,7 @@
 
 /* 右侧配置卡片：降低内边距 */
 .ant-card.role-config-card .ant-card-body {
-  padding: 1rem 1.25rem;
+  padding: 0.75rem 1rem;
 }
 
 /* 权限/数据范围 折叠头 */
@@ -416,7 +416,7 @@
 .role-config-divider {
   border: none;
   border-top: 1px solid color-mix(in srgb, var(--co-text) 8%, transparent);
-  margin: 0.75rem 0;
+  margin: 0.5rem 0;
 }
 
 .role-detail-status {
@@ -436,7 +436,7 @@
 
 /* 模块：去掉边框和圆角盒子 */
 .role-module-card {
-  padding: 0.5rem 0;
+  padding: 0.35rem 0;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -445,11 +445,10 @@
 /* 模块之间用分隔线 */
 .role-module-card + .role-module-card {
   border-top: 1px solid color-mix(in srgb, var(--co-text) 8%, transparent);
-  padding-top: 0.75rem;
 }
 
 .role-module-card__title {
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.35rem;
   font-weight: 600;
   font-size: 0.85rem;
   color: var(--co-text-secondary);
@@ -472,16 +471,16 @@
 .role-module-card__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: 0.5rem 0.75rem;
+  gap: 0.25rem 0.75rem;
 }
 
-/* 权限开关项 */
+/* 权限开关项：名称与开关同一行 */
 .role-permission-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.4rem 0;
+  padding: 0.2rem 0;
   border-radius: 0;
   background: transparent;
   font-size: 0.85rem;
@@ -489,26 +488,21 @@
 }
 
 @media (min-width: 48.01rem) {
+  /* 桌面端：模块名在左列，开关在右侧横排，每个模块只占一两行 */
+  .role-module-card {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    align-items: start;
+    gap: 0 1rem;
+  }
+
+  .role-module-card__title {
+    margin: 0.2rem 0 0;
+  }
+
   .role-module-card__grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.75rem 1rem;
-    align-items: start;
-  }
-
-  .role-permission-toggle {
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 0.65rem;
-    padding: 0.4rem 0.25rem;
-    text-align: center;
-  }
-
-  .role-permission-toggle > span {
-    display: block;
-    width: 100%;
-    min-height: 2.4em;
-    line-height: 1.4;
+    gap: 0.15rem 1.25rem;
   }
 
   .role-permission-toggle .ant-switch {
@@ -518,13 +512,44 @@
 
 /* --- 数据范围区 — 去重框 --- */
 
+.role-scope-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* 模式选项横排，换行自适应 */
+.role-scope-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0;
+}
+
 .role-scope-block {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  padding: 0.6rem 0 0 0;
+  gap: 0.45rem;
+  padding: 0;
   border: none;
   border-radius: 0;
+}
+
+/* 学院 / 专业 / 班级 三列并排 */
+.role-scope-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+@media (max-width: 48rem) {
+  .role-scope-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.role-scope-block__title .muted {
+  font-weight: 400;
+  font-size: 0.78rem;
 }
 
 .role-scope-block__title {
@@ -541,7 +566,7 @@
   z-index: 2;
   display: flex;
   justify-content: flex-end;
-  padding: 1rem 0 0.25rem;
+  padding: 0.5rem 0 0.25rem;
   background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--co-bg, #0b1220) 88%, transparent) 26%);
 }
 

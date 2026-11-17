@@ -11,8 +11,10 @@ import type {
   RoleTypeMutationPayload,
   RoleTypesResponse,
   RolesResponse,
+  ScopeOptionsResponse,
   ServiceRecord,
   SettingsResponse,
+  UserDataScopeResponse,
 } from '../types/service';
 
 export const commonService = {
@@ -116,6 +118,29 @@ export const commonService = {
     return request(`/api/roles/${roleId}/data-scope`, {
       method: 'PUT',
       body: payload,
+    });
+  },
+
+  /** 配置数据范围时的可选项（全量学院/专业/班级与楼栋/楼层/房间） */
+  getScopeOptions: async (): Promise<ScopeOptionsResponse> => {
+    return request<ScopeOptionsResponse>('/api/permissions/scope-options');
+  },
+
+  /** 账号单独设置的数据范围；inherited=true 表示未单独设置，按角色计算 */
+  getUserDataScope: async (userId: EntityId): Promise<UserDataScopeResponse> => {
+    return request<UserDataScopeResponse>(`/api/permissions/users/${userId}/data-scope`);
+  },
+
+  saveUserDataScope: async (userId: EntityId, payload: RoleDataScope): Promise<unknown> => {
+    return request(`/api/permissions/users/${userId}/data-scope`, {
+      method: 'PUT',
+      body: payload,
+    });
+  },
+
+  deleteUserDataScope: async (userId: EntityId): Promise<unknown> => {
+    return request(`/api/permissions/users/${userId}/data-scope`, {
+      method: 'DELETE',
     });
   },
 

@@ -10,6 +10,7 @@ import type { TableProps } from "antd";
 
 export const TaskPublishTable = ({
   canEditTasks,
+  canDeleteTasks,
   filteredTasks,
   userLookup,
   handleOpenEditModal,
@@ -130,7 +131,7 @@ export const TaskPublishTable = ({
         );
       },
     },
-    ...(canEditTasks
+    ...(canEditTasks || canDeleteTasks
       ? [
           {
             title: "操作",
@@ -140,6 +141,7 @@ export const TaskPublishTable = ({
             className: "table-action-column",
             render: (_value: unknown, r: TaskPublishTask) => (
               <Space size={8} className="table-action-buttons dorm-table-action-group">
+                {canEditTasks ? (
                 <Tooltip title="编辑任务">
                   <Button
                     type="text"
@@ -150,6 +152,8 @@ export const TaskPublishTable = ({
                     aria-label="编辑任务"
                   />
                 </Tooltip>
+                ) : null}
+                {canDeleteTasks ? (
                 <Popconfirm
                   title="确定删除该任务吗？"
                   description="删除后无法恢复"
@@ -168,6 +172,7 @@ export const TaskPublishTable = ({
                     />
                   </Tooltip>
                 </Popconfirm>
+                ) : null}
               </Space>
             ),
           },

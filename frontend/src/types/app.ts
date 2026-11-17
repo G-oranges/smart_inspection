@@ -65,6 +65,8 @@ export interface UserLike {
   email?: string;
   avatarUrl?: string;
   isTemporaryPassword?: boolean;
+  /** 使用初始密码、重置后的密码或临时密码登录时为 true，修改密码前后端只开放少量接口 */
+  mustChangePassword?: boolean;
   [key: string]: unknown;
 }
 

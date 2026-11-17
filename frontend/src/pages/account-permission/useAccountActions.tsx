@@ -4,6 +4,7 @@ import { Modal, message } from 'antd';
 import { DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 
 import { flattenRoleMap } from './utils';
+import { buildOverrides } from './overrideUtils';
 import { confirmDangerCountdown } from '../../utils/confirm';
 
 import type {
@@ -75,39 +76,55 @@ function readMessage(value: unknown, fallback: string): string {
   return fallback;
 }
 
-function buildOverrides(batchPermissions: BatchPermissionState) {
-  return Object.entries(batchPermissions)
-    .filter(([, mode]) => mode !== 'inherit')
-    .map(([permissionId, mode]) => ({
-      permissionId,
-      grant: mode === 'grant',
-    }));
+interface GeneratedPasswordItem {
+  label: string;
+  password: string;
 }
 
-function showResetPasswordSuccess(selectedIds: EntityId[]) {
+function readGeneratedPassword(result: unknown, field: 'newPassword' | 'initialPassword'): string {
+  if (result && typeof result === 'object' && field in result) {
+    const value = (result as Record<string, unknown>)[field];
+    return typeof value === 'string' ? value : '';
+  }
+  return '';
+}
+
+function userLabel(user: AccountUser | undefined, fallback: EntityId): string {
+  if (!user) {
+    return String(fallback);
+  }
+  return user.fullName ? `${user.fullName}（${user.username}）` : String(user.username || fallback);
+}
+
+/** 展示后端生成的一次性密码。弹窗关闭后无法再次查看，需要管理员当场转交。 */
+function showGeneratedPasswords(title: string, items: GeneratedPasswordItem[], failures: string[] = []) {
   Modal.success({
-    title: '密码重置成功',
+    title,
+    width: 520,
     content: (
       <div>
-        <p>选中的 {selectedIds.length} 个用户密码已初始化为：</p>
-        <div
-          style={{
-            fontSize: '20px',
-            fontWeight: 'bold',
-            color: '#1890ff',
-            margin: '10px 0',
-            padding: '8px',
-            background: 'var(--info-bg)',
-            borderRadius: '4px',
-            textAlign: 'center',
-            fontFamily: 'monospace',
-          }}
-        >
-          系统配置的默认初始密码（DEFAULT_INITIAL_PASSWORD）
-        </div>
-        <p style={{ color: '#666', fontSize: '12px' }}>
-          该密码符合复杂度要求（含大小写字母、数字及标点）。
-        </p>
+        {items.length ? (
+          <>
+            <p>以下密码只显示这一次，请立即转交给对应用户。用户登录后会被要求修改密码。</p>
+            <table style={{ width: '100%', margin: '8px 0', fontSize: '13px' }}>
+              <tbody>
+                {items.map((item) => (
+                  <tr key={item.label}>
+                    <td style={{ padding: '4px 8px 4px 0' }}>{item.label}</td>
+                    <td style={{ padding: '4px 0', fontFamily: 'monospace', fontWeight: 600, userSelect: 'all' }}>
+                      {item.password}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        ) : null}
+        {failures.length ? (
+          <p style={{ color: 'var(--co-danger, #ff4d4f)', fontSize: '12px' }}>
+            以下账号重置失败：{failures.join('；')}
+          </p>
+        ) : null}
       </div>
     ),
   });
@@ -194,6 +211,7 @@ function runResetPassword(params: {
   setSelectAcrossPages: SetState<boolean>;
   setUserMessage: SetState<string>;
   tableDataTotal: number;
+  users: AccountUser[];
 }) {
   const {
     resetUserPassword,
@@ -204,6 +222,7 @@ function runResetPassword(params: {
     setSelectAcrossPages,
     setUserMessage,
     tableDataTotal,
+    users,
   } = params;
   const selectionCount = selectAcrossPages ? tableDataTotal : selectedIds.length;
   if (!selectionCount || !resetUserPassword) {
@@ -222,7 +241,7 @@ function runResetPassword(params: {
       <div>
         <p>您确定要重置选中的 {selectionCount} 个用户的密码吗？</p>
         <p style={{ color: '#666', fontSize: '12px' }}>
-          重置后密码将恢复为系统预设的复杂度初始密码。
+          系统会为每个账号生成新的随机密码，旧密码和已登录会话立即失效，用户下次登录时需修改密码。
         </p>
       </div>
     ),
@@ -231,12 +250,22 @@ function runResetPassword(params: {
     onOk: async () => {
       setBatchLoading(true);
       try {
-        await Promise.all(selectedIds.map((id) => resetUserPassword(id)));
-        showResetPasswordSuccess(selectedIds);
+        const outcomes = await Promise.allSettled(selectedIds.map((id) => resetUserPassword(id)));
+        const generated: GeneratedPasswordItem[] = [];
+        const failures: string[] = [];
+        outcomes.forEach((outcome, index) => {
+          const id = selectedIds[index];
+          const label = userLabel(users.find((user) => user.id === id), id);
+          if (outcome.status === 'fulfilled') {
+            generated.push({ label, password: readGeneratedPassword(outcome.value, 'newPassword') });
+          } else {
+            const reason = outcome.reason instanceof Error ? outcome.reason.message : '重置失败';
+            failures.push(`${label}：${reason}`);
+          }
+        });
+        showGeneratedPasswords(failures.length ? '密码重置部分完成' : '密码重置成功', generated, failures);
         setSelectedIds([]);
         setSelectAcrossPages(false);
-      } catch (error) {
-        setUserMessage(error instanceof Error ? error.message : '重置密码失败');
       } finally {
         setBatchLoading(false);
       }
@@ -266,7 +295,7 @@ async function runGenerateTempPassword({
 
   const confirmed = await confirmModal({
     title: '确认生成临时密码',
-    content: `即将为用户「${user.fullName || user.username}」生成临时密码。临时密码生成后将立即生效，可用于登录系统。原密码保持不变，请及时将临时密码告知用户并提醒修改。`,
+    content: `即将为用户「${user.fullName || user.username}」生成 12 小时内有效的一次性临时密码。用户用它登录后，临时密码会替换原密码，并被要求立即设置新密码。`,
     okText: '确认生成',
   });
   if (!confirmed) {
@@ -454,11 +483,13 @@ async function runSaveOverrides({
 
 async function runBatchSaveOverrides({
   batchPermissions,
+  baseline,
   batchUpdateUserOverrides,
   batchUserIds,
   setPermissionMessage,
 }: {
   batchPermissions: BatchPermissionState;
+  baseline?: BatchPermissionState;
   batchUpdateUserOverrides: AccountPermissionActions['batchUpdateUserOverrides'];
   batchUserIds: EntityId[];
   setPermissionMessage: SetState<string>;
@@ -472,21 +503,23 @@ async function runBatchSaveOverrides({
     return false;
   }
 
+  const overrides = buildOverrides(batchPermissions, baseline);
+  if (!overrides.length) {
+    message.info('没有需要保存的变更');
+    return false;
+  }
+
   const confirmed = await confirmModal({
-    title: '确认批量更新权限',
-    content: `即将为 ${batchUserIds.length} 个用户批量更新权限覆盖设置。该操作将直接覆盖现有权限配置，确认继续？`,
+    title: '确认更新例外授权',
+    content: `即将为 ${batchUserIds.length} 个账号修改 ${overrides.length} 个功能点的授权，其他功能点的已有设置保持不变，确认继续？`,
     okText: '确认更新',
-    okType: 'danger',
   });
   if (!confirmed) {
     return false;
   }
 
   try {
-    const result = await batchUpdateUserOverrides(
-      batchUserIds,
-      buildOverrides(batchPermissions),
-    );
+    const result = await batchUpdateUserOverrides(batchUserIds, overrides);
     setPermissionMessage(readMessage(result, `已为 ${batchUserIds.length} 个用户更新权限`));
     return true;
   } catch (error) {
@@ -657,8 +690,14 @@ async function runFormSubmit({
       await updateUser(editingId, form);
       setUserMessage('更新用户信息成功');
     } else if (!editingId && createUser) {
-      await createUser(form);
+      const created = await createUser(form);
       setUserMessage('新增用户成功');
+      const initialPassword = readGeneratedPassword(created, 'initialPassword');
+      if (initialPassword) {
+        showGeneratedPasswords('账号已创建', [
+          { label: form.fullName ? `${form.fullName}（${form.username}）` : form.username, password: initialPassword },
+        ]);
+      }
     }
     onSuccess?.();
     setReloadFlag((prev) => prev + 1);
@@ -736,6 +775,7 @@ export function useAccountActions({
         setSelectAcrossPages,
         setUserMessage,
         tableDataTotal: tableData.total,
+        users: tableData.items,
       }),
     [
       resetUserPassword,
@@ -746,6 +786,7 @@ export function useAccountActions({
       setSelectAcrossPages,
       setUserMessage,
       tableData.total,
+      tableData.items,
     ],
   );
 
@@ -815,9 +856,11 @@ export function useAccountActions({
     async (
       batchUserIds: EntityId[],
       batchPermissions: BatchPermissionState,
+      baseline?: BatchPermissionState,
     ): Promise<boolean> =>
       runBatchSaveOverrides({
         batchPermissions,
+        baseline,
         batchUpdateUserOverrides,
         batchUserIds,
         setPermissionMessage,

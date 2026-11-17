@@ -14,7 +14,7 @@ import FilterDropdownPanel from "../../components/common/FilterDropdownPanel";
 import type { TaskPublishToolbarProps } from "./types";
 
 export const TaskPublishToolbar = ({
-  canEditTasks,
+  canCreateTasks,
   isMobile,
   draftTaskSearch,
   setDraftTaskSearch,
@@ -85,7 +85,7 @@ export const TaskPublishToolbar = ({
             >
               重置
             </Button>
-            {canEditTasks ? (
+            {canCreateTasks ? (
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
@@ -126,7 +126,7 @@ export const TaskPublishToolbar = ({
               重置
             </Button>
           </div>
-          {canEditTasks ? (
+          {canCreateTasks ? (
             <div className="dorm-toolbar-row dorm-toolbar-row-actions">
               <Button
                 type="primary"

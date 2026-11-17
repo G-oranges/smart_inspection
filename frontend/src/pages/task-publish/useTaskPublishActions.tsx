@@ -106,7 +106,9 @@ function areDraftSnapshotsEqual(
 
 export function useTaskPublishActions({
   actions,
+  canCreateTasks,
   canEditTasks,
+  canDeleteTasks,
   form,
   setForm,
   selectedTaskIds,
@@ -190,7 +192,7 @@ export function useTaskPublishActions({
   };
 
   const handleOpenCreateModal = (): void => {
-    if (!canEditTasks) {
+    if (!canCreateTasks) {
       antMessage.warning('当前角色无发布任务权限');
       return;
     }
@@ -256,7 +258,7 @@ export function useTaskPublishActions({
   };
 
   const handleDeleteTask = async (record: TaskPublishTask): Promise<void> => {
-    if (!canEditTasks) {
+    if (!canDeleteTasks) {
       antMessage.warning('当前角色无删除任务权限');
       return;
     }
@@ -284,7 +286,7 @@ export function useTaskPublishActions({
   const handleBulkDeleteTasks = async (
     taskIds = selectedTaskIds,
   ): Promise<void> => {
-    if (!canEditTasks) {
+    if (!canDeleteTasks) {
       antMessage.warning('当前角色无删除任务权限');
       return;
     }
@@ -332,12 +334,11 @@ export function useTaskPublishActions({
   };
 
   const handleSubmit = async (): Promise<void> => {
-    if (!canEditTasks) {
-      antMessage.warning('当前角色无发布或编辑任务权限');
+    const isEdit = Boolean(editingTaskId);
+    if (isEdit ? !canEditTasks : !canCreateTasks) {
+      antMessage.warning(isEdit ? '当前角色无编辑任务权限' : '当前角色无发布任务权限');
       return;
     }
-
-    const isEdit = Boolean(editingTaskId);
     if (!form.title.trim()) {
       antMessage.warning('请输入任务标题');
       return;

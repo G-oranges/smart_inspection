@@ -22,6 +22,12 @@ interface UserFormModalProps {
   rolesError: string;
 }
 
+/** 角色列表 = 主角色 + 附加角色（去重） */
+function withPrimary(primaryId: EntityId | null | undefined, extras: EntityId[]): EntityId[] {
+  const base = primaryId !== undefined && primaryId !== null ? [primaryId] : [];
+  return Array.from(new Set([...base, ...extras.filter((id) => id !== primaryId)]));
+}
+
 /**
  * 用户表单弹窗组件
  * @param {Object} props
@@ -46,6 +52,8 @@ export default function UserFormModal({
   rolesLoading,
   rolesError,
 }: UserFormModalProps) {
+  const primaryRoleId = roleOptions.find((role) => role.code === form.role)?.id;
+  const extraRoleIds = form.roles.filter((id) => id !== primaryRoleId);
   return (
     <Modal
       open={open}
@@ -117,15 +125,12 @@ export default function UserFormModal({
             <Select
               value={form.role || undefined}
               onChange={(selectedCode) => {
-                const primaryRole = roleOptions.find((role) => role.code === selectedCode);
-                const nextRoles = new Set(form.roles);
-                if (primaryRole?.id !== undefined && primaryRole?.id !== null) {
-                  nextRoles.add(primaryRole.id);
-                }
+                const nextPrimary = roleOptions.find((role) => role.code === selectedCode);
                 setForm({
                   ...form,
                   role: selectedCode,
-                  roles: Array.from(nextRoles),
+                  // 主角色总是包含在角色列表中；附加角色保留，但去掉旧的主角色
+                  roles: withPrimary(nextPrimary?.id, extraRoleIds),
                 });
               }}
               options={roleOptions
@@ -140,32 +145,23 @@ export default function UserFormModal({
             />
           </label>
           <label className="field-block full-row">
-            <span className="field-label">附加角色</span>
+            <span className="field-label">附加角色（可选，权限与数据范围与主角色合并）</span>
             {rolesLoading && <p className="muted">加载角色中...</p>}
             {rolesError && <p className="error">{rolesError}</p>}
             <Select
               mode="multiple"
-              value={form.roles}
+              value={extraRoleIds}
               onChange={(selected) => {
-                const nextSelected = selected as EntityId[];
-                const primaryRole = roleOptions.find((role) => role.code === form.role);
-                const hasPrimary =
-                  primaryRole?.id !== undefined && primaryRole?.id !== null
-                    ? nextSelected.includes(primaryRole.id)
-                    : false;
-
-                setForm({
-                  ...form,
-                  role: hasPrimary ? form.role : '',
-                  roles: nextSelected,
-                });
+                setForm({ ...form, roles: withPrimary(primaryRoleId, selected as EntityId[]) });
               }}
-              options={roleOptions.map((role) => ({
-                value: role.id,
-                label: role.name,
-                disabled: role.status === 'INACTIVE',
-              }))}
-              placeholder="选择角色（可多选）"
+              options={roleOptions
+                .filter((role) => role.id !== primaryRoleId)
+                .map((role) => ({
+                  value: role.id as EntityId,
+                  label: role.name,
+                  disabled: role.status === 'INACTIVE',
+                }))}
+              placeholder="不需要可留空"
               style={{ width: "100%" }}
             />
           </label>

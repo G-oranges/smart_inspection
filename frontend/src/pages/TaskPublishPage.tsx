@@ -164,7 +164,9 @@ function useTaskPublishLifecycle(params: {
 }
 
 interface TaskListSectionProps {
+  canCreateTasks: boolean;
   canEditTasks: boolean;
+  canDeleteTasks: boolean;
   filteredTasks: TaskPublishTask[];
   handleDeleteTask: (task: TaskPublishTask) => Promise<void>;
   handleOpenEditModal: (task: TaskPublishTask) => void;
@@ -186,7 +188,9 @@ interface TaskListSectionProps {
 }
 
 function TaskListSection({
+  canCreateTasks,
   canEditTasks,
+  canDeleteTasks,
   filteredTasks,
   handleDeleteTask,
   handleOpenCreateModal,
@@ -217,7 +221,7 @@ function TaskListSection({
       }
       filters={
         <TaskPublishToolbar
-          canEditTasks={canEditTasks}
+          canCreateTasks={canCreateTasks}
           isMobile={isMobile}
           draftTaskSearch={draftTaskSearch}
           setDraftTaskSearch={setDraftTaskSearch}
@@ -247,7 +251,7 @@ function TaskListSection({
             rowKey="id"
             emptyText="目前尚无发布的任务计划"
             selectedKeys={selectedTaskIds}
-            onSelectChange={canEditTasks ? (keys) => setSelectedTaskIds(keys as EntityId[]) : undefined}
+            onSelectChange={canEditTasks || canDeleteTasks ? (keys) => setSelectedTaskIds(keys as EntityId[]) : undefined}
             renderCard={(
               task: TaskPublishTask,
               _index: number,
@@ -259,6 +263,7 @@ function TaskListSection({
         ) : (
           <TaskPublishTable
             canEditTasks={canEditTasks}
+            canDeleteTasks={canDeleteTasks}
             filteredTasks={filteredTasks}
             userLookup={userLookup}
             handleOpenEditModal={handleOpenEditModal}
@@ -273,6 +278,7 @@ function TaskListSection({
 interface TaskPublishOverlaysProps {
   actionSheetOpen: boolean;
   canEditTasks: boolean;
+  canDeleteTasks: boolean;
   currentStep: number;
   executorCache: TaskPublishUserLookup;
   executorData: TaskPublishExecutorData;
@@ -375,6 +381,7 @@ function TaskPublishOverlays(props: TaskPublishOverlaysProps) {
 
       <TaskPublishActionSheet
         canEditTasks={props.canEditTasks}
+        canDeleteTasks={props.canDeleteTasks}
         open={props.actionSheetOpen}
         onClose={() => props.setActionSheetOpen(false)}
         selectedTaskIds={props.selectedTaskIds}
@@ -425,7 +432,11 @@ export default function TaskPublishPage() {
   const [taskFilterOpen, setTaskFilterOpen] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(() => new Date().toLocaleTimeString());
 
-  const canEditTasks = hasPermission('TASK_PUBLISH');
+  // 发布、编辑、删除任务分别对应 TASK_PUBLISH / TASK_EDIT / TASK_DELETE，拥有任一项即可进入本页
+  const canCreateTasks = hasPermission('TASK_PUBLISH');
+  const canEditTasks = hasPermission('TASK_EDIT');
+  const canDeleteTasks = hasPermission('TASK_DELETE');
+  const canManageTasks = canCreateTasks || canEditTasks || canDeleteTasks;
 
   useTaskPublishLifecycle({
     isMobile,
@@ -533,7 +544,9 @@ export default function TaskPublishPage() {
     handleTaskReset,
   } = useTaskPublishActions({
     actions: taskActions,
+    canCreateTasks,
     canEditTasks,
+    canDeleteTasks,
     form,
     setForm,
     selectedTaskIds,
@@ -580,7 +593,7 @@ export default function TaskPublishPage() {
     );
   }
 
-  if (!canEditTasks) {
+  if (!canManageTasks) {
     return (
       <div className="task-publish-page management-theme-page">
         <PermissionDeniedState {...taskPublishPermissionPreset} />
@@ -591,7 +604,9 @@ export default function TaskPublishPage() {
   return (
     <div className="task-publish-page management-theme-page">
       <TaskListSection
+        canCreateTasks={canCreateTasks}
         canEditTasks={canEditTasks}
+        canDeleteTasks={canDeleteTasks}
         draftTaskSearch={draftTaskSearch}
         filteredTasks={filteredTasks}
         handleDeleteTask={handleDeleteTask}
@@ -624,6 +639,7 @@ export default function TaskPublishPage() {
       <TaskPublishOverlays
         actionSheetOpen={actionSheetOpen}
         canEditTasks={canEditTasks}
+        canDeleteTasks={canDeleteTasks}
         appliedDormFilters={appliedDormFilters}
         appliedDormSearch={appliedDormSearch}
         currentStep={currentStep}

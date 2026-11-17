@@ -330,6 +330,8 @@ export default defineConfig({
         'src/hooks/useTableState.ts',
         'src/hooks/useResultTableState.ts',
         'src/hooks/useBulkSelection.ts',
+        'src/pages/account-permission/scopeUtils.ts',
+        'src/pages/account-permission/overrideUtils.ts',
       ],
       thresholds: {
         lines: 80,

@@ -41,7 +41,7 @@ interface ResultFiltersProps {
   handleSearch: () => void;
   handleResetFilters: () => void;
   handleRefresh: () => void | Promise<void>;
-  handleExport: () => void | Promise<void>;
+  handleExport?: () => void | Promise<void>;
   exporting: boolean;
   totalCount: number;
   canAdjust: boolean;
@@ -190,7 +190,7 @@ interface ResultFilterActionBarProps {
   draftFilters: ResultFiltersState;
   exporting: boolean;
   handleDeleteResults: (ids: EntityId[]) => void;
-  handleExport: () => void | Promise<void>;
+  handleExport?: () => void | Promise<void>;
   handleRefresh: () => void | Promise<void>;
   handleResetFilters: () => void;
   handleSearch: () => void;
@@ -283,16 +283,18 @@ function ResultFilterActionBar({
               className="h-10 w-10 rounded-xl border-none bg-red-50 dark:bg-red-500/10 text-red-500 active:scale-95 transition-all"
             />
           )}
-          <Button
-            type="primary"
-            icon={<ExportOutlined />}
-            onClick={handleExport}
-            loading={exporting}
-            disabled={totalCount === 0}
-            className="apple-btn-primary flex-1 h-10 rounded-xl px-6 active:scale-95 transition-all border-none"
-          >
-            导出
-          </Button>
+          {handleExport ? (
+            <Button
+              type="primary"
+              icon={<ExportOutlined />}
+              onClick={handleExport}
+              loading={exporting}
+              disabled={totalCount === 0}
+              className="apple-btn-primary flex-1 h-10 rounded-xl px-6 active:scale-95 transition-all border-none"
+            >
+              导出
+            </Button>
+          ) : null}
         </div>
       </div>
     );
@@ -340,16 +342,18 @@ function ResultFilterActionBar({
         >
           刷新
         </Button>
-        <Button
-          type="primary"
-          icon={<ExportOutlined />}
-          onClick={handleExport}
-          loading={exporting}
-          disabled={totalCount === 0}
-          className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary h-11 rounded-xl px-6 active:scale-95 transition-all border-none"
-        >
-          导出数据
-        </Button>
+        {handleExport ? (
+          <Button
+            type="primary"
+            icon={<ExportOutlined />}
+            onClick={handleExport}
+            loading={exporting}
+            disabled={totalCount === 0}
+            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary h-11 rounded-xl px-6 active:scale-95 transition-all border-none"
+          >
+            导出数据
+          </Button>
+        ) : null}
         {canAdjust && selectedResultIds.length > 0 ? (
           <Button
             danger
