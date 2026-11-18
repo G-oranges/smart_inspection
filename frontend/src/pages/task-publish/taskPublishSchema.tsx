@@ -125,6 +125,8 @@ export function createTaskFilterConfig({
         <DatePicker.RangePicker
           variant="filled"
           className="apple-input w-full"
+          classNames={{ popup: { root: 'task-time-range-popup' } }}
+          getPopupContainer={() => document.body}
           value={customRangeValue}
           onChange={(values) => {
             const nextRange =
