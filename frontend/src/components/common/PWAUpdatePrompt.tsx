@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Button, Modal, Space, Typography } from 'antd';
-import { CloudDownloadOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Button, Modal, Typography } from 'antd';
+import { CloudDownloadOutlined } from '@ant-design/icons';
 
 import { isServiceWorkerSupported } from './pwa';
+import { MODAL_WIDTH } from "./modalSizes";
 
 const { Text } = Typography;
 
@@ -95,31 +96,20 @@ export default function PWAUpdatePrompt() {
 
       <Modal
         open={needRefresh}
-        title={
-          <Space>
-            <ReloadOutlined style={{ color: '#1890ff' }} />
-            <span>发现新版本</span>
-          </Space>
-        }
-        footer={
-          <Space>
-            <Button onClick={handleClose}>稍后再说</Button>
-            <Button type="primary" icon={<ReloadOutlined />} onClick={handleUpdate}>
-              立即更新
-            </Button>
-          </Space>
-        }
+        title="发现新版本"
+        footer={[
+          <Button key="later" onClick={handleClose}>稍后再说</Button>,
+          <Button key="update" type="primary" onClick={handleUpdate}>
+            立即更新
+          </Button>,
+        ]}
         onCancel={handleClose}
         centered
+        width={MODAL_WIDTH.sm}
+        className="co-modal"
         maskClosable={false}
       >
-        <div style={{ padding: '16px 0' }}>
-          <Text>检测到应用有新版本可用，建议立即更新以获得最新功能和修复。</Text>
-          <br />
-          <Text type="secondary" style={{ fontSize: 12, marginTop: 8, display: 'block' }}>
-            更新将刷新页面，请确保已保存当前工作。
-          </Text>
-        </div>
+        <Text>更新将刷新页面，请先保存当前工作。</Text>
       </Modal>
     </>
   );

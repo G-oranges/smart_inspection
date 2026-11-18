@@ -3,6 +3,7 @@ import { Modal, Spin } from 'antd';
 
 import type { ImportWizardModalProps } from '../../types/import';
 import { loadImportWizardModal } from './importWizardPrefetch';
+import { MODAL_WIDTH } from "./modalSizes";
 
 const ImportWizardModal = lazy(loadImportWizardModal) as ComponentType<ImportWizardModalProps>;
 
@@ -14,7 +15,8 @@ function ImportWizardFallback({ open, onClose }: Pick<ImportWizardModalProps, 'o
       footer={null}
       closable={false}
       centered
-      width={420}
+      width={MODAL_WIDTH.sm}
+      className="co-modal"
     >
       <div className="flex min-h-[180px] items-center justify-center">
         <Spin size="large" tip="导入向导加载中..." />

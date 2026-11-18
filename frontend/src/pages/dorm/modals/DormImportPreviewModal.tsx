@@ -4,6 +4,7 @@
 import { Modal, Button, Alert, Row, Col, Card, Select } from "antd";
 
 import type { UploadResolution } from '../../../types/service';
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 interface DormImportPreviewIssue {
   row?: number;
@@ -54,7 +55,7 @@ export default function DormImportPreviewModal({
 }: DormImportPreviewModalProps) {
   return (
     <Modal
-      title={<span className="text-lg font-bold">宿舍导入预检</span>}
+      title="宿舍导入预检"
       open={open}
       onCancel={onClose}
       footer={[
@@ -68,15 +69,15 @@ export default function DormImportPreviewModal({
         <Button 
           key="submit" 
           type="primary" 
-          className="apple-btn-primary px-8"
+          className="apple-btn-primary"
           loading={loading}
           onClick={onConfirm}
         >
           确认导入
         </Button>
       ]}
-      width={540}
-      className="glass-modal apple-modal"
+      width={MODAL_WIDTH.lg}
+      className="co-modal"
       centered
     >
       {previewData && (

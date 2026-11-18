@@ -24,6 +24,7 @@ import {
 import { Switch } from "antd";
 import { SunOutlined, MoonOutlined } from "@ant-design/icons";
 import type { RoleLike } from '../types/app';
+import { MODAL_WIDTH } from "./common/modalSizes";
 
 const { Header, Sider, Content } = AntLayout;
 type MenuItem = Required<MenuProps>['items'][number];
@@ -593,6 +594,9 @@ export default function Layout() {
         okText="确认修改"
         cancelText="取消"
         destroyOnHidden
+        centered
+        width={MODAL_WIDTH.sm}
+        className="co-modal"
       >
         <Form
           form={pwdForm}

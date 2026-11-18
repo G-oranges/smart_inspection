@@ -10,6 +10,7 @@ import type {
   TeacherImportPreviewIssue,
   TeacherImportPreviewResult,
 } from '../types';
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 const { Option } = Select;
 
@@ -53,7 +54,7 @@ export default function TeacherImportPreviewModal({
 
   return (
     <Modal
-      title={<span className="text-lg font-bold">教职工数据预检</span>}
+      title="教职工导入预检"
       open={open}
       onCancel={onCancel}
       footer={[
@@ -63,16 +64,16 @@ export default function TeacherImportPreviewModal({
         <Button
           key="submit"
           type="primary"
-          className="apple-btn-primary px-8"
+          className="apple-btn-primary"
           loading={isImporting}
           onClick={onConfirm}
         >
           确认执行
         </Button>,
       ]}
-      width={580}
+      width={MODAL_WIDTH.lg}
       centered
-      className="glass-modal apple-modal"
+      className="co-modal"
     >
       <div className="space-y-6 py-2">
         {/* 导入概览 */}

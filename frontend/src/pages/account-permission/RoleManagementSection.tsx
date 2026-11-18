@@ -34,6 +34,7 @@ import type {
   RoleType,
 } from '../../types/service';
 import type { AccountPermissionActions, AccountPermissionData } from './types';
+import { MODAL_WIDTH } from "../../components/common/modalSizes";
 
 const ROLE_CODE_PATTERN = /^[A-Z][A-Z0-9_]*$/;
 
@@ -851,6 +852,9 @@ export default function RoleManagementSection({
         okText="保存"
         confirmLoading={saving}
         okButtonProps={{ disabled: roleFormInvalid }}
+        centered
+        width={MODAL_WIDTH.md}
+        className="co-modal"
       >
         <div className="stack modal-form">
           <label className="field-block">
@@ -919,7 +923,9 @@ export default function RoleManagementSection({
         title="角色类型管理"
         onCancel={() => setRoleTypeModalOpen(false)}
         footer={null}
-        width={760}
+        centered
+        width={MODAL_WIDTH.lg}
+        className="co-modal"
       >
         <div className="stack">
           <div className="flex items-center justify-between">
@@ -984,6 +990,9 @@ export default function RoleManagementSection({
         okText="保存"
         confirmLoading={saving}
         okButtonProps={{ disabled: roleTypeFormInvalid }}
+        centered
+        width={MODAL_WIDTH.md}
+        className="co-modal"
       >
         <div className="stack modal-form">
           <label className="field-block">

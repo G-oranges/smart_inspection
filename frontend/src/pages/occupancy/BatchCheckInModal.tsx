@@ -14,6 +14,7 @@ import type {
   BedSelectInfo,
   OccupancyStudentRecord,
 } from "./types";
+import { MODAL_WIDTH } from "../../components/common/modalSizes";
 
 interface SelectorBedRecord extends ServiceRecord {
   bedNo?: string | number;
@@ -276,21 +277,21 @@ export default function BatchCheckInModal({
   // 桌面端 Modal
   return (
     <Modal
-      title={<span className="text-xl font-bold text-gray-800">精细化批量入住分配</span>}
+      title="批量入住分配"
       open={open}
       onOk={onSubmit}
       onCancel={onClose}
       confirmLoading={loading}
-      width={1000}
+      width={MODAL_WIDTH.xl}
       destroyOnClose
       centered
-      className="glass-modal apple-modal"
+      className="co-modal"
       footer={
-        <div className="flex justify-end gap-3 mt-4">
+        <div className="co-modal-footer">
           <Button className="apple-btn-secondary" onClick={onClose}>取消</Button>
           <Button
             type="primary"
-            className="apple-btn-primary px-8"
+            className="apple-btn-primary"
             onClick={onSubmit}
             disabled={!hasWritableDormTargets}
           >

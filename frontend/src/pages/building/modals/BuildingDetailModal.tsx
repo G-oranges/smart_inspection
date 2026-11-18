@@ -4,9 +4,9 @@
  * 展示楼栋详细信息
  */
 import { Modal, Button, Descriptions } from "antd";
-import { EditOutlined } from "@ant-design/icons";
 
 import type { BuildingRecord } from '../types';
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 interface BuildingDetailModalProps {
   open: boolean;
@@ -41,7 +41,6 @@ export function BuildingDetailModal({
         <Button
           key="edit"
           type="primary"
-          icon={<EditOutlined />}
           onClick={() => {
             onClose();
             if (building) onEdit(building);
@@ -50,7 +49,9 @@ export function BuildingDetailModal({
           编辑
         </Button>,
       ]}
-      className="glass-modal"
+      centered
+      width={MODAL_WIDTH.md}
+      className="co-modal"
     >
       {building && (
         <Descriptions bordered size="small" column={2}>

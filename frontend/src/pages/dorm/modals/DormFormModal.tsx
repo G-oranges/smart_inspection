@@ -9,6 +9,7 @@ import type { FormInstance } from 'antd';
 
 import { normalizeDormGender } from "../dormFilterSchema";
 import type { DormFormPayload } from '../types';
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 interface DormBuildingOption {
   value?: string;
@@ -146,17 +147,18 @@ export default function DormFormModal({
   return (
     <Modal
       open={open}
-      title={<span className="text-lg font-bold">新增宿舍</span>}
+      title="新增宿舍"
       onCancel={handleClose}
       footer={
-        <div className="flex justify-end gap-3 mt-4">
+        <div className="co-modal-footer">
           <Button className="apple-btn-secondary" onClick={handleClose}>取消</Button>
-          <Button type="primary" className="apple-btn-primary px-8" onClick={() => form.submit()}>确认提交</Button>
+          <Button type="primary" className="apple-btn-primary" onClick={() => form.submit()}>确认提交</Button>
         </div>
       }
       destroyOnHidden
-      className="glass-modal apple-modal"
+      className="co-modal"
       centered
+      width={MODAL_WIDTH.md}
     >
       {formContent}
     </Modal>

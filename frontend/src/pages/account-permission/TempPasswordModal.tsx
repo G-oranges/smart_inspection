@@ -4,6 +4,7 @@
  */
 
 import { Modal, Button } from 'antd';
+import { MODAL_WIDTH } from "../../components/common/modalSizes";
 
 interface TempPasswordModalProps {
   visible: boolean;
@@ -25,10 +26,13 @@ export default function TempPasswordModal({
 }: TempPasswordModalProps) {
   return (
     <Modal
-      title="生成临时密码成功"
+      title="临时密码"
       open={visible}
       onOk={onClose}
       onCancel={onClose}
+      centered
+      width={MODAL_WIDTH.sm}
+      className="co-modal"
       footer={[
         <Button
           key="copy"

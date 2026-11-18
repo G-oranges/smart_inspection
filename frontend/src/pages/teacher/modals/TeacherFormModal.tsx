@@ -9,6 +9,7 @@ import PanelSelect from '../../../components/common/PanelSelect';
 import type { FormInstance } from 'antd';
 import type { EntityId } from '../../../types/service';
 import type { TeacherFormValues } from '../types';
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 interface TeacherFormModalProps {
   open: boolean;
@@ -162,29 +163,25 @@ export default function TeacherFormModal({
   return (
     <Modal
       open={open}
-      title={
-        <span className="text-xl font-bold text-gray-800 dark:text-gray-100">
-          {isEditing ? "编辑教职工信息" : "新增教职工"}
-        </span>
-      }
+      title={isEditing ? "编辑教职工" : "新增教职工"}
       onCancel={onClose}
       footer={
-        <div className="flex justify-end gap-3 mt-4">
+        <div className="co-modal-footer">
           <Button className="apple-btn-secondary" onClick={onClose}>
             取消
           </Button>
           <Button
             type="primary"
-            className="apple-btn-primary px-8"
+            className="apple-btn-primary"
             onClick={() => form.submit()}
           >
             完成
           </Button>
         </div>
       }
-      width={560}
+      width={MODAL_WIDTH.md}
       destroyOnHidden
-      className="glass-modal apple-modal"
+      className="co-modal"
       centered
     >
       {formContent}

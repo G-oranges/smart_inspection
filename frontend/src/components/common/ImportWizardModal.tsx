@@ -37,6 +37,7 @@ import { useAppContext } from '../../context/AppContext';
 import { useMobile } from '../../hooks/useMobile';
 import { CloseOutlined, LeftOutlined } from '@ant-design/icons';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
+import { MODAL_WIDTH } from "./modalSizes";
 
 type AnyRecord = Record<string, unknown>;
 type XlsxModule = typeof import('xlsx');
@@ -2522,21 +2523,14 @@ const ImportWizardModal = ({
 
   return (
     <Modal
-      title={
-        <div className="flex items-center gap-2 py-1">
-          <div className="w-8 h-8 rounded-lg bg-ios-blue flex items-center justify-center text-white shadow-sm">
-            <CloudUploadOutlined />
-          </div>
-          <span>{config?.title || '数据导入'}</span>
-        </div>
-      }
+      title={config?.title || '数据导入'}
       open={open}
       onCancel={onClose}
-      width={900}
+      width={MODAL_WIDTH.lg}
       footer={null}
       centered
-      bodyStyle={{ padding: 0, height: '600px', overflow: 'hidden' }}
-      className="apple-modal overflow-hidden rounded-[24px]"
+      styles={{ body: { height: 'min(600px, calc(100vh - 10rem))' } }}
+      className="co-modal co-modal--flush"
     >
       <ConfigProvider
         theme={{
@@ -2651,27 +2645,6 @@ const ImportWizardModal = ({
         }
         .import-wizard-steps .ant-steps-item-finish .ant-steps-item-icon .ant-steps-icon {
           color: ${accentColor} !important;
-        }
-        .apple-modal .ant-modal-content {
-          border-radius: 24px !important;
-          overflow: hidden !important;
-          padding: 0 !important;
-          ${isDarkMode ? 'background-color: #1C1C1E !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;' : 'border: 1px solid #f0f0f0 !important;'}
-        }
-        .apple-modal .ant-modal-header {
-          padding: 16px 24px !important;
-          margin-bottom: 0 !important;
-          border-bottom: 1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#f0f0f0'} !important;
-          ${isDarkMode ? 'background-color: #1C1C1E !important;' : ''}
-        }
-        .apple-modal .ant-modal-title {
-          ${isDarkMode ? 'color: rgba(255, 255, 255, 0.95) !important;' : ''}
-        }
-        .apple-modal .ant-modal-close {
-          ${isDarkMode ? 'color: rgba(255, 255, 255, 0.45) !important;' : ''}
-        }
-        .apple-modal .ant-modal-close:hover {
-          ${isDarkMode ? 'color: rgba(255, 255, 255, 0.85) !important;' : ''}
         }
         /* 子步骤折叠面板样式适配 */
         .dark .issue-collapse .ant-collapse-header {

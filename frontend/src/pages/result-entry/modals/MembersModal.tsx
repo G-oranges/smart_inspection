@@ -1,5 +1,6 @@
 import { List, Modal, Skeleton, Tag } from "antd";
 import type { MembersModalProps, ResultEntryMember } from "../types";
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 export default function MembersModal({
   open,
@@ -10,11 +11,12 @@ export default function MembersModal({
   return (
     <Modal
       open={open}
-      title={<span className="text-lg font-bold tracking-tight">宿舍成员列表</span>}
+      title="宿舍成员"
       onCancel={onClose}
       footer={null}
       centered
-      className="ios-modal-custom"
+      width={MODAL_WIDTH.sm}
+      className="co-modal"
     >
       {loading ? (
         <div className="py-12">

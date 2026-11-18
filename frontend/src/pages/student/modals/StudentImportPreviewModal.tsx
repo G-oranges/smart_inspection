@@ -8,6 +8,7 @@ import { Modal, Alert, Card, Select, Row, Col, Button } from "antd";
 const { Option } = Select;
 
 import type { StudentImportPreviewModalProps } from "../types";
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 /**
  * 学生导入预检弹窗
@@ -47,8 +48,9 @@ export default function StudentImportPreviewModal({
           确认导入
         </Button>,
       ]}
-      width={600}
-      className="glass-modal"
+      centered
+      width={MODAL_WIDTH.lg}
+      className="co-modal"
     >
       {previewData && (
         <div className="import-summary-content">

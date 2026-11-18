@@ -6,6 +6,7 @@
 import { Modal, Descriptions, Button } from "antd";
 
 import type { StudentDetailModalProps } from "../types";
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 /**
  * 学生详情弹窗
@@ -45,8 +46,9 @@ export default function StudentDetailModal({
           </Button>
         ),
       ]}
-      width={700}
-      className="glass-modal"
+      centered
+      width={MODAL_WIDTH.md}
+      className="co-modal"
     >
       {student && (
         <Descriptions bordered size="small" column={2}>

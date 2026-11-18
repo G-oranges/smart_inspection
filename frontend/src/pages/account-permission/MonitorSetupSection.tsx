@@ -19,6 +19,7 @@ import type {
   MonitorFilters,
   TableListState,
 } from './types';
+import { MODAL_WIDTH } from "../../components/common/modalSizes";
 
 const { Text } = Typography;
 
@@ -357,7 +358,9 @@ export default function MonitorSetupSection({
             </Button>
           </Space>
         }
-        width={600}
+        centered
+        width={MODAL_WIDTH.md}
+        className="co-modal"
       >
         <p style={{ marginBottom: 16 }}>以下宿舍已有寝室长，是否撤销并更换？</p>
         <div style={{ maxHeight: 300, overflow: 'auto' }}>

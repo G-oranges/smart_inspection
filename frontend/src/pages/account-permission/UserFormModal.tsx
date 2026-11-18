@@ -4,12 +4,13 @@
  */
 
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
-import { Modal, Input, Switch, Button, Space } from 'antd';
+import { Modal, Input, Switch, Button } from 'antd';
 import PanelSelect from '../../components/common/PanelSelect';
 
 import type { RoleLike } from '../../types/app';
 import type { EntityId } from '../../types/service';
 import type { UserFormState } from './types';
+import { MODAL_WIDTH } from "../../components/common/modalSizes";
 
 interface UserFormModalProps {
   open: boolean;
@@ -60,15 +61,17 @@ export default function UserFormModal({
       open={open}
       title={editingId ? "编辑用户" : "新增用户"}
       onCancel={onCancel}
-      footer={
-        <Space>
-          <Button onClick={onCancel}>取消</Button>
-          <Button type="primary" htmlType="submit" form="user-form">
-            保存
-          </Button>
-        </Space>
-      }
-      width={640}
+      footer={[
+        <Button key="cancel" className="apple-btn-secondary" onClick={onCancel}>
+          取消
+        </Button>,
+        <Button key="ok" type="primary" className="apple-btn-primary" htmlType="submit" form="user-form">
+          保存
+        </Button>,
+      ]}
+      centered
+      width={MODAL_WIDTH.md}
+      className="co-modal"
     >
       <form
         id="user-form"

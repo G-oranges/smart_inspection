@@ -8,6 +8,7 @@ import type { UploadResolution } from '../../../types/service';
 
 import { IMPORT_RESOLUTION_OPTIONS } from "../buildingSchema";
 import type { BuildingImportPreviewResult } from '../types';
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 const { Option } = Select;
 
@@ -73,8 +74,9 @@ export function BuildingImportPreviewModal({
           确认导入
         </Button>,
       ]}
-      width={600}
-      className="glass-modal"
+      centered
+      width={MODAL_WIDTH.lg}
+      className="co-modal"
     >
       {previewData && (
         <div className="import-summary-content">

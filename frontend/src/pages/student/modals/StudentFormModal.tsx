@@ -16,6 +16,7 @@ import {
 import PanelSelect from '../../../components/common/PanelSelect';
 
 import type { StudentFormModalProps } from "../types";
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 /**
  * 学生表单弹窗（响应式：桌面用 Modal，移动端用 Drawer）
@@ -244,13 +245,13 @@ export default function StudentFormModal({
       title={title}
       onCancel={onClose}
       footer={
-        <div className="flex justify-end gap-3 mt-2">
+        <div className="co-modal-footer">
           <Button className="apple-btn-secondary" onClick={onClose}>
             取消
           </Button>
           <Button
             type="primary"
-            className="apple-btn-primary px-8"
+            className="apple-btn-primary"
             onClick={onSubmit}
           >
             提交
@@ -258,10 +259,9 @@ export default function StudentFormModal({
         </div>
       }
       destroyOnHidden
-      className="glass-modal apple-modal"
+      className="co-modal"
       centered
-      width={880}
-      styles={{ body: { maxHeight: '70vh', overflowY: 'auto', padding: '16px 24px' } }}
+      width={MODAL_WIDTH.lg}
     >
       {formContent}
     </Modal>

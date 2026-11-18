@@ -1,5 +1,6 @@
 import { Button, Input, Modal } from "antd";
 import type { ScoreEditModalProps } from "../types";
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 export default function ScoreEditModal({
   open,
@@ -10,26 +11,18 @@ export default function ScoreEditModal({
   return (
     <Modal
       open={open}
-      title={<span className="text-lg font-bold tracking-tight">输入基础分</span>}
+      title="基础分"
       onCancel={onClose}
       footer={[
-        <Button
-          key="ok"
-          type="primary"
-          shape="round"
-          block
-          size="large"
-          onClick={onClose}
-          className="bg-ios-blue"
-        >
+        <Button key="ok" type="primary" className="apple-btn-primary" onClick={onClose}>
           确定
         </Button>,
       ]}
       centered
-      width={300}
-      className="ios-modal-custom"
+      width={MODAL_WIDTH.sm}
+      className="co-modal"
     >
-      <div className="py-6">
+      <div>
         <Input
           type="tel"
           inputMode="numeric"

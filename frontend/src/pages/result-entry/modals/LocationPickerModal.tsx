@@ -1,5 +1,6 @@
 import { Button, Modal, Tag } from "antd";
 import type { LocationPickerModalProps } from "../types";
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 export default function LocationPickerModal({
   open,
@@ -12,25 +13,18 @@ export default function LocationPickerModal({
   return (
     <Modal
       open={open}
-      title={<span className="text-lg font-bold tracking-tight">选择发现位置</span>}
+      title="选择发现位置"
       onCancel={onClose}
       footer={[
-        <Button
-          key="done"
-          type="primary"
-          shape="round"
-          block
-          size="large"
-          onClick={onClose}
-          className="h-12 bg-ios-blue font-bold"
-        >
+        <Button key="done" type="primary" className="apple-btn-primary" onClick={onClose}>
           完成
         </Button>,
       ]}
       centered
-      className="ios-modal-custom"
+      width={MODAL_WIDTH.md}
+      className="co-modal"
     >
-      <div className="flex flex-wrap gap-2.5 py-4">
+      <div className="flex flex-wrap gap-2.5">
         {locations.map((loc) => {
           const currentRow = appliedDeductions.find(
             (r) => r.id === currentEditingRowId

@@ -47,6 +47,7 @@ import type {
   UserLike,
 } from '../types/app';
 import type { EntityId, ServiceRecord } from '../types/service';
+import { MODAL_WIDTH } from "../components/common/modalSizes";
 
 interface AppLayoutNavItem {
   key: string;
@@ -1393,7 +1394,8 @@ const AppLayout = () => {
         okText="确认修改"
         cancelText="取消"
         centered
-        className="apple-modal"
+        width={MODAL_WIDTH.sm}
+        className="co-modal"
       >
         {mustChangePassword ? (
           <p className="muted mt-2">

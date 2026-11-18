@@ -15,7 +15,6 @@ import {
 import PanelSelect from './common/PanelSelect';
 import {
   CheckCircleFilled,
-  CompassOutlined,
   EnvironmentOutlined,
   SwapOutlined,
   UserOutlined,
@@ -26,6 +25,7 @@ import DormGridSelector from './DormGridSelector';
 
 import type { AppActions } from '../types/app';
 import type { EntityId, ServiceRecord } from '../types/service';
+import { MODAL_WIDTH } from "./common/modalSizes";
 
 const { Text } = Typography;
 
@@ -407,12 +407,7 @@ export default function ResidencyAdjustModal({
 
   return (
     <Modal
-      title={
-        <Space>
-          <CompassOutlined />
-          <span>{mode === 'assign' ? '办理入住分配' : '办理宿位异动'}</span>
-        </Space>
-      }
+      title={mode === 'assign' ? '入住分配' : '宿位异动'}
       open={open}
       onCancel={onClose}
       onOk={() => {
@@ -420,12 +415,13 @@ export default function ResidencyAdjustModal({
       }}
       confirmLoading={loading}
       okButtonProps={{ disabled: loading || noWritableBuildings }}
-      width={1000}
+      width={MODAL_WIDTH.xl}
       okText="确认办理"
       cancelText="取消"
       destroyOnHidden
       afterClose={resetState}
-      style={{ top: 20 }}
+      centered
+      className="co-modal"
     >
       <div style={{ marginBottom: 20 }}>
         <Alert

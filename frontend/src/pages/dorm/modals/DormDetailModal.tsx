@@ -4,6 +4,7 @@
 import { Modal, Button, Descriptions } from "antd";
 
 import type { DormRecord } from '../types';
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 interface DormDetailModalProps {
   open: boolean;
@@ -36,7 +37,7 @@ export default function DormDetailModal({
   return (
     <Modal
       open={open}
-      title={<span className="text-lg font-bold">宿舍详情</span>}
+      title="宿舍详情"
       onCancel={handleClose}
       footer={[
         <Button 
@@ -50,7 +51,7 @@ export default function DormDetailModal({
           <Button 
             key="edit" 
             type="primary" 
-            className="apple-btn-primary px-8"
+            className="apple-btn-primary"
             onClick={() => {
               handleClose();
               onEdit?.(dorm);
@@ -60,8 +61,8 @@ export default function DormDetailModal({
           </Button>
         )
       ]}
-      width={540}
-      className="glass-modal apple-modal"
+      width={MODAL_WIDTH.md}
+      className="co-modal"
       centered
     >
       {dorm && (

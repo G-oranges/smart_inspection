@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal, Descriptions, Tag, theme, Empty } from "antd";
+import { MODAL_WIDTH } from "./common/modalSizes";
 
 /**
  * Bed 数据结构参考：
@@ -51,10 +52,10 @@ export default function BedDetailModal({
       open={open}
       onCancel={onClose}
       footer={null}
-      title={<span className="text-lg font-bold">床位详情 - {bed?.bedNo}号床</span>}
+      title={`${bed?.bedNo ?? ""}号床`}
       centered
-      width={400}
-      className="apple-modal glass-modal"
+      width={MODAL_WIDTH.sm}
+      className="co-modal"
       destroyOnClose
     >
       {bed ? (

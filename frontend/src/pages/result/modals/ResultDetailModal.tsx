@@ -11,6 +11,7 @@ import type {
   ResultInspectionDetailRecord,
   ResultInspectionRecord,
 } from '../types';
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 interface ResultDetailModalProps {
   detail: ResultDetailState;
@@ -92,7 +93,7 @@ export default function ResultDetailModal({
   return (
     <Modal
       open={detail.open}
-      title={<span className="text-lg font-bold">查寝结果详情</span>}
+      title="查寝结果详情"
       onCancel={onClose}
       footer={
         canAdjust && detail.inspection ? (
@@ -113,9 +114,9 @@ export default function ResultDetailModal({
           </Button>
         ) : null
       }
-      width={isMobile ? "100%" : 720}
+      width={isMobile ? "100%" : MODAL_WIDTH.md}
       centered
-      className="apple-modal result-detail-modal management-theme-page"
+      className={`result-detail-modal management-theme-page${isMobile ? "" : " co-modal"}`}
       style={isMobile ? { top: 0, paddingBottom: 0 } : undefined}
     >
       {detail.loading ? (

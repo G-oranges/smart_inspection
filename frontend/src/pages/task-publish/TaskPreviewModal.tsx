@@ -3,9 +3,9 @@
  */
 
 import { Button, Modal, Steps } from "antd";
-import { ArrowRightOutlined, CheckCircleOutlined } from "@ant-design/icons";
 
 import type { TaskPreviewModalProps } from "./types";
+import { MODAL_WIDTH } from "../../components/common/modalSizes";
 
 export const TaskPreviewModal = ({
   open,
@@ -22,21 +22,19 @@ export const TaskPreviewModal = ({
   return (
     <Modal
       open={open}
-      title={
-        <div className="py-1">
-          <div className="text-xl font-bold text-gray-800 dark:text-gray-100">
-            {mode === "create" ? "发布新任务" : "修改任务信息"}
-          </div>
-        </div>
-      }
-      width={isMobile ? "100%" : 780}
+      title={mode === "create" ? "发布任务" : "编辑任务"}
+      width={isMobile ? "100%" : MODAL_WIDTH.lg}
       centered
       onCancel={onClose}
       style={isMobile ? { top: 0, paddingBottom: 0 } : undefined}
       footer={[
         <div
           key="footer"
-          className="task-publish-footer flex justify-end gap-3 px-6 py-5"
+          className={
+            isMobile
+              ? "task-publish-footer flex justify-end gap-3 px-6 py-5"
+              : "co-modal-footer"
+          }
         >
           <Button
             onClick={onClose}
@@ -56,9 +54,7 @@ export const TaskPreviewModal = ({
             <Button
               type="primary"
               onClick={onNext}
-              icon={<ArrowRightOutlined />}
-              iconPosition="end"
-              className="apple-btn-primary px-8"
+              className="apple-btn-primary"
             >
               下一步
             </Button>
@@ -66,31 +62,29 @@ export const TaskPreviewModal = ({
             <Button
               type="primary"
               onClick={onSubmit}
-              icon={<CheckCircleOutlined />}
-              className="apple-btn-primary px-8"
+              className="apple-btn-primary"
             >
-              确认发布任务
+              {mode === "create" ? "发布任务" : "保存修改"}
             </Button>
           )}
         </div>,
       ]}
-      styles={{
-        body: {
-          padding: 0,
-          overflow: "hidden",
-          borderRadius: "28px",
-          display: "flex",
-          flexDirection: "column",
-          flex: 1,
-          minHeight: 0,
-          maxHeight: isMobile ? "100dvh" : "calc(100vh - 96px)",
-        },
-        mask: {
-          backdropFilter: "blur(12px)",
-          backgroundColor: "rgba(0,0,0,0.3)",
-        },
-      }}
-      className="task-publish-modal management-theme-page apple-modal glass-modal"
+      styles={
+        isMobile
+          ? {
+              body: {
+                padding: 0,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                minHeight: 0,
+                maxHeight: "100dvh",
+              },
+            }
+          : undefined
+      }
+      className={`task-publish-modal management-theme-page${isMobile ? "" : " co-modal"}`}
     >
       <div className={isMobile ? "px-2 py-1" : "py-1"}>
         <Steps

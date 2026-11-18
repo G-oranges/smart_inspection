@@ -21,6 +21,7 @@ import type { FormInstance } from 'antd';
 
 import { BUILDING_FORM_DEFAULTS, BUILDING_TYPE_OPTIONS } from "../buildingSchema";
 import type { BuildingFormPayload } from '../types';
+import { MODAL_WIDTH } from "../../../components/common/modalSizes";
 
 const { Option } = Select;
 
@@ -184,12 +185,14 @@ export function BuildingFormModal({
 
   return (
     <Modal
-      title={<span className="text-xl font-bold">{title}</span>}
+      title={title}
       open={open}
       onOk={onOk}
       onCancel={onClose}
       forceRender
-      className="apple-modal glass-modal"
+      centered
+      width={MODAL_WIDTH.md}
+      className="co-modal"
       footer={[
         <Button key="cancel" className="apple-btn-secondary" onClick={onClose}>
           取消

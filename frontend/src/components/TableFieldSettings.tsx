@@ -7,9 +7,9 @@ import {
   HolderOutlined,
   EyeOutlined,
   SortAscendingOutlined,
-  ReloadOutlined,
 } from "@ant-design/icons";
 import { normalizeColumns } from "../utils/tableConfig";
+import { MODAL_WIDTH } from "./common/modalSizes";
 
 interface TableFieldColumn {
   fieldKey: string;
@@ -98,28 +98,20 @@ export default function TableFieldSettings({
   return (
     <Modal
       open={open}
-      title={
-        <div className="flex items-center gap-2">
-          <div className="w-1 h-5 bg-blue-500 rounded-full" />
-          <span className="text-base font-bold text-gray-800 dark:text-gray-100">
-            {title}
-          </span>
-        </div>
-      }
+      title={title}
       onCancel={onClose}
-      width={680}
+      width={MODAL_WIDTH.lg}
       centered
-      className="glass-modal apple-modal"
+      className="co-modal"
       footer={
-        <div className="flex justify-between items-center p-2">
+        <div className="co-modal-footer co-modal-footer--split">
           <Button
-            icon={<ReloadOutlined />}
             onClick={onReset}
-            className="rounded-xl border-none bg-gray-100 dark:bg-white/10 text-gray-500"
+            type="text"
           >
             恢复默认
           </Button>
-          <div className="flex gap-2">
+          <div className="co-modal-footer">
             <Button className="apple-btn-secondary" onClick={onClose}>
               取消
             </Button>
@@ -127,7 +119,7 @@ export default function TableFieldSettings({
               type="primary"
               onClick={handleSave}
               loading={saving}
-              className="apple-btn-primary px-8"
+              className="apple-btn-primary"
             >
               保存更改
             </Button>
