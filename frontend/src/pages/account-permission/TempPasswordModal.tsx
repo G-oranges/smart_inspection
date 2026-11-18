@@ -3,7 +3,7 @@
  * @module pages/account-permission/TempPasswordModal
  */
 
-import { Modal, Button } from 'antd';
+import { App, Modal, Button } from 'antd';
 import { MODAL_WIDTH } from "../../components/common/modalSizes";
 
 interface TempPasswordModalProps {
@@ -11,7 +11,6 @@ interface TempPasswordModalProps {
   username: string;
   password: string;
   onClose: () => void;
-  onCopySuccess?: () => void;
 }
 
 /**
@@ -22,8 +21,9 @@ export default function TempPasswordModal({
   username,
   password,
   onClose,
-  onCopySuccess,
 }: TempPasswordModalProps) {
+  const { message } = App.useApp();
+
   return (
     <Modal
       title="临时密码"
@@ -36,9 +36,13 @@ export default function TempPasswordModal({
       footer={[
         <Button
           key="copy"
-          onClick={() => {
-            navigator.clipboard.writeText(password);
-            onCopySuccess?.();
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(password);
+              void message.success('密码已复制到剪贴板');
+            } catch {
+              void message.error('复制失败，请手动复制');
+            }
           }}
         >
           复制密码

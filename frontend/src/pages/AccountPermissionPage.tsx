@@ -2055,7 +2055,6 @@ export default function AccountPermissionPage() {
           onClose={() =>
             permissionState.setTempPasswordModal((prev) => ({ ...prev, visible: false }))
           }
-          onCopySuccess={() => userState.setUserMessage('密码已复制到剪贴板')}
         />
       </PageLayout>
     </div>
