@@ -176,6 +176,14 @@ export default function MonitorSetupSection({
           >
             刷新
           </Button>
+          <Button
+            type="primary"
+            disabled={selectedStudentIds.length === 0}
+            onClick={onBatchSetMonitorCheck}
+            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
+          >
+            批量设为寝室长 ({selectedStudentIds.length})
+          </Button>
         </div>
       </div>
         <div className="dorm-toolbar-row dorm-toolbar-row-filters">
@@ -263,25 +271,6 @@ export default function MonitorSetupSection({
     </>
   );
 
-  const batchActionBar = selectedStudentIds.length > 0 ? (
-    <div className="table-head dorm-table-head mb-4">
-      <div className="flex items-center gap-2">
-        <div className="dorm-table-head-accent" />
-        <h3 className="dorm-table-head-title">批量设置操作</h3>
-      </div>
-      <div className="table-head-actions">
-        <Tag color="blue">已选择 {selectedStudentIds.length} 名学生</Tag>
-        <Button
-          type="primary"
-          onClick={onBatchSetMonitorCheck}
-          className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
-        >
-          批量设为寝室长
-        </Button>
-      </div>
-    </div>
-  ) : null;
-
   if (!isMobile) {
     return (
       <>
@@ -291,13 +280,9 @@ export default function MonitorSetupSection({
               <div className="dorm-table-head-accent" />
               <h3 className="dorm-table-head-title">学生列表</h3>
             </div>
-            <div className="table-head-actions">
-              {selectedStudentIds.length ? <Tag color="blue">已选择 {selectedStudentIds.length} 名学生</Tag> : null}
-            </div>
           </div>
           {studentTable}
         </div>
-        {batchActionBar ? <div className="mb-6">{batchActionBar}</div> : null}
       </>
     );
   }
@@ -308,23 +293,8 @@ export default function MonitorSetupSection({
         <div>
           <h3 className="section-title">寝室长批量设置</h3>
         </div>
-        <div className="table-head-actions">
-          {selectedStudentIds.length ? <Tag color="blue">已选择 {selectedStudentIds.length} 名学生</Tag> : null}
-        </div>
       </div>
       {studentTable}
-      {selectedStudentIds.length > 0 ? (
-        <div className="flex items-center justify-between gap-3 pt-4 flex-wrap">
-          <Tag color="blue">待设置 {selectedStudentIds.length} 名学生</Tag>
-          <Button
-            type="primary"
-            onClick={onBatchSetMonitorCheck}
-            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
-          >
-            批量设为寝室长
-          </Button>
-        </div>
-      ) : null}
       <Modal
         open={conflictModal.visible}
         title="寝室长冲突确认"
