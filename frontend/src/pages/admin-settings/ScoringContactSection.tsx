@@ -76,7 +76,7 @@ export const ScoringContactSection = ({
                   }))
                 }
               />
-              <Text className="text-[12px]">{draft.studentContactEditable ? '已允许修改' : '禁止修改'}</Text>
+              <Text className="text-xs">{draft.studentContactEditable ? '已允许修改' : '禁止修改'}</Text>
           </div>
         </Col>
       </Row>

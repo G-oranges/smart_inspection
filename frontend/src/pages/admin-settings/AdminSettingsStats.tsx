@@ -23,7 +23,7 @@ export const AdminSettingsStats = ({
     <>
       <Col xs={12} sm={12} md={6}>
         <AppleStatCard 
-          icon={<TagOutlined className="text-[14px]" />} 
+          icon={<TagOutlined className="text-sm" />} 
           value={gradeRules.length} 
           label="预设评分等级" 
           dotColor="blue" 
@@ -32,7 +32,7 @@ export const AdminSettingsStats = ({
       </Col>
       <Col xs={12} sm={12} md={6}>
         <AppleStatCard 
-          icon={<NumberOutlined className="text-[14px]" />} 
+          icon={<NumberOutlined className="text-sm" />} 
           value={deductionItems.filter((item) => item.enabled).length} 
           label="已启用扣分项" 
           dotColor="green" 
@@ -41,7 +41,7 @@ export const AdminSettingsStats = ({
       </Col>
       <Col xs={12} sm={12} md={6}>
         <AppleStatCard 
-          icon={<EnvironmentOutlined className="text-[14px]" />} 
+          icon={<EnvironmentOutlined className="text-sm" />} 
           value={locationOptions.length} 
           label="位置标签密度" 
           dotColor="orange" 
@@ -50,7 +50,7 @@ export const AdminSettingsStats = ({
       </Col>
       <Col xs={12} sm={12} md={6}>
         <AppleStatCard 
-          icon={<FontSizeOutlined className="text-[14px]" />} 
+          icon={<FontSizeOutlined className="text-sm" />} 
           value={`${Math.round(fontSizeScale * 100)}%`} 
           label="视觉缩放比例" 
           dotColor="purple" 
@@ -72,28 +72,28 @@ export const mapAdminSettingsStatsToSegments = (
   return [
     {
       id: "settings-grade-rules",
-      icon: <TagOutlined className="text-[14px]" />,
+      icon: <TagOutlined className="text-sm" />,
       value: gradeRules.length,
       label: "等级",
       tone: "blue",
     },
     {
       id: "settings-deduction-items",
-      icon: <NumberOutlined className="text-[14px]" />,
+      icon: <NumberOutlined className="text-sm" />,
       value: deductionItems.filter((item) => item.enabled).length,
       label: "扣分项",
       tone: "green",
     },
     {
       id: "settings-location-options",
-      icon: <EnvironmentOutlined className="text-[14px]" />,
+      icon: <EnvironmentOutlined className="text-sm" />,
       value: locationOptions.length,
       label: "位置",
       tone: "orange",
     },
     {
       id: "settings-font-scale",
-      icon: <FontSizeOutlined className="text-[14px]" />,
+      icon: <FontSizeOutlined className="text-sm" />,
       value: Math.round(fontSizeScale * 100),
       label: "缩放",
       unit: "%",

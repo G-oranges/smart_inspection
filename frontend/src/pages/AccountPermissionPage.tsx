@@ -593,7 +593,7 @@ function UserManagementToolbar({
               }}
               onPressEnter={onSearchNow}
               allowClear
-              className="apple-search-input dorm-toolbar-search !rounded-2xl !bg-gray-100/50 dark:!bg-white/5 border-none h-11 flex-1 min-w-[220px]"
+              className="apple-search-input dorm-toolbar-search !bg-gray-100/50 dark:!bg-white/5 border-none flex-1 min-w-[220px]"
             />
             <Button
               type="primary"
@@ -601,14 +601,14 @@ function UserManagementToolbar({
               onClick={onSearchNow}
               disabled={!isDirty}
               loading={loading}
-              className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary h-11 rounded-xl px-6 active:scale-95 transition-all border-none"
+              className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all border-none"
             >
               搜索
             </Button>
             <Button
               icon={<ReloadOutlined />}
               onClick={onResetFilters}
-              className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5"
+              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
             >
               重置
             </Button>
@@ -618,7 +618,7 @@ function UserManagementToolbar({
               type="primary"
               icon={<PlusOutlined />}
               onClick={() => onOpenModal()}
-              className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary h-11 rounded-xl px-6 active:scale-95 transition-all border-none"
+              className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all border-none"
             >
               新增用户
             </Button>
@@ -629,12 +629,12 @@ function UserManagementToolbar({
               onClick={() => {
                 void onResetPassword();
               }}
-              className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5"
+              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
             >
               密码初始化
             </Button>
             <Button
-              className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-200/60 dark:bg-white/15 active:scale-95 transition-all px-5"
+              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
               icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
               onClick={onOpenSettings}
               disabled={loading}
@@ -649,7 +649,7 @@ function UserManagementToolbar({
                 onClick={() => {
                   void onBulkDelete();
                 }}
-                className="dorm-toolbar-button dorm-toolbar-button-danger h-11 rounded-2xl border-none bg-red-50 dark:bg-red-500/10 text-red-500 active:scale-95 transition-all px-5"
+                className="dorm-toolbar-button dorm-toolbar-button-danger active:scale-95 transition-all"
               >
                 {`删除 (${selectedCount})`}
               </Button>
@@ -673,69 +673,21 @@ function UserManagementToolbar({
   }
 
   return (
-    <Card className="control-card glass-card" variant="borderless" style={{ marginBottom: '1rem' }}>
-      <div
-        className="filter-bar"
-        style={{
-          display: 'flex',
-          gap: 12,
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        {isMobile ? (
-          <MobileFilterTrigger
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            setPage={setPage}
-            filters={filters}
-            isDirty={isDirty}
-            loading={loading}
-            onSearch={onSearchNow}
-            onOpenDrawer={() => setFilterDrawerOpen(true)}
-            onReset={onResetFilters}
-          />
-        ) : (
-          <DesktopFilters
-            filters={filters}
-            setFilters={setFilters}
-            setPage={setPage}
-            onReset={onResetFilters}
-          />
-        )}
-        {!isMobile ? (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => onOpenModal()}>
-              新增用户
-            </Button>
-            <Button
-              danger
-              icon={<DeleteOutlined />}
-              disabled={!selectAcrossPages && selectedIds.length === 0}
-              loading={batchLoading}
-              onClick={() => {
-                void onBulkDelete();
-              }}
-            >
-              删除
-            </Button>
-            <Button
-              icon={<LockOutlined />}
-              disabled={!selectAcrossPages && selectedIds.length === 0}
-              loading={batchLoading}
-              onClick={() => {
-                void onResetPassword();
-              }}
-            >
-              密码初始化
-            </Button>
-          </div>
-        ) : null}
-      </div>
+    <div className="flex flex-col gap-3 mb-4">
+      <MobileFilterTrigger
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        setPage={setPage}
+        filters={filters}
+        isDirty={isDirty}
+        loading={loading}
+        onSearch={onSearchNow}
+        onOpenDrawer={() => setFilterDrawerOpen(true)}
+        onReset={onResetFilters}
+      />
       {selectionSummary}
       {helperMessage}
-    </Card>
+    </div>
   );
 }
 

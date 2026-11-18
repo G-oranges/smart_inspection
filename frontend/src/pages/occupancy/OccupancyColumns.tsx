@@ -26,8 +26,8 @@ export function createBaseColumns(): OccupancyColumn[] {
       render: (_value, record: OccupancyStudentRecord) => (
         <Space direction="vertical" size={0}>
           <div style={{ fontWeight: 600 }}>{record.fullName}</div>
-          <div style={{ fontSize: '12px', color: '#8c8c8c' }}>{record.studentNo}</div>
-          <Tag className={`rounded-full border-none px-2 text-[10px] leading-4 h-4 m-0 ${record.gender === '男' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400'}`}>
+          <div style={{ fontSize: '12px', color: 'var(--co-text-muted)' }}>{record.studentNo}</div>
+          <Tag className={`rounded-full border-none px-2 text-[11px] leading-4 h-4 m-0 ${record.gender === '男' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400'}`}>
             {record.gender}
           </Tag>
         </Space>
@@ -40,7 +40,7 @@ export function createBaseColumns(): OccupancyColumn[] {
       render: (_value, record: OccupancyStudentRecord) => (
         <div style={{ fontSize: '13px' }}>
           <div>{record.college || '-'}</div>
-          <div style={{ color: '#8c8c8c' }}>{record.className || '-'}</div>
+          <div style={{ color: 'var(--co-text-muted)' }}>{record.className || '-'}</div>
         </div>
       )
     },
@@ -67,7 +67,7 @@ export function createBaseColumns(): OccupancyColumn[] {
             <span>{record.building} - {record.roomNo} <Tag color="blue">{record.bedNo}号床</Tag></span>
           </Space>
         ) : (
-          <span style={{ color: '#ccc' }}>无</span>
+          <span style={{ color: 'var(--co-text-muted)' }}>无</span>
         )
       )
     }

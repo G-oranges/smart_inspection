@@ -211,21 +211,21 @@ export const AuditLogFilters = ({
             type="primary"
             icon={<SearchOutlined />}
             onClick={handleSearch}
-            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active-press"
+            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
           >
             搜索
           </Button>
           <Button
             icon={<ReloadOutlined />}
             onClick={handleReset}
-            className="dorm-toolbar-button dorm-toolbar-button-subtle active-press"
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
           >
             重置
           </Button>
           <Button
             icon={<ReloadOutlined />}
             onClick={handleSearch}
-            className="dorm-toolbar-button dorm-toolbar-button-subtle active-press"
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
           >
             刷新
           </Button>

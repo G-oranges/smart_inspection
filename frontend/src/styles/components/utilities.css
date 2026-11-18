@@ -139,8 +139,7 @@
 }
 
 .font-mono {
-  font-family:
-    "SF Mono", "ui-monospace", "Menlo", "Monaco", "Cascadia Mono", monospace !important;
+  font-family: var(--co-font-mono) !important;
 }
 
 .tracking-tightest {

@@ -115,7 +115,7 @@ export const renderDormCell = (dorm: DormRecord, column: DormColumnConfig): Reac
       .filter((student) => student.name || student.studentNo);
     
     if (occupiedStudents.length === 0) {
-      return <span style={{ color: '#999' }}>暂无入住</span>;
+      return <span style={{ color: 'var(--co-text-muted)' }}>暂无入住</span>;
     }
     return (
       <Space size={4} wrap>
@@ -138,7 +138,7 @@ export const renderDormCell = (dorm: DormRecord, column: DormColumnConfig): Reac
     if (dorm.monitorName) {
       return <Tag color="purple">{dorm.monitorName}</Tag>;
     }
-    return <span style={{ color: '#999' }}>未设置</span>;
+    return <span style={{ color: 'var(--co-text-muted)' }}>未设置</span>;
   }
   const value = dorm[column.fieldKey];
   if (value === null || value === undefined || value === "") return "-";

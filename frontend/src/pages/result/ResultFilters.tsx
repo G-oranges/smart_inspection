@@ -306,7 +306,7 @@ function ResultFilterActionBar({
         <Input
           placeholder="搜索任务、宿舍、记录人..."
           prefix={<SearchOutlined className="text-gray-400" />}
-          className="apple-search-input dorm-toolbar-search !rounded-2xl !bg-gray-100/50 dark:!bg-white/5 border-none h-11 flex-1 min-w-[220px]"
+          className="apple-search-input dorm-toolbar-search !bg-gray-100/50 dark:!bg-white/5 border-none flex-1 min-w-[220px]"
           value={draftFilters.keyword}
           onChange={(event) =>
             setDraftFilters((prev) => ({
@@ -322,14 +322,14 @@ function ResultFilterActionBar({
           icon={<SearchOutlined />}
           onClick={handleSearch}
           disabled={!isDirty}
-          className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary h-11 rounded-xl px-6 active:scale-95 transition-all border-none"
+          className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all border-none"
         >
           搜索
         </Button>
         <Button
           onClick={handleResetFilters}
           icon={<ReloadOutlined />}
-          className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5"
+          className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
         >
           重置
         </Button>
@@ -338,7 +338,7 @@ function ResultFilterActionBar({
         <Button
           icon={<ReloadOutlined />}
           onClick={handleRefresh}
-          className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5"
+          className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
         >
           刷新
         </Button>
@@ -349,7 +349,7 @@ function ResultFilterActionBar({
             onClick={handleExport}
             loading={exporting}
             disabled={totalCount === 0}
-            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary h-11 rounded-xl px-6 active:scale-95 transition-all border-none"
+            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
           >
             导出数据
           </Button>
@@ -359,7 +359,7 @@ function ResultFilterActionBar({
             danger
             icon={<DeleteOutlined />}
             onClick={() => handleDeleteResults(selectedResultIds)}
-            className="dorm-toolbar-button dorm-toolbar-button-danger h-11 rounded-2xl border-none bg-red-50 dark:bg-red-500/10 text-red-500 active:scale-95 transition-all px-5"
+            className="dorm-toolbar-button dorm-toolbar-button-danger active:scale-95 transition-all"
           >
             删除 ({selectedResultIds.length})
           </Button>

@@ -138,7 +138,7 @@ function MembersSection({
                 className="re-member-row"
               >
                 <div className="flex flex-col">
-                  <span className="text-[14px] font-bold" style={{ color: 'var(--co-text)' }}>
+                  <span className="text-sm font-bold" style={{ color: 'var(--co-text)' }}>
                     {item.fullName}
                   </span>
                   <span className="text-[11px] mt-0.5" style={{ color: 'var(--co-text-muted)' }}>
@@ -146,7 +146,7 @@ function MembersSection({
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-[12px]" style={{ color: 'var(--co-text-muted)' }}>
+                  <span className="text-xs" style={{ color: 'var(--co-text-muted)' }}>
                     床位{' '}
                     <span className="font-bold" style={{ color: 'var(--co-text)' }}>
                       {item.bedNo}
@@ -231,7 +231,7 @@ function DeductionsSection({
                   onClick={() => canSubmit && onOpenEditDrawer(row)}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-[14px] truncate" style={{ color: 'var(--co-text)' }}>
+                    <div className="text-sm truncate" style={{ color: 'var(--co-text)' }}>
                       {deductionInfo?.name || '未选择'}
                     </div>
                     <div className="text-[11px] mt-0.5 flex items-center gap-1 flex-wrap" style={{ color: 'var(--co-text-muted)' }}>
@@ -322,7 +322,7 @@ function PhotosSection({
               <Button
                 type="text"
                 size="small"
-                icon={<CloseOutlined className="text-[10px]" />}
+                icon={<CloseOutlined className="text-[11px]" />}
                 className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center bg-black/60 text-white rounded-full active:scale-90 opacity-0 group-hover:opacity-100 transition-all"
                 onClick={() => removePhoto(index)}
               />
@@ -336,7 +336,7 @@ function PhotosSection({
           className={`re-upload-tile ${!canSubmit ? 'opacity-30 cursor-not-allowed' : ''}`}
         >
           <CameraOutlined className="text-2xl" />
-          <span className="text-[10px] font-bold uppercase tracking-widest">拍摄</span>
+          <span className="text-[11px] font-bold uppercase tracking-widest">拍摄</span>
         </div>
       </div>
 

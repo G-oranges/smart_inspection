@@ -132,7 +132,7 @@ const USER_TABLE_COLUMNS: TableColumnsType<AccountUser> = [
     render: (_, user) => user.roles?.map((role) => role.name).join(', ') || user.userType || '-',
   },
   {
-    title: '部门',
+    title: '学院',
     dataIndex: 'department',
     key: 'department',
     width: 180,
@@ -244,7 +244,7 @@ export default function BatchAuthSection({
           <Button
             icon={<ReloadOutlined />}
             onClick={onRefresh}
-            className="dorm-toolbar-button dorm-toolbar-button-subtle"
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
           >
             刷新
           </Button>
@@ -289,7 +289,7 @@ export default function BatchAuthSection({
             type="primary"
             onClick={() => onSave(account.baseline)}
             disabled={!selectedUserIds.length}
-            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary"
+            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
           >
             保存授权
           </Button>
@@ -324,7 +324,7 @@ export default function BatchAuthSection({
               type="primary"
               loading={account.scopeSaving}
               onClick={() => void account.saveScope()}
-              className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary"
+              className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
             >
               保存数据范围
             </Button>

@@ -10,7 +10,7 @@ export default function MembersModal({
   return (
     <Modal
       open={open}
-      title={<span className="text-lg font-black tracking-tight">宿舍成员列表</span>}
+      title={<span className="text-lg font-bold tracking-tight">宿舍成员列表</span>}
       onCancel={onClose}
       footer={null}
       centered
@@ -32,10 +32,10 @@ export default function MembersModal({
                     {item.fullName?.charAt(0)}
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-bold text-[17px]">
+                    <span className="font-bold text-lg">
                       {item.fullName}
                     </span>
-                    <span className="text-[12px] text-ios-gray-label font-medium">
+                    <span className="text-xs text-ios-gray-label font-medium">
                       {item.studentNo}
                     </span>
                   </div>

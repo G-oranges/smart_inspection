@@ -19,7 +19,7 @@ export const LocationConfigSection = ({
   return (
     <div>
       <div className="flex justify-between items-center mb-5">
-        <Text type="secondary" className="text-[12px] opacity-70">
+        <Text type="secondary" className="text-xs opacity-70">
           管理查寝录入页的预设扣分位置（如：地面、桌面、床铺）
         </Text>
         <Button 
@@ -38,7 +38,7 @@ export const LocationConfigSection = ({
         {locationOptions.map((loc, index) => (
           <div key={index} className="group relative">
             <Input
-              prefix={<EnvironmentOutlined className="text-co-muted text-[12px] group-focus-within:text-primary transition-colors" />}
+              prefix={<EnvironmentOutlined className="text-co-muted text-xs group-focus-within:text-primary transition-colors" />}
               value={loc}
               onChange={(e) => handleLocationChange(index, e.target.value)}
               placeholder="位置名称"
@@ -48,7 +48,7 @@ export const LocationConfigSection = ({
                   type="text" 
                   danger 
                   size="small"
-                  icon={<DeleteOutlined className="text-[12px]" />} 
+                  icon={<DeleteOutlined className="text-xs" />} 
                   onClick={() => handleRemoveLocation(index)}
                   className="opacity-0 group-hover:opacity-60 hover:opacity-100 transition-opacity"
                 />

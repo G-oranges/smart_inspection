@@ -2,6 +2,7 @@ import type { Dispatch, Key, SetStateAction } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Col, FloatButton, Form, Input, Row, Select, Table } from 'antd';
+import PanelSelect from '../components/common/PanelSelect';
 import type { ColumnsType } from 'antd/es/table';
 import {
   CheckCircleOutlined,
@@ -294,7 +295,7 @@ function ResultAuxiliaryPanels({
       {showAppealPanel ? (
         <div
           id="appeal-section"
-          className="glass-panel p-6 rounded-[24px] shadow-sm border border-black/5"
+          className="glass-panel p-6 rounded-3xl shadow-sm border border-black/5"
         >
           <div className="flex items-center gap-2 mb-6">
             <div className="w-1.5 h-6 bg-purple-500 rounded-full" />
@@ -309,7 +310,7 @@ function ResultAuxiliaryPanels({
             <Row gutter={24}>
               <Col xs={24} md={8}>
                 <Form.Item label="选择查寝记录" required className="apple-form-item">
-                  <Select
+                  <PanelSelect
                     value={appealForm.inspectionId}
                     onChange={(inspectionId: EntityId) =>
                       setAppealForm((prev) => ({ ...prev, inspectionId }))
@@ -322,7 +323,7 @@ function ResultAuxiliaryPanels({
                         {item.task?.title || item.id} ({item.totalScore}分)
                       </Option>
                     ))}
-                  </Select>
+                  </PanelSelect>
                 </Form.Item>
               </Col>
               <Col xs={24} md={16}>
@@ -343,7 +344,7 @@ function ResultAuxiliaryPanels({
                       type="primary"
                       htmlType="submit"
                       icon={<SendOutlined />}
-                      className="apple-btn-primary rounded-xl px-6"
+                      className="apple-btn-primary"
                     >
                       发送
                     </Button>
@@ -356,7 +357,7 @@ function ResultAuxiliaryPanels({
       ) : null}
 
       {showReviewPanel ? (
-        <div className="glass-panel p-6 rounded-[24px] shadow-sm border border-black/5">
+        <div className="glass-panel p-6 rounded-3xl shadow-sm border border-black/5">
           <div className="flex items-center gap-2 mb-6">
             <div className="w-1.5 h-6 bg-red-500 rounded-full" />
             <h3 className="text-lg font-bold">待处理申诉队列</h3>
@@ -370,7 +371,7 @@ function ResultAuxiliaryPanels({
             <Row gutter={24}>
               <Col xs={24} md={6}>
                 <Form.Item label="申诉事项" required className="apple-form-item">
-                  <Select
+                  <PanelSelect
                     value={handleForm.appealId}
                     onChange={(appealId: EntityId) =>
                       setHandleForm((prev) => ({ ...prev, appealId }))
@@ -385,12 +386,12 @@ function ResultAuxiliaryPanels({
                           {appeal.studentName || '佚名'} - {dayjs(appeal.createdAt).format('MM-DD')}
                         </Option>
                       ))}
-                  </Select>
+                  </PanelSelect>
                 </Form.Item>
               </Col>
               <Col xs={12} md={4}>
                 <Form.Item label="审核决策" className="apple-form-item">
-                  <Select
+                  <PanelSelect
                     value={handleForm.status}
                     onChange={(status: string) =>
                       setHandleForm((prev) => ({ ...prev, status }))
@@ -399,7 +400,7 @@ function ResultAuxiliaryPanels({
                   >
                     <Option value="approved">予以通过 (修正分值)</Option>
                     <Option value="rejected">驳回申请 (维持原判)</Option>
-                  </Select>
+                  </PanelSelect>
                 </Form.Item>
               </Col>
               <Col xs={24} md={14}>
@@ -420,7 +421,7 @@ function ResultAuxiliaryPanels({
                       type="primary"
                       htmlType="submit"
                       icon={<CheckCircleOutlined />}
-                      className="apple-btn-primary rounded-xl px-6"
+                      className="apple-btn-primary"
                     >
                       执行
                     </Button>

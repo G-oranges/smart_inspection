@@ -65,7 +65,7 @@ export default function StudentToolbar({
           <Input
             placeholder="搜索姓名、学号、手机号..."
             prefix={<SearchOutlined className="text-gray-400" />}
-            className="apple-search-input dorm-toolbar-search !rounded-2xl !bg-gray-100/50 dark:!bg-white/5 border-none h-11 flex-1 min-w-[220px]"
+            className="apple-search-input dorm-toolbar-search !bg-gray-100/50 dark:!bg-white/5 border-none flex-1 min-w-[220px]"
             value={draftSearchTerm}
             onChange={(e) => setDraftSearchTerm(e.target.value)}
             onPressEnter={onSearch}
@@ -77,13 +77,13 @@ export default function StudentToolbar({
             onClick={onSearch}
             disabled={!isDirty}
             loading={loading}
-            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary h-11 rounded-xl px-6 active:scale-95 transition-all border-none"
+            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all border-none"
           >
             搜索
           </Button>
           <Button
             onClick={onReset}
-            className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5"
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
             icon={<ReloadOutlined />}
           >
             重置
@@ -95,7 +95,7 @@ export default function StudentToolbar({
           {canEdit && (
             <Button
               type="primary"
-              className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary h-11 rounded-xl px-6 active:scale-95 transition-all"
+              className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
               icon={<PlusOutlined />}
               onClick={onOpenModal}
             >
@@ -104,7 +104,7 @@ export default function StudentToolbar({
           )}
           {canImport && (
             <Button
-              className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5"
+              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
               icon={<ImportOutlined />}
               onClick={onOpenImport}
               onMouseEnter={prefetchImportWizardModal}
@@ -116,7 +116,7 @@ export default function StudentToolbar({
           )}
           {canExport && (
             <Button
-              className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5"
+              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
               icon={<ExportOutlined />}
               onClick={onExport}
             >
@@ -124,7 +124,7 @@ export default function StudentToolbar({
             </Button>
           )}
           <Button
-            className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-200/60 dark:bg-white/15 active:scale-95 transition-all px-5"
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
             icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
             onClick={onOpenSettings}
           >
@@ -134,7 +134,7 @@ export default function StudentToolbar({
           {canEdit && selectedCount > 0 && (
             <Button
               danger
-              className="dorm-toolbar-button dorm-toolbar-button-danger h-11 rounded-2xl border-none bg-red-50 dark:bg-red-500/10 text-red-500 active:scale-95 transition-all px-5 ml-2"
+              className="dorm-toolbar-button dorm-toolbar-button-danger active:scale-95 transition-all ml-2"
               icon={<CloseCircleOutlined />}
               loading={batchLoading}
               onClick={onBulkDelete}

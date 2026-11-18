@@ -25,7 +25,7 @@ export default function TaskDetailStep({
           <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
             任务名称 *
           </span>
-          <span className="text-[10px] text-gray-400 font-mono">
+          <span className="text-[11px] text-gray-400 font-mono">
             {form.title.length}/{MAX_TITLE_LENGTH}
           </span>
         </div>
@@ -72,7 +72,7 @@ export default function TaskDetailStep({
           <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
             备注
           </span>
-          <span className="text-[10px] text-gray-400 font-mono">
+          <span className="text-[11px] text-gray-400 font-mono">
             {form.notes?.length || 0}/{MAX_NOTES_LENGTH}
           </span>
         </div>

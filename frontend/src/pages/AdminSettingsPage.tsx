@@ -209,7 +209,7 @@ export default function AdminSettingsPage() {
   );
 
   return (
-    <div className="admin-settings-page co-animate-in">
+    <div className="admin-settings-page management-theme-page co-animate-in">
 
       {/* 统计指标区 - 压扁感 */}
       <CollapsibleStatsBoard
@@ -236,7 +236,7 @@ export default function AdminSettingsPage() {
         {/* 左侧垂直导航栏 (桌面端) */}
         <aside className="admin-settings-sidebar">
           <div className="admin-settings-nav-card">
-            <div className="px-3 py-2 text-[10px] font-bold text-co-muted uppercase tracking-widest opacity-60">
+            <div className="px-3 py-2 text-[11px] font-bold text-co-muted uppercase tracking-widest opacity-60">
               设置分区
             </div>
             <div className="flex flex-col">
@@ -256,7 +256,7 @@ export default function AdminSettingsPage() {
             <div className="admin-settings-sidebar-footer">
               {isDirty && (
                 <div className="px-1 py-1 flex items-center gap-2 text-orange-500 co-animate-in">
-                  <ExclamationCircleOutlined className="text-[12px]" />
+                  <ExclamationCircleOutlined className="text-xs" />
                   <span className="text-[11px] font-semibold">内容有未保存修改</span>
                 </div>
               )}
@@ -266,7 +266,7 @@ export default function AdminSettingsPage() {
                 onClick={handleSave}
                 loading={saving}
                 block
-                className="apple-btn-primary h-10 rounded-xl text-[13px] font-bold"
+                className="apple-btn-primary"
               >
                 保存全局设置
               </Button>
@@ -344,7 +344,7 @@ export default function AdminSettingsPage() {
             <div className="space-y-4">
               <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200/20 flex items-start gap-4">
                 <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg">
-                   <UserOutlined className="text-[18px]" />
+                   <UserOutlined className="text-lg" />
                 </div>
                 <div className="flex-1">
                   <div className="text-[13px] font-bold mb-1">权限快速导航</div>
@@ -372,7 +372,7 @@ export default function AdminSettingsPage() {
                     onClick={() => {
                       void handleTemplateDownload(item.type);
                     }}
-                    className="co-glass-btn h-10 rounded-xl px-6 text-[12px] font-medium border-black/5 dark:border-white/5"
+                    className="co-glass-btn h-10 rounded-xl px-6 text-xs font-medium border-black/5 dark:border-white/5"
                   >
                     下载{item.label}
                   </Button>

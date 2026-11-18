@@ -556,3 +556,25 @@
     flex: 1;
   }
 }
+
+/* ===== PanelSelect：桌面端 Select 复用筛选面板弹层 ===== */
+.panel-select-dropdown.ant-select-dropdown {
+  padding: 0;
+  min-width: 260px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.panel-select-panel.filter-expanded-panel {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  margin-top: 0;
+  z-index: auto;
+}
+
+.panel-select-panel .filter-option-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from "react";
 import { createPortal } from "react-dom";
-import { DatePicker, Select, Input, Button, Tag, Tooltip, Space, Typography, Divider, Empty, message, Alert, Drawer, FloatButton, Badge, Modal } from "antd";
+import { DatePicker, Input, Button, Tag, Tooltip, Space, Typography, Divider, Empty, message, Alert, Drawer, FloatButton, Badge, Modal } from "antd";
+import PanelSelect from './common/PanelSelect';
 import { SearchOutlined, ReloadOutlined, ClockCircleOutlined, SwapOutlined, UserOutlined, InfoCircleOutlined, HistoryOutlined, DeleteOutlined, FilterOutlined } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
 import type { Key, ReactNode } from "react";
@@ -476,7 +477,7 @@ const OccupancyHistory = forwardRef<OccupancyHistoryRef, OccupancyHistoryProps>(
                     style={{ width: 200 }}
                     allowClear
                 />
-                <Select
+                <PanelSelect
                     placeholder="动作类型"
                     allowClear
                     style={{ width: 120 }}
@@ -555,7 +556,7 @@ const OccupancyHistory = forwardRef<OccupancyHistoryRef, OccupancyHistoryProps>(
               <Space direction="vertical" style={{ width: '100%' }} size="middle">
                   <div>
                       <div style={{ marginBottom: 8, fontWeight: 500 }}>动作类型</div>
-                      <Select
+                      <PanelSelect
                           placeholder="选择动作类型"
                           allowClear
                           style={{ width: '100%' }}

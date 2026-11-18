@@ -3,6 +3,7 @@
  */
 
 import { Input, Select, Table, Tag } from "antd";
+import PanelSelect from '../../../components/common/PanelSelect';
 import { SearchOutlined } from "@ant-design/icons";
 import {
   EXECUTOR_PAGE_SIZE,
@@ -31,7 +32,7 @@ export default function ExecutorSelectionStep({
   return (
     <div className="py-4">
       <div className="flex gap-4 mb-6">
-        <Select
+        <PanelSelect
           variant="filled"
           value={executorFilter.role || undefined}
           onChange={(v) => {
@@ -47,7 +48,7 @@ export default function ExecutorSelectionStep({
               {r.label}
             </Option>
           ))}
-        </Select>
+        </PanelSelect>
         <Input
           variant="filled"
           value={executorFilter.keyword}
@@ -85,7 +86,7 @@ export default function ExecutorSelectionStep({
             className: "apple-pagination p-2",
           }}
           size="small"
-          className="macos-table border border-black/5 rounded-2xl overflow-hidden shadow-sm"
+          className="dorm-table border border-black/5 rounded-2xl overflow-hidden shadow-sm"
           columns={[
             {
               title: "姓名",
@@ -102,7 +103,7 @@ export default function ExecutorSelectionStep({
               dataIndex: "username",
               key: "uid",
               render: (text: string | undefined) => (
-                <span className="font-mono text-[10px] opacity-40">{text}</span>
+                <span className="font-mono text-[11px] opacity-40">{text}</span>
               ),
             },
             {

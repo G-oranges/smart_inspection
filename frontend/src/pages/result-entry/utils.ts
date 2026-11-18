@@ -33,14 +33,15 @@ export function getScoreColor(
   normalized.sort((a, b) => a.min - b.min);
   const found = normalized.find((rule) => score >= rule.min && score < rule.max);
 
+  // Hex values mirror --co-* tokens; callers append alpha suffixes, so CSS vars cannot be used here.
   const colorMap: Record<string, string> = {
-    优秀: '#52c41a',
-    良好: '#1890ff',
-    一般: '#faad14',
-    不合格: '#ff4d4f',
+    优秀: '#34C759',
+    良好: '#3c83f6',
+    一般: '#FF9500',
+    不合格: '#FF3B30',
   };
 
-  return colorMap[found?.label ?? ''] || '#1890ff';
+  return colorMap[found?.label ?? ''] || '#3c83f6';
 }
 
 export function computeWindow(task: ResultEntryTask): ResultEntryWindowInfo {

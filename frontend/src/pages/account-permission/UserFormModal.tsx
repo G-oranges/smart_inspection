@@ -4,7 +4,8 @@
  */
 
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
-import { Modal, Input, Select, Switch, Button, Space } from 'antd';
+import { Modal, Input, Switch, Button, Space } from 'antd';
+import PanelSelect from '../../components/common/PanelSelect';
 
 import type { RoleLike } from '../../types/app';
 import type { EntityId } from '../../types/service';
@@ -112,7 +113,7 @@ export default function UserFormModal({
             />
           </label>
           <label className="field-block">
-            <span className="field-label">部门</span>
+            <span className="field-label">学院</span>
             <Input
               value={form.department}
               onChange={(e) =>
@@ -122,7 +123,7 @@ export default function UserFormModal({
           </label>
           <label className="field-block">
             <span className="field-label">主角色</span>
-            <Select
+            <PanelSelect
               value={form.role || undefined}
               onChange={(selectedCode) => {
                 const nextPrimary = roleOptions.find((role) => role.code === selectedCode);
@@ -148,7 +149,7 @@ export default function UserFormModal({
             <span className="field-label">附加角色（可选，权限与数据范围与主角色合并）</span>
             {rolesLoading && <p className="muted">加载角色中...</p>}
             {rolesError && <p className="error">{rolesError}</p>}
-            <Select
+            <PanelSelect
               mode="multiple"
               value={extraRoleIds}
               onChange={(selected) => {

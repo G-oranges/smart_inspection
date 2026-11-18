@@ -121,7 +121,7 @@ function showGeneratedPasswords(title: string, items: GeneratedPasswordItem[], f
           </>
         ) : null}
         {failures.length ? (
-          <p style={{ color: 'var(--co-danger, #ff4d4f)', fontSize: '12px' }}>
+          <p style={{ color: 'var(--co-error)', fontSize: '12px' }}>
             以下账号重置失败：{failures.join('；')}
           </p>
         ) : null}
@@ -163,11 +163,11 @@ async function runBulkDelete({
 
   const firstConfirmed = await confirmModal({
     title: '确认批量删除用户',
-    icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />,
+    icon: <DeleteOutlined style={{ color: 'var(--co-error)' }} />,
     content: (
       <div>
         <p>您确定要删除选中的 {selectionCount} 个用户吗？</p>
-        <p style={{ color: '#ff4d4f', fontSize: '12px' }}>
+        <p style={{ color: 'var(--co-error)', fontSize: '12px' }}>
           警告：此操作不可撤销，且会清除该用户的所有关联权限和数据。
         </p>
       </div>
@@ -236,11 +236,11 @@ function runResetPassword(params: {
 
   Modal.confirm({
     title: '确认重置密码',
-    icon: <ReloadOutlined style={{ color: '#1890ff' }} />,
+    icon: <ReloadOutlined style={{ color: 'var(--co-primary)' }} />,
     content: (
       <div>
         <p>您确定要重置选中的 {selectionCount} 个用户的密码吗？</p>
-        <p style={{ color: '#666', fontSize: '12px' }}>
+        <p style={{ color: 'var(--co-text-secondary)', fontSize: '12px' }}>
           系统会为每个账号生成新的随机密码，旧密码和已登录会话立即失效，用户下次登录时需修改密码。
         </p>
       </div>

@@ -230,7 +230,7 @@ function BuildingFiltersBar({
               </Button>
               <Button
                 onClick={handleResetFilters}
-                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all px-5"
+                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
                 icon={<ReloadOutlined />}
               >
                 重置
@@ -247,7 +247,7 @@ function BuildingFiltersBar({
                 新增楼栋
               </Button>
               <Button
-                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all px-5"
+                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
                 icon={<ImportOutlined />}
                 onClick={() => setImportWizardOpen(true)}
                 onMouseEnter={prefetchImportWizardModal}
@@ -257,7 +257,7 @@ function BuildingFiltersBar({
                 导入
               </Button>
               <Button
-                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all px-5"
+                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
                 icon={<ExportOutlined />}
                 onClick={() => {
                   void handleExport();
@@ -266,7 +266,7 @@ function BuildingFiltersBar({
                 导出
               </Button>
               <Button
-                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all px-5"
+                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
                 icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
                 onClick={() => setSettingsOpen(true)}
               >
@@ -275,7 +275,7 @@ function BuildingFiltersBar({
               {selectedIds.length > 0 ? (
                 <Button
                   danger
-                  className="dorm-toolbar-button dorm-toolbar-button-danger active:scale-95 transition-all px-5 ml-2"
+                  className="dorm-toolbar-button dorm-toolbar-button-danger active:scale-95 transition-all ml-2"
                   icon={<DeleteOutlined />}
                   loading={batchLoading}
                   onClick={() => {

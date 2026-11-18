@@ -83,30 +83,30 @@ export default function TeacherImportPreviewModal({
           <Row gutter={16}>
             <Col span={8}>
               <div className="text-center">
-                <div className="text-2xl font-black text-blue-600">
+                <div className="text-2xl font-bold text-blue-600">
                   {previewData.total}
                 </div>
-                <div className="text-[10px] text-blue-400 font-bold">
+                <div className="text-[11px] text-blue-400 font-bold">
                   总计行数
                 </div>
               </div>
             </Col>
             <Col span={8}>
               <div className="text-center border-l border-blue-100 dark:border-blue-500/10">
-                <div className="text-2xl font-black text-green-500">
+                <div className="text-2xl font-bold text-green-500">
                   {previewData.newCount}
                 </div>
-                <div className="text-[10px] text-green-400 font-bold">
+                <div className="text-[11px] text-green-400 font-bold">
                   拟新增项
                 </div>
               </div>
             </Col>
             <Col span={8}>
               <div className="text-center border-l border-blue-100 dark:border-blue-500/10">
-                <div className="text-2xl font-black text-orange-500">
+                <div className="text-2xl font-bold text-orange-500">
                   {previewData.conflictCount}
                 </div>
-                <div className="text-[10px] text-orange-400 font-bold">
+                <div className="text-[11px] text-orange-400 font-bold">
                   工号冲突
                 </div>
               </div>

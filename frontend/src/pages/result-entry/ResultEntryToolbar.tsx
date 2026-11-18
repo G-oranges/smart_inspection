@@ -38,26 +38,26 @@ export default function ResultEntryToolbar({
         <Button
           type="text"
           size="small"
-          icon={<LeftOutlined className="text-[12px]" />}
+          icon={<LeftOutlined className="text-xs" />}
           disabled={!prevDorm}
           onClick={() => onNavigateToRoom(prevDorm)}
           className="w-7 h-7 flex items-center justify-center"
         />
         <div className="flex flex-col items-center min-w-[60px]">
           <span
-            className="text-[18px] font-black leading-none tracking-tight"
+            className="text-lg font-bold leading-none tracking-tight"
             style={{ paddingTop: '13.5px' }}
           >
             {room || '未选'}
           </span>
-          <span className="text-[8px] text-ios-gray-label tracking-tight">
+          <span className="text-[11px] text-ios-gray-label tracking-tight">
             {building || '未知楼栋'}
           </span>
         </div>
         <Button
           type="text"
           size="small"
-          icon={<RightOutlined className="text-[12px]" />}
+          icon={<RightOutlined className="text-xs" />}
           disabled={!nextDorm}
           onClick={() => onNavigateToRoom(nextDorm)}
           className="w-7 h-7 flex items-center justify-center"
@@ -71,7 +71,7 @@ export default function ResultEntryToolbar({
           }`}
         >
           <span
-            className="text-[18px] font-black tracking-tight"
+            className="text-lg font-bold tracking-tight"
             style={{ color: scoreColor }}
           >
             {numericScore}

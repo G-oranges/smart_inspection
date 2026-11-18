@@ -204,7 +204,7 @@ export default function BuildingSelectPage() {
           />
         </div>
 
-        <div className="glass-panel p-6 shadow-sm border border-black/5 rounded-[32px]">
+        <div className="glass-panel p-6 shadow-sm border border-black/5 rounded-glass-lg">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <div className="font-bold text-gray-700 text-sm mb-1 ml-1 flex items-center gap-1">
@@ -289,7 +289,7 @@ export default function BuildingSelectPage() {
                       <BankOutlined className="text-2xl" />
                     </div>
                     <div>
-                      <div className="font-black text-xl text-gray-800 dark:text-white group-hover:text-blue-600 transition-colors">
+                      <div className="font-bold text-xl text-gray-800 dark:text-white group-hover:text-blue-600 transition-colors">
                         {item.building}
                       </div>
                       <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1 uppercase tracking-tighter">

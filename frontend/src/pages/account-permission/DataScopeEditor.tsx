@@ -6,7 +6,8 @@
 
 import { useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { Alert, Radio, Select, Spin, TreeSelect } from 'antd';
+import { Alert, Radio, Spin, Tooltip, TreeSelect } from 'antd';
+import PanelSelect from '../../components/common/PanelSelect';
 
 import type { RoleDataScope, ScopeOptionsResponse } from '../../types/service';
 import {
@@ -87,7 +88,7 @@ export default function DataScopeEditor({
             学院范围<span className="muted">（{ACADEMIC_RULE_HINT}）</span>
           </div>
           <div className="role-scope-grid">
-            <Select
+            <PanelSelect
               mode="multiple"
               allowClear
               placeholder="学院"
@@ -95,7 +96,7 @@ export default function DataScopeEditor({
               options={academicOptions.colleges.map((item) => ({ value: item, label: item }))}
               onChange={(next) => updateAcademic('college', next)}
             />
-            <Select
+            <PanelSelect
               mode="multiple"
               allowClear
               placeholder="专业（可选）"
@@ -103,7 +104,7 @@ export default function DataScopeEditor({
               options={academicOptions.majors.map((item) => ({ value: item, label: item }))}
               onChange={(next) => updateAcademic('major', next)}
             />
-            <Select
+            <PanelSelect
               mode="multiple"
               allowClear
               placeholder="班级（可选）"
@@ -126,6 +127,14 @@ export default function DataScopeEditor({
             value={dormTreeValuesFromRules(value)}
             onChange={(next) => onChange((prev) => updateDormRulesFromTree(prev, (next as string[]) || []))}
             placeholder="选择楼栋 / 楼层 / 房间"
+            treeNodeLabelProp="label"
+            showCheckedStrategy={TreeSelect.SHOW_PARENT}
+            maxTagCount={6}
+            maxTagPlaceholder={(omitted) => (
+              <Tooltip title={omitted.map((item) => item.label).map((label, index) => <div key={index}>{label}</div>)}>
+                <span>+{omitted.length}</span>
+              </Tooltip>
+            )}
             style={{ width: '100%' }}
             dropdownStyle={{ maxHeight: 360, overflow: 'auto' }}
           />

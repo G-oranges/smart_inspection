@@ -128,7 +128,8 @@ export function buildAcademicOptions(records: AcademicRecord[] = [], selected: R
   };
 }
 
-export type DormTreeNode = { title: string; value: string; key: string; children?: DormTreeNode[] };
+// label 为完整路径，用于已选标签，避免不同楼栋的同名房间无法区分
+export type DormTreeNode = { title: string; label: string; value: string; key: string; children?: DormTreeNode[] };
 
 export function buildDormTree(dorms: ScopeOptionsResponse['dorms'] = []): DormTreeNode[] {
   const byBuilding = new Map<string, Map<string, string[]>>();
@@ -152,16 +153,19 @@ export function buildDormTree(dorms: ScopeOptionsResponse['dorms'] = []): DormTr
   byBuilding.forEach((floorMap, building) => {
     treeData.push({
       title: building,
+      label: building,
       key: `B::${building}`,
       value: `B::${building}`,
       children: Array.from(floorMap.entries()).map(([floor, rooms]) => ({
         title: floor ? `${floor} 层` : '未分层',
+        label: `${building} / ${floor ? `${floor}层` : '未分层'}`,
         key: `F::${building}::${floor}`,
         value: `F::${building}::${floor}`,
         children: rooms
           .sort((left, right) => left.localeCompare(right, 'zh-CN'))
           .map((room) => ({
             title: room,
+            label: `${building} / ${floor ? `${floor}层` : '未分层'} / ${room}`,
             key: `R::${building}::${floor}::${room}`,
             value: `R::${building}::${floor}::${room}`,
           })),

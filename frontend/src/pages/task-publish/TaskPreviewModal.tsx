@@ -39,16 +39,15 @@ export const TaskPreviewModal = ({
           className="task-publish-footer flex justify-end gap-3 px-6 py-5"
         >
           <Button
-            type="text"
             onClick={onClose}
-            className="rounded-xl px-6 h-11 font-bold text-gray-400 hover:text-gray-600"
+            className="apple-btn-secondary"
           >
             取消
           </Button>
           {currentStep > 0 && (
             <Button
               onClick={onPrev}
-              className="rounded-xl px-6 h-11 font-bold border-black/5 bg-white"
+              className="apple-btn-secondary"
             >
               上一步
             </Button>
@@ -59,7 +58,7 @@ export const TaskPreviewModal = ({
               onClick={onNext}
               icon={<ArrowRightOutlined />}
               iconPosition="end"
-              className="apple-btn-primary rounded-xl px-8 h-11 font-bold"
+              className="apple-btn-primary px-8"
             >
               下一步
             </Button>
@@ -68,7 +67,7 @@ export const TaskPreviewModal = ({
               type="primary"
               onClick={onSubmit}
               icon={<CheckCircleOutlined />}
-              className="apple-btn-primary rounded-xl px-10 h-11 font-bold"
+              className="apple-btn-primary px-8"
             >
               确认发布任务
             </Button>

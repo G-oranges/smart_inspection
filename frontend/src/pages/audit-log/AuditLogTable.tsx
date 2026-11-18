@@ -61,7 +61,7 @@ export const AuditLogTable = ({
     
     if (changedFields.size === 0) {
       return (
-        <div style={{ padding: "12px 24px", color: "#666" }}>
+        <div style={{ padding: "12px 24px", color: "var(--co-text-secondary)" }}>
           <InfoCircleOutlined style={{ marginRight: 8 }} />
           暂无详细变更信息
         </div>
@@ -70,8 +70,8 @@ export const AuditLogTable = ({
 
     return (
       <div style={{ padding: "16px 24px", background: "var(--info-bg)", borderRadius: 8 }}>
-        <div style={{ marginBottom: 12, fontWeight: 500, color: "#333" }}>
-          <SwapOutlined style={{ marginRight: 8, color: "#1890ff" }} />
+        <div style={{ marginBottom: 12, fontWeight: 500, color: "var(--co-text)" }}>
+          <SwapOutlined style={{ marginRight: 8, color: "var(--co-primary)" }} />
           变更详情
         </div>
         <div style={{ display: "grid", gap: 12 }}>
@@ -91,12 +91,12 @@ export const AuditLogTable = ({
                   borderRadius: 6,
                   border: "1px solid #f0f0f0"
                 }}>
-                  <Text strong style={{ minWidth: 100, color: "#666" }}>{label}:</Text>
+                  <Text strong style={{ minWidth: 100, color: "var(--co-text-secondary)" }}>{label}:</Text>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
                     <Tag color="red" style={{ margin: 0 }}>
                       {formatFieldValue(field, oldVal)}
                     </Tag>
-                    <SwapOutlined style={{ color: "#999" }} />
+                    <SwapOutlined style={{ color: "var(--co-text-muted)" }} />
                     <Tag color="green" style={{ margin: 0 }}>
                       {formatFieldValue(field, newVal)}
                     </Tag>
@@ -118,7 +118,7 @@ export const AuditLogTable = ({
                   <Text type="secondary">宿舍列表变更:</Text>
                   <span style={{ marginLeft: 8 }}>
                     <Text delete>{readArrayLength(oldValue, 'dorms') || 0} 个</Text>
-                    <SwapOutlined style={{ margin: "0 8px", color: "#999" }} />
+                    <SwapOutlined style={{ margin: "0 8px", color: "var(--co-text-muted)" }} />
                     <Text mark>{readArrayLength(newValue, 'dorms') || 0} 个</Text>
                   </span>
                 </div>
@@ -130,7 +130,7 @@ export const AuditLogTable = ({
                   <Text type="secondary">执行人变更:</Text>
                   <span style={{ marginLeft: 8 }}>
                     <Text delete>{readArrayLength(oldValue, 'executors') || 0} 人</Text>
-                    <SwapOutlined style={{ margin: "0 8px", color: "#999" }} />
+                    <SwapOutlined style={{ margin: "0 8px", color: "var(--co-text-muted)" }} />
                     <Text mark>{readArrayLength(newValue, 'executors') || 0} 人</Text>
                   </span>
                 </div>

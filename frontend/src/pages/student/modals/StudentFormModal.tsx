@@ -13,6 +13,7 @@ import {
   Button,
   Space,
 } from "antd";
+import PanelSelect from '../../../components/common/PanelSelect';
 
 import type { StudentFormModalProps } from "../types";
 
@@ -75,7 +76,7 @@ export default function StudentFormModal({
           />
         </Form.Item>
         <Form.Item label="性别">
-          <Select
+          <PanelSelect
             className="apple-select"
             size="middle"
             classNames={{ popup: { root: "apple-dropdown" } }}
@@ -86,7 +87,7 @@ export default function StudentFormModal({
             <Select.Option value="男">男</Select.Option>
             <Select.Option value="女">女</Select.Option>
             <Select.Option value="未指定">未指定</Select.Option>
-          </Select>
+          </PanelSelect>
         </Form.Item>
         {/* 学籍/院系信息 */}
         <Form.Item label="培养层次">

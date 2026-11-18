@@ -4,12 +4,26 @@
  */
 
 import type { Dispatch, SetStateAction } from 'react';
-import { Input, Select, Button, Drawer, Badge, Space } from 'antd';
+import { Input, Button } from 'antd';
 import { SearchOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
 import FilterDropdownPanel from '../../components/common/FilterDropdownPanel';
+import MobileAdvancedFilter from '../../components/common/MobileAdvancedFilter';
 import { USER_TYPE_OPTIONS, USER_STATUS_OPTIONS } from './accountPermissionSchema';
+import { useScopeOptions } from './useScopeOptions';
 
 import type { UserFilters as UserFilterState } from './types';
+
+/** 学院选项来自数据范围可选项；用户的 department 字段存的就是学院名称 */
+function useCollegeOptions() {
+  const { options } = useScopeOptions();
+  const colleges = new Set<string>();
+  (options?.academic || []).forEach((item) => {
+    if (item.college) colleges.add(item.college);
+  });
+  return Array.from(colleges)
+    .sort((a, b) => a.localeCompare(b, 'zh-CN'))
+    .map((college) => ({ label: college, value: college }));
+}
 
 interface SharedFilterProps {
   filters: UserFilterState;
@@ -47,35 +61,23 @@ export function DesktopFilters({
   onReset,
 }: DesktopFiltersProps) {
   const { department, userType, isDisabled } = filters;
-  const departmentText = department?.[0] ?? '';
+  const collegeOptions = useCollegeOptions();
 
   return (
     <FilterDropdownPanel
       filters={[
         {
           key: 'department',
-          label: '部门',
-          options: [],
-          value: departmentText ? [departmentText] : [],
-          onChange: () => undefined,
+          label: '学院',
+          options: collegeOptions,
+          value: department || [],
+          onChange: (val: string[]) => {
+            setFilters((prev) => ({ ...prev, department: val || [] }));
+            setPage(1);
+          },
+          // 后端按单个学院精确匹配
           multiple: false,
-          searchable: false,
-          customRender: (
-            <Input
-              placeholder="部门"
-              value={departmentText}
-              onChange={(e) => {
-                const { value } = e.target;
-                setFilters((prev) => ({
-                  ...prev,
-                  department: value ? [value] : [],
-                }));
-                setPage(1);
-              }}
-              allowClear
-              className="apple-input w-full"
-            />
-          ),
+          searchable: true,
         },
         {
           key: 'userType',
@@ -91,23 +93,6 @@ export function DesktopFilters({
           },
           multiple: true,
           searchable: true,
-          customRender: (
-            <Select
-              mode="multiple"
-              value={userType || []}
-              onChange={(val) => {
-                setFilters((prev) => ({ ...prev, userType: val || [] }));
-                setPage(1);
-              }}
-              options={USER_TYPE_OPTIONS}
-              maxTagCount="responsive"
-              placeholder="用户类型"
-              style={{ width: '100%' }}
-              allowClear
-              className="apple-select"
-              classNames={{ popup: { root: 'apple-dropdown' } }}
-            />
-          ),
         },
         {
           key: 'isDisabled',
@@ -123,23 +108,6 @@ export function DesktopFilters({
           },
           multiple: true,
           searchable: false,
-          customRender: (
-            <Select
-              mode="multiple"
-              value={isDisabled || []}
-              onChange={(val) => {
-                setFilters((prev) => ({ ...prev, isDisabled: val || [] }));
-                setPage(1);
-              }}
-              options={USER_STATUS_OPTIONS}
-              maxTagCount="responsive"
-              placeholder="状态"
-              style={{ width: '100%' }}
-              allowClear
-              className="apple-select"
-              classNames={{ popup: { root: 'apple-dropdown' } }}
-            />
-          ),
         },
       ]}
       onReset={onReset}
@@ -148,7 +116,7 @@ export function DesktopFilters({
 }
 
 /**
- * 移动端筛选触发器
+ * 移动端筛选触发器（与宿舍管理页移动端工具栏一致）
  */
 export function MobileFilterTrigger({
   searchTerm,
@@ -163,21 +131,14 @@ export function MobileFilterTrigger({
 }: MobileFilterTriggerProps) {
   const { department, userType, isDisabled } = filters;
   const filterCount = (department?.[0] ? 1 : 0) + (userType?.length || 0) + (isDisabled?.length || 0);
-  
+
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 8,
-        width: "100%",
-        flexWrap: "wrap",
-      }}
-    >
-      <div style={{ display: "flex", gap: 8, width: "100%" }}>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
         <Input
           placeholder="搜索用户名/姓名"
-          prefix={<SearchOutlined />}
-          style={{ flex: "1 1 120px", minWidth: 120 }}
+          prefix={<SearchOutlined className="text-gray-400" />}
+          className="apple-search-input !rounded-xl !bg-gray-100/60 dark:!bg-white/5 border-none h-10 flex-1"
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
@@ -192,27 +153,29 @@ export function MobileFilterTrigger({
           onClick={onSearch}
           disabled={!isDirty}
           loading={loading}
+          className="apple-btn-primary h-10 rounded-xl px-4 active:scale-95 transition-all border-none"
         >
           搜索
         </Button>
       </div>
-      <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+      <div className="flex items-center gap-2">
         <Button
-          icon={<FilterOutlined />}
           onClick={onOpenDrawer}
+          className="h-10 min-w-[44px] rounded-xl border-none bg-gray-100/60 dark:bg-white/5 active:scale-95 transition-all flex items-center justify-center gap-1.5 px-3"
+          icon={<FilterOutlined className="text-gray-500 dark:text-gray-400" />}
         >
-          筛选
-          {filterCount > 0 && (
-            <Badge
-              count={filterCount}
-              offset={[5, -5]}
-              color="blue"
-            />
+          {filterCount > 0 ? (
+            <span className="px-1.5 py-0.5 text-[11px] bg-ios-blue text-white rounded-full min-w-[18px] text-center font-medium">
+              {filterCount}
+            </span>
+          ) : (
+            <span className="text-gray-600 dark:text-gray-300 text-[13px]">筛选</span>
           )}
         </Button>
         <Button
-          icon={<ReloadOutlined />}
           onClick={onReset}
+          className="h-10 rounded-xl border-none bg-red-50 dark:bg-red-500/10 text-red-500 active:scale-95 transition-all px-4"
+          icon={<ReloadOutlined />}
         >
           重置
         </Button>
@@ -222,7 +185,7 @@ export function MobileFilterTrigger({
 }
 
 /**
- * 移动端筛选抽屉
+ * 移动端筛选抽屉（复用 MobileAdvancedFilter）
  */
 export function MobileFilterDrawer({
   open,
@@ -233,94 +196,54 @@ export function MobileFilterDrawer({
   onReset,
 }: MobileFilterDrawerProps) {
   const { department, userType, isDisabled } = filters;
-  const departmentText = department?.[0] ?? '';
-  
+  const collegeOptions = useCollegeOptions();
+
   return (
-    <Drawer
-      title="用户筛选"
-      placement="bottom"
+    <MobileAdvancedFilter
       open={open}
       onClose={onClose}
-      style={{ height: "auto" }}
-      styles={{ body: { paddingBottom: 80 } }}
-      extra={
-        <Button type="link" onClick={onReset}>
-          重置
-        </Button>
-      }
-    >
-      <Space direction="vertical" style={{ width: "100%" }} size="middle">
-        <div>
-          <div style={{ marginBottom: 8, fontWeight: 500 }}>部门</div>
-          <Input
-            placeholder="部门"
-            value={departmentText}
-            onChange={(e) => {
-              const { value } = e.target;
-              setFilters((prev) => ({
-                ...prev,
-                department: value ? [value] : [],
-              }));
-              setPage(1);
-            }}
-            allowClear
-          />
-        </div>
-        <div>
-          <div style={{ marginBottom: 8, fontWeight: 500 }}>用户类型</div>
-          <Select
-            mode="multiple"
-            value={userType && userType.length > 0 ? userType : []}
-            onChange={(val) => {
-              setFilters((prev) => ({ ...prev, userType: val || [] }));
-              setPage(1);
-            }}
-            options={USER_TYPE_OPTIONS}
-            placeholder="选择类型"
-            style={{ width: "100%" }}
-            allowClear
-          />
-        </div>
-        <div>
-          <div style={{ marginBottom: 8, fontWeight: 500 }}>状态</div>
-          <Select
-            mode="multiple"
-            value={isDisabled && isDisabled.length > 0 ? isDisabled : []}
-            onChange={(val) => {
-              setFilters((prev) => ({ ...prev, isDisabled: val || [] }));
-              setPage(1);
-            }}
-            options={USER_STATUS_OPTIONS}
-            placeholder="选择状态"
-            style={{ width: "100%" }}
-            allowClear
-          />
-        </div>
-      </Space>
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          padding: "12px 24px",
-          background: "var(--color-surface)",
-          borderTop: "1px solid var(--color-border)",
-          display: "flex",
-          gap: 12,
-        }}
-      >
-        <Button block onClick={onClose}>
-          取消
-        </Button>
-        <Button
-          type="primary"
-          block
-          onClick={onClose}
-        >
-          确认
-        </Button>
-      </div>
-    </Drawer>
+      title="筛选用户"
+      onReset={onReset}
+      onConfirm={onClose}
+      filters={[
+        {
+          key: 'department',
+          label: '学院',
+          options: collegeOptions,
+          value: department || [],
+          onChange: (val: string[]) => {
+            // 后端按单个学院精确匹配，只保留最后选中的一项
+            setFilters((prev) => ({ ...prev, department: val.length ? [val[val.length - 1]] : [] }));
+            setPage(1);
+          },
+        },
+        {
+          key: 'userType',
+          label: '用户类型',
+          options: USER_TYPE_OPTIONS.map((option) => ({
+            label: String(option.label),
+            value: String(option.value),
+          })),
+          value: userType || [],
+          onChange: (val: string[]) => {
+            setFilters((prev) => ({ ...prev, userType: val || [] }));
+            setPage(1);
+          },
+        },
+        {
+          key: 'isDisabled',
+          label: '状态',
+          options: USER_STATUS_OPTIONS.map((option) => ({
+            label: String(option.label),
+            value: String(option.value),
+          })),
+          value: isDisabled || [],
+          onChange: (val: string[]) => {
+            setFilters((prev) => ({ ...prev, isDisabled: val || [] }));
+            setPage(1);
+          },
+        },
+      ]}
+    />
   );
 }

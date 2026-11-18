@@ -26,9 +26,9 @@ export const GradingRulesSection = ({
         <div key={index} className="grading-rule-row">
           <Row gutter={16} align="middle">
             <Col span={8}>
-              <div style={{ marginBottom: 6 }}><Text type="secondary" className="text-[12px] uppercase tracking-wider">等级标签</Text></div>
+              <div style={{ marginBottom: 6 }}><Text type="secondary" className="text-xs uppercase tracking-wider">等级标签</Text></div>
               <Input 
-                prefix={<TagOutlined style={{ color: '#bfbfbf', fontSize: '12px' }} />} 
+                prefix={<TagOutlined style={{ color: 'var(--co-text-muted)', fontSize: '12px' }} />} 
                 value={rule.label || ""} 
                 onChange={(e) => handleLabelChange(index, e.target.value)} 
                 placeholder="例如：优秀"
@@ -36,7 +36,7 @@ export const GradingRulesSection = ({
               />
             </Col>
             <Col span={8}>
-              <div style={{ marginBottom: 6 }}><Text type="secondary" className="text-[12px] uppercase tracking-wider">起始分</Text></div>
+              <div style={{ marginBottom: 6 }}><Text type="secondary" className="text-xs uppercase tracking-wider">起始分</Text></div>
               <InputNumber 
                 style={{ width: '100%' }}
                 min={0} max={100}
@@ -47,7 +47,7 @@ export const GradingRulesSection = ({
               />
             </Col>
             <Col span={8}>
-              <div style={{ marginBottom: 6 }}><Text type="secondary" className="text-[12px] uppercase tracking-wider">结束分</Text></div>
+              <div style={{ marginBottom: 6 }}><Text type="secondary" className="text-xs uppercase tracking-wider">结束分</Text></div>
               <InputNumber 
                 style={{ width: '100%' }}
                 min={0} max={100}

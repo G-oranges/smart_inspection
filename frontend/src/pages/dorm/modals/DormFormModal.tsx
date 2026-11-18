@@ -4,6 +4,7 @@
  * 支持桌面端 Modal 和移动端 Drawer 两种形态
  */
 import { Modal, Drawer, Form, Input, Select, InputNumber, Space, Button } from "antd";
+import PanelSelect from '../../../components/common/PanelSelect';
 import type { FormInstance } from 'antd';
 
 import { normalizeDormGender } from "../dormFilterSchema";
@@ -74,7 +75,7 @@ export default function DormFormModal({
           <Input className="apple-input" />
         </Form.Item>
         <Form.Item name="building" label="楼栋" rules={[{ required: true, message: '请输入楼栋' }]}>
-          <Select 
+          <PanelSelect 
             placeholder="选择楼栋" 
             className="apple-select"
             classNames={{ popup: { root: "apple-dropdown" } }}
@@ -104,12 +105,12 @@ export default function DormFormModal({
           <InputNumber min={1} className="apple-input-number w-full" />
         </Form.Item>
         <Form.Item name="gender" label="宿舍性别">
-          <Select className="apple-select" classNames={{ popup: { root: "apple-dropdown" } }}>
+          <PanelSelect className="apple-select" classNames={{ popup: { root: "apple-dropdown" } }}>
             <Select.Option value="未指定">未指定</Select.Option>
             <Select.Option value="男">男</Select.Option>
             <Select.Option value="女">女</Select.Option>
             <Select.Option value="混合">混合</Select.Option>
-          </Select>
+          </PanelSelect>
         </Form.Item>
         <Form.Item name="grade" label="适用年级" className="md:col-span-2">
           <Input className="apple-input" placeholder="例如：2023级" />

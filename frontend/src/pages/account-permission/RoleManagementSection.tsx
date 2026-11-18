@@ -6,13 +6,13 @@ import {
   Empty,
   Input,
   Modal,
-  Select,
   Space,
   Spin,
   Switch,
   Tag,
   message,
 } from 'antd';
+import PanelSelect from '../../components/common/PanelSelect';
 import {
   DownOutlined,
   DeleteOutlined,
@@ -876,7 +876,7 @@ export default function RoleManagementSection({
           </label>
           <label className="field-block">
             <span className="field-label">角色类型</span>
-            <Select
+            <PanelSelect
               value={roleForm.typeCode}
               options={roleTypeOptions}
               disabled={Boolean(editingRole?.isSystem)}
@@ -893,7 +893,7 @@ export default function RoleManagementSection({
           </label>
           <label className="field-block">
             <span className="field-label">状态</span>
-            <Select
+            <PanelSelect
               value={roleForm.status}
               disabled={Boolean(editingRole?.isSystem)}
               options={[
@@ -1009,7 +1009,7 @@ export default function RoleManagementSection({
           </label>
           <label className="field-block">
             <span className="field-label">状态</span>
-            <Select
+            <PanelSelect
               value={roleTypeForm.status}
               disabled={Boolean(editingRoleType?.isSystem)}
               options={[

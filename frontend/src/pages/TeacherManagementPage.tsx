@@ -319,7 +319,7 @@ function TeacherFiltersPanel({
             </Button>
             <Button
               onClick={handleResetFilters}
-              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all px-5"
+              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
               icon={<ReloadOutlined />}
             >
               重置
@@ -339,7 +339,7 @@ function TeacherFiltersPanel({
             ) : null}
             {canImport ? (
               <Button
-                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all px-5"
+                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
                 icon={<ImportOutlined />}
                 onClick={openImportWizard}
                 onMouseEnter={prefetchImportWizardModal}
@@ -351,7 +351,7 @@ function TeacherFiltersPanel({
             ) : null}
             {canExport ? (
               <Button
-                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all px-5"
+                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
                 icon={<ExportOutlined />}
                 onClick={onExport}
               >
@@ -359,7 +359,7 @@ function TeacherFiltersPanel({
               </Button>
             ) : null}
             <Button
-              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all px-5"
+              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
               icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
               onClick={openSettings}
             >
@@ -368,7 +368,7 @@ function TeacherFiltersPanel({
             {canManage && selectedCount > 0 ? (
               <Button
                 danger
-                className="dorm-toolbar-button dorm-toolbar-button-danger active:scale-95 transition-all px-5 ml-2"
+                className="dorm-toolbar-button dorm-toolbar-button-danger active:scale-95 transition-all ml-2"
                 icon={<DeleteOutlined />}
                 loading={batchLoading}
                 onClick={onBulkDelete}

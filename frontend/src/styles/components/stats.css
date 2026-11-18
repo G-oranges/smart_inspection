@@ -466,13 +466,7 @@
 
 .collapsible-stats-board__segment-value,
 .collapsible-stats-board__segment-secondary {
-  font-family:
-    'SFMono-Regular',
-    'Roboto Mono',
-    Consolas,
-    'Liberation Mono',
-    Menlo,
-    monospace;
+  font-family: var(--co-font-mono);
   line-height: 1;
 }
 

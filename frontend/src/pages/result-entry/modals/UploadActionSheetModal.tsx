@@ -19,7 +19,7 @@ export default function UploadActionSheetModal({
       className="ios-action-sheet-modal"
     >
       <div className="p-2 space-y-2">
-        <h4 className="text-center text-ios-gray-label text-[12px] font-bold uppercase mb-4 tracking-widest">
+        <h4 className="text-center text-ios-gray-label text-xs font-bold uppercase mb-4 tracking-widest">
           选取照片方式
         </h4>
         <Button

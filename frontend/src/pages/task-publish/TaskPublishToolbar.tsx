@@ -103,7 +103,7 @@ export const TaskPublishToolbar = ({
             <Input
               placeholder="搜索任务标题或描述..."
               prefix={<SearchOutlined className="text-gray-400" />}
-              className="apple-search-input dorm-toolbar-search !rounded-2xl !bg-gray-100/50 dark:!bg-white/5 border-none h-11 flex-1 min-w-[240px]"
+              className="apple-search-input dorm-toolbar-search !bg-gray-100/50 dark:!bg-white/5 border-none flex-1 min-w-[240px]"
               value={draftTaskSearch}
               onChange={(e) => setDraftTaskSearch(e.target.value)}
               onPressEnter={onSearch}

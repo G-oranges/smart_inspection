@@ -12,6 +12,7 @@ import {
   Typography,
   message,
 } from 'antd';
+import PanelSelect from './common/PanelSelect';
 import {
   CheckCircleFilled,
   CompassOutlined,
@@ -81,7 +82,9 @@ interface ResidencyAdjustFormValues {
 }
 
 interface ResidencyAdjustActions {
-  getBuildings: (params?: Record<string, unknown>) => Promise<{ items?: BuildingRecord[] }>;
+  getBuildings: (
+    params?: Record<string, unknown>,
+  ) => Promise<{ buildings?: BuildingRecord[]; items?: BuildingRecord[] }>;
   getFloors: (params?: Record<string, unknown>) => Promise<{ floors?: Array<string | number> }>;
   getRooms: (params?: Record<string, unknown>) => Promise<{ items?: RoomRecord[] }>;
   getDormBeds: (dormId: EntityId) => Promise<{ dormBeds?: BedRecord[] }>;
@@ -177,7 +180,7 @@ export default function ResidencyAdjustModal({
   const loadBuildings = useCallback(async () => {
     try {
       const result = await occupancyActions.getBuildings({ pageSize: 100 });
-      setBuildings(result.items || []);
+      setBuildings(result.buildings || result.items || []);
     } catch (error) {
       console.error('加载楼栋失败:', error);
       message.error('加载楼栋失败');
@@ -460,7 +463,7 @@ export default function ResidencyAdjustModal({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item name="building" label="目标楼栋" rules={[{ required: true, message: '请选择楼栋' }]}>
-              <Select
+              <PanelSelect
                 placeholder={noWritableBuildings ? '当前无可选楼栋' : '选择楼栋'}
                 onChange={handleBuildingChange}
                 disabled={noWritableBuildings}
@@ -470,12 +473,12 @@ export default function ResidencyAdjustModal({
                     {building.building}
                   </Select.Option>
                 ))}
-              </Select>
+              </PanelSelect>
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item name="floor" label="所在楼层" rules={[{ required: true, message: '请选择楼层' }]}>
-              <Select
+              <PanelSelect
                 placeholder={!selectedBuilding ? '请先选择楼栋' : floors.length ? '选择楼层' : '当前无可选楼层'}
                 onChange={handleFloorChange}
                 disabled={!floors.length}
@@ -485,7 +488,7 @@ export default function ResidencyAdjustModal({
                     {floor}层
                   </Select.Option>
                 ))}
-              </Select>
+              </PanelSelect>
             </Form.Item>
           </Col>
         </Row>

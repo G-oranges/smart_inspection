@@ -115,7 +115,7 @@ export function OverviewFiltersSection({
           <Input
             placeholder="搜索学号、姓名、房号..."
             prefix={<SearchOutlined className="text-gray-400" />}
-            className="apple-search-input dorm-toolbar-search !rounded-2xl !bg-gray-100/50 dark:!bg-white/5 border-none h-11 flex-1 min-w-[220px]"
+            className="apple-search-input dorm-toolbar-search !bg-gray-100/50 dark:!bg-white/5 border-none flex-1 min-w-[220px]"
             value={draftSearchTerm}
             onChange={(e) => setDraftSearchTerm(e.target.value)}
             onPressEnter={handleSearch}
@@ -127,13 +127,13 @@ export function OverviewFiltersSection({
             onClick={handleSearch}
             disabled={!isDirty}
             loading={loading}
-            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary h-11 rounded-xl px-6 active:scale-95 transition-all border-none"
+            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all border-none"
           >
             搜索
           </Button>
           <Button
             onClick={handleResetFilters}
-            className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5"
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
             icon={<ReloadOutlined />}
           >
             重置
@@ -146,7 +146,7 @@ export function OverviewFiltersSection({
             <>
               <Button 
                 type="primary" 
-                className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary h-11 rounded-xl px-6 active:scale-95 transition-all"
+                className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
                 icon={<UserAddOutlined />} 
                 onClick={openBatchCheckInModal}
                 disabled={!validateBatchOperation || !validateBatchOperation('checkin').valid}
@@ -157,7 +157,7 @@ export function OverviewFiltersSection({
               
               <Button 
                 danger
-                className="dorm-toolbar-button dorm-toolbar-button-danger h-11 rounded-2xl border-none bg-red-50 dark:bg-red-500/10 text-red-500 active:scale-95 transition-all px-5"
+                className="dorm-toolbar-button dorm-toolbar-button-danger active:scale-95 transition-all"
                 icon={<LogoutOutlined />}
                 disabled={!validateBatchOperation || !validateBatchOperation('checkout').valid}
                 loading={batchLoading}
@@ -169,7 +169,7 @@ export function OverviewFiltersSection({
           )}
 
           <Button 
-            className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5" 
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all" 
             icon={<ImportOutlined />}
             onClick={onOpenImport}
           >
@@ -177,7 +177,7 @@ export function OverviewFiltersSection({
           </Button>
 
           <Button 
-            className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5" 
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all" 
             icon={<ExportOutlined />}
             onClick={onExport}
           >
@@ -185,7 +185,7 @@ export function OverviewFiltersSection({
           </Button>
 
           <Button
-            className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-200/60 dark:bg-white/15 active:scale-95 transition-all px-5"
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
             icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
             onClick={onOpenSettings}
           >
@@ -291,7 +291,7 @@ export function HistoryFiltersSection({
           <Input
             placeholder="搜索学生、宿舍、操作人..."
             prefix={<SearchOutlined className="text-gray-400" />}
-            className="apple-search-input dorm-toolbar-search !rounded-2xl !bg-gray-100/50 dark:!bg-white/5 border-none h-11 flex-1"
+            className="apple-search-input dorm-toolbar-search !bg-gray-100/50 dark:!bg-white/5 border-none flex-1"
             value={historyDraftFilters.keyword}
             onChange={(e) =>
               setHistoryDraftFilters((prev) => ({
@@ -307,14 +307,14 @@ export function HistoryFiltersSection({
             icon={<SearchOutlined />}
             onClick={handleHistorySearch}
             disabled={!isHistoryDirty}
-            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary h-11 rounded-xl px-6 active:scale-95 transition-all border-none"
+            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all border-none"
           >
             搜索
           </Button>
           <Button
             icon={<ReloadOutlined />}
             onClick={handleResetHistoryFilters}
-            className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5"
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
           >
             重置
           </Button>

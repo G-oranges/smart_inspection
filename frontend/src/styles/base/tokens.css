@@ -37,6 +37,8 @@
   --co-font: 'Inter', -apple-system, BlinkMacSystemFont,
              'PingFang SC', 'Hiragino Sans GB',
              'Microsoft YaHei', sans-serif;
+  --co-font-mono: 'SF Mono', ui-monospace, 'SFMono-Regular', Menlo, Monaco,
+                  Consolas, 'Liberation Mono', monospace;
 
   /* === 排版 === */
   --co-label-spacing:    0.08em;

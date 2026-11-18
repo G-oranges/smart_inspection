@@ -106,11 +106,11 @@ export function useBuildingActions({
     const firstConfirmed = await new Promise<boolean>((resolve) => {
       Modal.confirm({
         title: '确认批量删除楼栋',
-        icon: <DeleteOutlined style={{ color: '#ff4d4f' }} />,
+        icon: <DeleteOutlined style={{ color: 'var(--co-error)' }} />,
         content: (
           <div>
             <p>您确定要删除选中的 {selectedIds.length} 个楼栋吗？</p>
-            <p style={{ color: '#ff4d4f', fontSize: '12px' }}>
+            <p style={{ color: 'var(--co-error)', fontSize: '12px' }}>
               警告：此操作不可撤销。如果楼栋内有关联的宿舍，删除将失败。
             </p>
           </div>

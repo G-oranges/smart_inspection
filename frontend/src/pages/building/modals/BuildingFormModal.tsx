@@ -16,6 +16,7 @@ import {
   Row,
   Col,
 } from "antd";
+import PanelSelect from '../../../components/common/PanelSelect';
 import type { FormInstance } from 'antd';
 
 import { BUILDING_FORM_DEFAULTS, BUILDING_TYPE_OPTIONS } from "../buildingSchema";
@@ -78,13 +79,13 @@ export function BuildingFormModal({
               <Input className="apple-input" placeholder="例如: 本部" />
             </Form.Item>
             <Form.Item name="type" label="类型" rules={[{ required: true }]}>
-              <Select className="apple-select" classNames={{ popup: { root: "apple-dropdown" } }}>
+              <PanelSelect className="apple-select" classNames={{ popup: { root: "apple-dropdown" } }}>
                 {BUILDING_TYPE_OPTIONS.map((opt) => (
                   <Option key={opt.value} value={opt.value}>
                     {opt.label}
                   </Option>
                 ))}
-              </Select>
+              </PanelSelect>
             </Form.Item>
           </div>
 
@@ -120,13 +121,13 @@ export function BuildingFormModal({
             </Col>
             <Col span={12}>
               <Form.Item name="type" label="类型" rules={[{ required: true }]}>
-                <Select className="apple-select" classNames={{ popup: { root: "apple-dropdown" } }}>
+                <PanelSelect className="apple-select" classNames={{ popup: { root: "apple-dropdown" } }}>
                   {BUILDING_TYPE_OPTIONS.map((opt) => (
                     <Option key={opt.value} value={opt.value}>
                       {opt.label}
                     </Option>
                   ))}
-                </Select>
+                </PanelSelect>
               </Form.Item>
             </Col>
           </Row>

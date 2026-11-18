@@ -99,7 +99,7 @@ export const USER_DEFAULT_COLUMNS: UserColumnConfig[] = [
   },
   {
     fieldKey: "department",
-    label: "部门",
+    label: "学院",
     visible: true,
     sortable: false,
     order: 4,

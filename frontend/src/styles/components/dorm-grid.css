@@ -459,7 +459,7 @@
 
 .bed-num {
   font-size: calc(0.8125rem * var(--font-scale, 1));
-  font-family: Consolas, Monaco, "Courier New", monospace;
+  font-family: var(--co-font-mono);
   font-weight: 600;
   flex-shrink: 0;
 }

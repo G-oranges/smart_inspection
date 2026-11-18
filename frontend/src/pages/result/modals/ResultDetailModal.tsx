@@ -99,7 +99,7 @@ export default function ResultDetailModal({
           <Button
             key="modify"
             type="primary"
-            className={`rounded-xl h-10 border-none bg-blue-500 active:scale-95 transition-all shadow-md shadow-blue-500/20 ${
+            className={`apple-btn-primary px-8 ${
               isMobile ? "w-full" : ""
             }`}
             onClick={() => {
@@ -115,7 +115,7 @@ export default function ResultDetailModal({
       }
       width={isMobile ? "100%" : 720}
       centered
-      className="apple-modal result-detail-modal"
+      className="apple-modal result-detail-modal management-theme-page"
       style={isMobile ? { top: 0, paddingBottom: 0 } : undefined}
     >
       {detail.loading ? (
@@ -196,7 +196,7 @@ export default function ResultDetailModal({
                   dataSource={detail.inspection.detail}
                   rowKey="id"
                   pagination={false}
-                  className="macos-table"
+                  className="dorm-table"
                   scroll={isMobile ? { x: "max-content" } : undefined}
                   tableLayout={isMobile ? "auto" : undefined}
                   columns={detailColumns}
@@ -215,7 +215,7 @@ export default function ResultDetailModal({
                 dataSource={detail.members}
                 rowKey="id"
                 pagination={false}
-                className="macos-table"
+                className="dorm-table"
                 scroll={isMobile ? { x: "max-content" } : undefined}
                 tableLayout={isMobile ? "auto" : undefined}
                 columns={memberColumns}

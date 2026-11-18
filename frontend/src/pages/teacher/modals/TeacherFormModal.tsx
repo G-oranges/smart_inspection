@@ -4,6 +4,7 @@
  */
 
 import { Modal, Form, Input, Select, Drawer, Button } from "antd";
+import PanelSelect from '../../../components/common/PanelSelect';
 
 import type { FormInstance } from 'antd';
 import type { EntityId } from '../../../types/service';
@@ -65,13 +66,13 @@ export default function TeacherFormModal({
             <Input className="apple-input-ios" placeholder="请输入教职工姓名" />
           </Form.Item>
           <Form.Item name="gender" label="性别">
-            <Select
+            <PanelSelect
               className="apple-select-ios"
               classNames={{ popup: { root: "apple-dropdown" } }}
             >
               <Select.Option value="男">男</Select.Option>
               <Select.Option value="女">女</Select.Option>
-            </Select>
+            </PanelSelect>
           </Form.Item>
           <Form.Item name="department" label="院系/部门">
             <Input className="apple-input-ios" placeholder="所属院系或职能部门" />
@@ -107,13 +108,13 @@ export default function TeacherFormModal({
           </div>
           <div className="grid grid-cols-2 gap-x-6">
             <Form.Item name="gender" label="性别">
-              <Select
+              <PanelSelect
                 className="apple-select"
                 classNames={{ popup: { root: "apple-dropdown" } }}
               >
                 <Select.Option value="男">男</Select.Option>
                 <Select.Option value="女">女</Select.Option>
-              </Select>
+              </PanelSelect>
             </Form.Item>
             <Form.Item name="mobile" label="手机号">
               <Input className="apple-input" placeholder="联系电话" />
@@ -145,7 +146,7 @@ export default function TeacherFormModal({
         extra={
           <Button
             type="primary"
-            className="apple-btn-primary rounded-xl"
+            className="apple-btn-primary"
             onClick={() => form.submit()}
           >
             保存
@@ -169,12 +170,12 @@ export default function TeacherFormModal({
       onCancel={onClose}
       footer={
         <div className="flex justify-end gap-3 mt-4">
-          <Button className="apple-btn-secondary px-6" onClick={onClose}>
+          <Button className="apple-btn-secondary" onClick={onClose}>
             取消
           </Button>
           <Button
             type="primary"
-            className="apple-btn-primary px-10"
+            className="apple-btn-primary px-8"
             onClick={() => form.submit()}
           >
             完成

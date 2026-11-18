@@ -299,7 +299,7 @@ export function useTaskPublishActions({
     const firstConfirmed = await new Promise<boolean>((resolve) => {
       Modal.confirm({
         title: '确认批量删除任务',
-        icon: <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />,
+        icon: <ExclamationCircleOutlined style={{ color: 'var(--co-error)' }} />,
         content: `即将删除 ${ids.length} 个任务及其评分记录，删除后无法恢复。`,
         okText: '确认删除',
         okType: 'danger',

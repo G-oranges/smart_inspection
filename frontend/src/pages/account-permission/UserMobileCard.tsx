@@ -37,11 +37,11 @@ export default function UserMobileCard({
       >
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-ios-blue/10 flex items-center justify-center text-ios-blue text-sm font-black">
+            <div className="w-10 h-10 rounded-full bg-ios-blue/10 flex items-center justify-center text-ios-blue text-sm font-bold">
               {user.fullName?.charAt(0) || user.username?.charAt(0)}
             </div>
             <div>
-              <div className="text-[15px] font-bold text-gray-800 dark:text-white leading-tight">
+              <div className="text-sm font-bold text-gray-800 dark:text-white leading-tight">
                 {user.fullName || user.username}
               </div>
               <div className="text-[11px] text-gray-400 font-mono mt-0.5">
@@ -50,22 +50,22 @@ export default function UserMobileCard({
             </div>
           </div>
           <Tag
-            className={`rounded-full border-none px-3 m-0 text-[10px] font-black uppercase tracking-wider ${user.isDisabled ? "bg-red-50 text-red-500" : "bg-green-50 text-green-500"}`}
+            className={`rounded-full border-none px-3 m-0 text-[11px] font-bold uppercase tracking-wider ${user.isDisabled ? "bg-red-50 text-red-500" : "bg-green-50 text-green-500"}`}
           >
             {user.isDisabled ? "已停用" : "活跃"}
           </Tag>
         </div>
         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-black/5 dark:border-white/5">
           <div>
-            <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">
-              部门
+            <span className="block text-[11px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">
+              学院
             </span>
             <span className="text-[13px] text-gray-600 dark:text-gray-300 font-medium">
               {user.department || "-"}
             </span>
           </div>
           <div>
-            <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">
+            <span className="block text-[11px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">
               联系方式
             </span>
             <span className="text-[13px] text-gray-600 dark:text-gray-300 font-mono">
@@ -73,14 +73,14 @@ export default function UserMobileCard({
             </span>
           </div>
           <div className="col-span-2">
-            <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">
+            <span className="block text-[11px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">
               所属角色
             </span>
             <div className="flex flex-wrap gap-1 mt-1">
               {user.roles?.map((role) => (
                 <Tag
                   key={role.id}
-                  className="rounded-full border-none bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 px-2 m-0 text-[10px] font-bold"
+                  className="rounded-full border-none bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 px-2 m-0 text-[11px] font-bold"
                 >
                   {role.name}
                 </Tag>

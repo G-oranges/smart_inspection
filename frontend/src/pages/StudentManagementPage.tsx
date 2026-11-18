@@ -521,7 +521,7 @@ function StudentPageFilters({
           />
         )}
       </div>
-      {toastMsg ? <div style={{ marginTop: 12, color: '#666' }}>{toastMsg}</div> : null}
+      {toastMsg ? <div style={{ marginTop: 12, color: 'var(--co-text-secondary)' }}>{toastMsg}</div> : null}
     </>
   );
 }

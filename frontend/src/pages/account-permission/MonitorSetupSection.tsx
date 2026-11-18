@@ -4,11 +4,12 @@
  */
 
 import type { Dispatch, SetStateAction } from 'react';
-import { Button, Card, Input, Modal, Popconfirm, Select, Space, Tag, Typography } from 'antd';
+import { Button, Card, Input, Modal, Popconfirm, Space, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 
 import FilterDropdownPanel from '../../components/common/FilterDropdownPanel';
+import { useScopeOptions } from './useScopeOptions';
 import GlassTable from '../../components/GlassTable';
 import { useMobile } from '../../hooks/useMobile';
 import type { EntityId, ServiceRecord } from '../../types/service';
@@ -115,6 +116,9 @@ export default function MonitorSetupSection({
   onBatchSetMonitorExecute,
 }: MonitorSetupSectionProps) {
   const isMobile = useMobile();
+  // 专业/班级选项取全量学籍数据，不依赖当前页学生
+  const { options: scopeOptions } = useScopeOptions();
+  const academicOptions = scopeOptions?.academic || [];
   const handleReset = () => {
     setSearchTerm('');
     setMonitorFilters({
@@ -128,12 +132,13 @@ export default function MonitorSetupSection({
 
   const studentTable = (
     <>
-      <div className="dorm-toolbar-shell mb-4">
+      <div className="flex flex-col gap-3 mb-4">
+      <div className="dorm-toolbar-shell">
         <div className="dorm-toolbar-row dorm-toolbar-row-main">
           <Input
             placeholder="搜索学生姓名"
             prefix={<SearchOutlined className="text-gray-400" />}
-            className="apple-search-input dorm-toolbar-search !rounded-2xl !bg-gray-100/50 dark:!bg-white/5 border-none h-11 flex-1 min-w-[220px]"
+            className="apple-search-input dorm-toolbar-search !bg-gray-100/50 dark:!bg-white/5 border-none flex-1 min-w-[220px]"
             value={searchTerm}
             onChange={(event) => {
               setSearchTerm(event.target.value);
@@ -150,14 +155,14 @@ export default function MonitorSetupSection({
             onClick={() => {
               void onRefresh();
             }}
-            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary h-11 rounded-xl px-6 active:scale-95 transition-all border-none"
+            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all border-none"
           >
             搜索
           </Button>
           <Button
             icon={<ReloadOutlined />}
             onClick={handleReset}
-            className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5"
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
           >
             重置
           </Button>
@@ -166,12 +171,14 @@ export default function MonitorSetupSection({
           <Button
             icon={<ReloadOutlined />}
             onClick={onRefresh}
-            className="dorm-toolbar-button dorm-toolbar-button-subtle h-11 rounded-2xl border-none bg-gray-100/80 dark:bg-white/10 active:scale-95 transition-all px-5"
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
           >
             刷新
           </Button>
         </div>
+      </div>
         <div className="dorm-toolbar-row dorm-toolbar-row-filters">
+          <div className="flex-1">
           <FilterDropdownPanel
             onReset={handleReset}
             filters={[
@@ -190,31 +197,11 @@ export default function MonitorSetupSection({
                 },
                 multiple: true,
                 searchable: true,
-                customRender: (
-                  <Select
-                    mode="multiple"
-                    placeholder="楼栋"
-                    value={monitorFilters.building}
-                    onChange={(value) => {
-                      setMonitorFilters((prev) => ({
-                        ...prev,
-                        building: value || [],
-                        floor: [],
-                      }));
-                      setStudentPage(1);
-                    }}
-                    options={uniqueStringOptions((dormsData || []).map((dorm) => dorm.building))}
-                    allowClear
-                    maxTagCount={1}
-                    className="apple-select w-full"
-                    classNames={{ popup: { root: 'apple-dropdown' } }}
-                  />
-                ),
               },
               {
                 key: 'major',
                 label: '专业',
-                options: uniqueStringOptions((studentsData || []).map((student) => student.major)),
+                options: uniqueStringOptions(academicOptions.map((item) => item.major)),
                 value: monitorFilters.major || [],
                 onChange: (value: string[]) => {
                   setMonitorFilters((prev) => ({
@@ -226,40 +213,15 @@ export default function MonitorSetupSection({
                 },
                 multiple: true,
                 searchable: true,
-                customRender: (
-                  <Select
-                    mode="multiple"
-                    placeholder="专业"
-                    value={monitorFilters.major}
-                    onChange={(value) => {
-                      setMonitorFilters((prev) => ({
-                        ...prev,
-                        major: value || [],
-                        className: [],
-                      }));
-                      setStudentPage(1);
-                    }}
-                    options={uniqueStringOptions((studentsData || []).map((student) => student.major))}
-                    allowClear
-                    maxTagCount={1}
-                    className="apple-select w-full"
-                    classNames={{ popup: { root: 'apple-dropdown' } }}
-                  />
-                ),
               },
               {
                 key: 'className',
                 label: '班级',
-                options: (() => {
-                  let students = studentsData || [];
-                  if (monitorFilters.major?.length) {
-                    students = students.filter((student) => {
-                      const major = student.major;
-                      return typeof major === 'string' && monitorFilters.major.includes(major);
-                    });
-                  }
-                  return uniqueStringOptions(students.map((student) => student.className));
-                })(),
+                options: uniqueStringOptions(
+                  academicOptions
+                    .filter((item) => !monitorFilters.major?.length || monitorFilters.major.includes(item.major))
+                    .map((item) => item.className),
+                ),
                 value: monitorFilters.className || [],
                 onChange: (value: string[]) => {
                   setMonitorFilters((prev) => ({ ...prev, className: value || [] }));
@@ -267,34 +229,10 @@ export default function MonitorSetupSection({
                 },
                 multiple: true,
                 searchable: true,
-                customRender: (
-                  <Select
-                    mode="multiple"
-                    placeholder="班级"
-                    value={monitorFilters.className}
-                    onChange={(value) => {
-                      setMonitorFilters((prev) => ({ ...prev, className: value || [] }));
-                      setStudentPage(1);
-                    }}
-                    options={(() => {
-                      let students = studentsData || [];
-                      if (monitorFilters.major?.length) {
-                        students = students.filter((student) => {
-                          const major = student.major;
-                          return typeof major === 'string' && monitorFilters.major.includes(major);
-                        });
-                      }
-                      return uniqueStringOptions(students.map((student) => student.className));
-                    })()}
-                    allowClear
-                    maxTagCount={1}
-                    className="apple-select w-full"
-                    classNames={{ popup: { root: 'apple-dropdown' } }}
-                  />
-                ),
               },
             ]}
           />
+          </div>
         </div>
       </div>
 
@@ -335,7 +273,7 @@ export default function MonitorSetupSection({
         <Button
           type="primary"
           onClick={onBatchSetMonitorCheck}
-          className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary"
+          className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
         >
           批量设为寝室长
         </Button>
@@ -380,7 +318,7 @@ export default function MonitorSetupSection({
           <Button
             type="primary"
             onClick={onBatchSetMonitorCheck}
-            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary"
+            className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
           >
             批量设为寝室长
           </Button>

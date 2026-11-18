@@ -60,7 +60,7 @@ export default function DormImportPreviewModal({
       footer={[
         <Button 
           key="cancel" 
-          className="rounded-xl h-10 border-none bg-gray-100 dark:bg-white/10 active:scale-95 transition-all" 
+          className="apple-btn-secondary"
           onClick={onClose}
         >
           取消导入
@@ -68,7 +68,7 @@ export default function DormImportPreviewModal({
         <Button 
           key="submit" 
           type="primary" 
-          className="rounded-xl h-10 border-none bg-blue-500 active:scale-95 transition-all shadow-md shadow-blue-500/20 px-6"
+          className="apple-btn-primary px-8"
           loading={loading}
           onClick={onConfirm}
         >
@@ -89,7 +89,7 @@ export default function DormImportPreviewModal({
               <Row gutter={[16, 16]} style={{ marginTop: 8 }}>
                 <Col span={8}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "20px", fontWeight: "bold" }}>
+                    <div style={{ fontSize: "20px", fontWeight: 600 }}>
                       {previewData.total}
                     </div>
                     <div style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
@@ -99,7 +99,7 @@ export default function DormImportPreviewModal({
                 </Col>
                 <Col span={8}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "20px", fontWeight: "bold", color: "var(--color-success)" }}>
+                    <div style={{ fontSize: "20px", fontWeight: 600, color: "var(--color-success)" }}>
                       {previewData.newCount}
                     </div>
                     <div style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
@@ -109,7 +109,7 @@ export default function DormImportPreviewModal({
                 </Col>
                 <Col span={8}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "20px", fontWeight: "bold", color: "var(--color-warning)" }}>
+                    <div style={{ fontSize: "20px", fontWeight: 600, color: "var(--color-warning)" }}>
                       {previewData.conflictCount}
                     </div>
                     <div style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
@@ -147,10 +147,10 @@ export default function DormImportPreviewModal({
                 <div style={{ maxHeight: "180px", overflowY: "auto", marginTop: 8, background: 'var(--error-bg)', padding: '8px 12px', borderRadius: 4 }}>
                   {(previewData.invalidItems || []).map((item, idx) => (
                     <div key={idx} style={{ fontSize: "12px", marginBottom: 6, paddingBottom: 6, borderBottom: '1px solid #ffccc7' }}>
-                      <span style={{ fontWeight: 'bold', color: '#cf1322' }}>第 {item.row} 行</span>
-                      {item.field && <span style={{ marginLeft: 8, color: '#666' }}>[{item.field}]</span>}
+                      <span style={{ fontWeight: 600, color: '#cf1322' }}>第 {item.row} 行</span>
+                      {item.field && <span style={{ marginLeft: 8, color: 'var(--co-text-secondary)' }}>[{item.field}]</span>}
                       <span style={{ marginLeft: 8 }}>{item.reason}</span>
-                      {item.content && <span style={{ marginLeft: 8, color: '#999' }}>（{item.content}）</span>}
+                      {item.content && <span style={{ marginLeft: 8, color: 'var(--co-text-muted)' }}>（{item.content}）</span>}
                     </div>
                   ))}
                 </div>

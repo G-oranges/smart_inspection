@@ -115,7 +115,7 @@ function confirmWithModal(config: Parameters<typeof Modal.confirm>[0]): Promise<
 function confirmBatchCheckout(count: number): Promise<boolean> {
   return confirmWithModal({
     title: '确认批量退宿',
-    icon: <UserDeleteOutlined style={{ color: '#ff4d4f' }} />,
+    icon: <UserDeleteOutlined style={{ color: 'var(--co-error)' }} />,
     content: `您确定要为选中的 ${count} 名学生办理退宿手续吗？`,
     okText: '确认退宿',
     cancelText: '取消',

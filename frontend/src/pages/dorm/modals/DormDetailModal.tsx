@@ -41,7 +41,7 @@ export default function DormDetailModal({
       footer={[
         <Button 
           key="close" 
-          className="rounded-xl h-10 border-none bg-gray-100 dark:bg-white/10 active:scale-95 transition-all" 
+          className="apple-btn-secondary"
           onClick={handleClose}
         >
           关闭
@@ -50,7 +50,7 @@ export default function DormDetailModal({
           <Button 
             key="edit" 
             type="primary" 
-            className="rounded-xl h-10 border-none bg-blue-500 active:scale-95 transition-all shadow-md shadow-blue-500/20" 
+            className="apple-btn-primary px-8"
             onClick={() => {
               handleClose();
               onEdit?.(dorm);

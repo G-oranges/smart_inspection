@@ -29,7 +29,7 @@ export const DeductionConfigSection = ({
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <Text type="secondary" className="text-[12px] opacity-70">
+        <Text type="secondary" className="text-xs opacity-70">
           管理查寝录入页的扣分选项，从左到右依次是扣分项名称，扣分项代码，扣分值，扣分上限，是否启用，删除
         </Text>
         <Button 
@@ -53,7 +53,7 @@ export const DeductionConfigSection = ({
             <Row gutter={12} align="middle">
               <Col span={7}>
                 <Input
-                  prefix={<TagOutlined style={{ color: '#bfbfbf', fontSize: '14px' }} />}
+                  prefix={<TagOutlined style={{ color: 'var(--co-text-muted)', fontSize: '14px' }} />}
                   value={item.name || ""}
                   onChange={(e) => handleDeductionChange(index, "name", e.target.value)}
                   placeholder="项目名称"
@@ -62,7 +62,7 @@ export const DeductionConfigSection = ({
               </Col>
               <Col span={5}>
                 <Input
-                  prefix={<NumberOutlined style={{ color: '#bfbfbf', fontSize: '14px' }} />}
+                  prefix={<NumberOutlined style={{ color: 'var(--co-text-muted)', fontSize: '14px' }} />}
                   value={item.code || ""}
                   onChange={(e) => handleDeductionChange(index, "code", e.target.value)}
                   placeholder="项目代码"
@@ -71,7 +71,7 @@ export const DeductionConfigSection = ({
               </Col>
               <Col span={4}>
                 <Input
-                  prefix={<ControlOutlined style={{ color: '#bfbfbf', fontSize: '14px' }} />}
+                  prefix={<ControlOutlined style={{ color: 'var(--co-text-muted)', fontSize: '14px' }} />}
                   value={String(item.points ?? 0)}
                   onChange={(e) => {
                     const nextValue = readNonNegativeInteger(e.target.value);
@@ -84,7 +84,7 @@ export const DeductionConfigSection = ({
               </Col>
               <Col span={4}>
                 <Input
-                  prefix={<DashboardOutlined style={{ color: '#bfbfbf', fontSize: '14px' }} />}
+                  prefix={<DashboardOutlined style={{ color: 'var(--co-text-muted)', fontSize: '14px' }} />}
                   value={item.maxPoints ?? ""}
                   onChange={(e) => {
                     const nextValue = readNonNegativeInteger(e.target.value);

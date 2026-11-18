@@ -128,7 +128,7 @@ export default function FloorSelectPage() {
             <Link to="/tasks/entry/buildings" className="hover:text-blue-500 transition-colors">
               所有楼栋
             </Link>
-            <RightOutlined className="text-[10px]" />
+            <RightOutlined className="text-[11px]" />
             <span className="text-blue-600">{decodedBuilding}</span>
             {campus ? (
               <Tag className="rounded-full border-none bg-gray-100 text-gray-500 ml-2">
@@ -191,7 +191,7 @@ export default function FloorSelectPage() {
                   className="aspect-square glass-panel m-0 flex flex-col items-center justify-center cursor-pointer active:scale-90 transition-all bg-white dark:bg-zinc-900 border border-white dark:border-white/5 hover:border-blue-500/30 hover:shadow-2xl group relative overflow-hidden"
                 >
                   <div className="absolute top-0 right-0 w-12 h-12 bg-blue-50/50 rounded-bl-full translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform" />
-                  <span className="text-4xl font-black text-gray-800 dark:text-white group-hover:text-blue-600 transition-colors">
+                  <span className="text-4xl font-bold text-gray-800 dark:text-white group-hover:text-blue-600 transition-colors">
                     {floorValue}F
                   </span>
                 </div>

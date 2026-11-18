@@ -12,7 +12,7 @@ export default function LocationPickerModal({
   return (
     <Modal
       open={open}
-      title={<span className="text-lg font-black tracking-tight">选择发现位置</span>}
+      title={<span className="text-lg font-bold tracking-tight">选择发现位置</span>}
       onCancel={onClose}
       footer={[
         <Button

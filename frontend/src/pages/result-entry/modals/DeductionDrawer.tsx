@@ -40,7 +40,7 @@ export default function DeductionDrawer({
         </div>
 
         <div className="px-4 pb-4 flex items-center justify-between border-b border-ios-divider">
-          <span className="text-[17px] font-bold text-black dark:text-white">
+          <span className="text-lg font-bold text-black dark:text-white">
             违规详情
           </span>
           <Button

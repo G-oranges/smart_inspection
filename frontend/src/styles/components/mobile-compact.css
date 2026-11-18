@@ -183,7 +183,7 @@
 
   .compact-subtitle {
     font-size: calc(0.8125rem * var(--font-scale, 1));
-    font-family: monospace;
+    font-family: var(--co-font-mono);
   }
 
   .compact-card-grid {

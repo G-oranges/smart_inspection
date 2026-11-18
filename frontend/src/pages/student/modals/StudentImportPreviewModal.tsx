@@ -60,7 +60,7 @@ export default function StudentImportPreviewModal({
               <Row gutter={[16, 16]} style={{ marginTop: 8 }}>
                 <Col span={8}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "20px", fontWeight: "bold" }}>
+                    <div style={{ fontSize: "20px", fontWeight: 600 }}>
                       {previewData.total}
                     </div>
                     <div
@@ -78,7 +78,7 @@ export default function StudentImportPreviewModal({
                     <div
                       style={{
                         fontSize: "20px",
-                        fontWeight: "bold",
+                        fontWeight: 600,
                         color: "var(--color-success)",
                       }}
                     >
@@ -99,7 +99,7 @@ export default function StudentImportPreviewModal({
                     <div
                       style={{
                         fontSize: "20px",
-                        fontWeight: "bold",
+                        fontWeight: 600,
                         color: "var(--color-warning)",
                       }}
                     >
@@ -173,17 +173,17 @@ export default function StudentImportPreviewModal({
                         borderBottom: "1px solid #ffccc7",
                       }}
                     >
-                      <span style={{ fontWeight: "bold", color: "#cf1322" }}>
+                      <span style={{ fontWeight: 600, color: "#cf1322" }}>
                         第 {item.row} 行
                       </span>
                       {item.field && (
-                        <span style={{ marginLeft: 8, color: "#666" }}>
+                        <span style={{ marginLeft: 8, color: "var(--co-text-secondary)" }}>
                           [{item.field}]
                         </span>
                       )}
                       <span style={{ marginLeft: 8 }}>{item.reason}</span>
                       {item.content && (
-                        <span style={{ marginLeft: 8, color: "#999" }}>
+                        <span style={{ marginLeft: 8, color: "var(--co-text-muted)" }}>
                           （{item.content}）
                         </span>
                       )}

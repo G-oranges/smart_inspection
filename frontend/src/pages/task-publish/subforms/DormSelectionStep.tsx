@@ -414,7 +414,7 @@ function DormSelectionSummary({
 }: DormSelectionSummaryProps) {
   return (
     <div
-      className={`flex items-center justify-between mb-2 bg-gray-50 dark:bg-white/5 ${isMobile ? 'p-2 rounded-xl text-[10px]' : 'p-3 rounded-2xl text-sm'} border border-black/5 dark:border-white/5`}
+      className={`flex items-center justify-between mb-2 bg-gray-50 dark:bg-white/5 ${isMobile ? 'p-2 rounded-xl text-[11px]' : 'p-3 rounded-2xl text-sm'} border border-black/5 dark:border-white/5`}
     >
       <div className="text-gray-600 dark:text-gray-400">
         匹配 <span className="font-bold text-blue-600 dark:text-blue-400">{dormOptions.length}</span>
@@ -424,7 +424,7 @@ function DormSelectionSummary({
         <Space size={4}>
           <Button
             size="small"
-            className="rounded-lg text-[10px] h-6 px-2"
+            className="rounded-lg text-[11px] h-6 px-2"
             onClick={() =>
               setSelectedDormIds(
                 Array.from(
@@ -444,7 +444,7 @@ function DormSelectionSummary({
           <Button
             size="small"
             type="text"
-            className="rounded-lg text-gray-400 text-[10px] h-6 px-2"
+            className="rounded-lg text-gray-400 text-[11px] h-6 px-2"
             onClick={() => setSelectedDormIds(lockedSelectedDormIds)}
           >
             清空

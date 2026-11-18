@@ -55,8 +55,8 @@ export default function TempPasswordModal({
         <div
           style={{
             fontSize: "24px",
-            fontWeight: "bold",
-            color: "#1890ff",
+            fontWeight: 600,
+            color: "var(--co-primary)",
             margin: "20px 0",
             padding: "10px",
             background: "var(--info-bg)",
@@ -66,7 +66,7 @@ export default function TempPasswordModal({
         >
           {password}
         </div>
-        <p style={{ color: "#ff4d4f" }}>
+        <p style={{ color: "var(--co-error)" }}>
           该密码有效期为 12 小时，仅可使用一次，请尽快告知用户。
         </p>
       </div>

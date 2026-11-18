@@ -3,7 +3,8 @@
  * 支持移动端 Drawer 和桌面端 Modal 两种模式
  */
 
-import { Alert, Modal, Button, Select, Input, Tag, Progress, Row, Col, Spin, Drawer } from "antd";
+import { Alert, Modal, Button, Input, Tag, Progress, Row, Col, Spin, Drawer } from "antd";
+import PanelSelect from '../../components/common/PanelSelect';
 import { SearchOutlined } from "@ant-design/icons";
 import DormGridSelector from "../../components/DormGridSelector";
 
@@ -100,7 +101,7 @@ export default function BatchCheckInModal({
             {isCompact ? (
               <>
                 <div className="font-bold truncate text-xs">{student.fullName}</div>
-                <div className="text-[10px] opacity-60 truncate">
+                <div className="text-[11px] opacity-60 truncate">
                   {assignment ? `${assignment.roomNo}-${assignment.bedNo}号` : '点击开始分配'}
                 </div>
               </>
@@ -113,7 +114,7 @@ export default function BatchCheckInModal({
                 <div className="text-right">
                   {assignment ? (
                     <div className="flex flex-col items-end gap-1">
-                      <Tag color="success" className="m-0 text-[9px] rounded-full px-2 border-none bg-green-100 text-green-700 font-bold">
+                      <Tag color="success" className="m-0 text-[11px] rounded-full px-2 border-none bg-green-100 text-green-700 font-bold">
                         {assignment.building} / {assignment.floor}F
                       </Tag>
                       <div className="text-[11px] font-bold text-green-600">
@@ -121,7 +122,7 @@ export default function BatchCheckInModal({
                       </div>
                     </div>
                   ) : (
-                    <Tag className="m-0 rounded-full border-none bg-gray-200 text-gray-500 text-[10px]">待分配</Tag>
+                    <Tag className="m-0 rounded-full border-none bg-gray-200 text-gray-500 text-[11px]">待分配</Tag>
                   )}
                 </div>
               </div>
@@ -180,7 +181,7 @@ export default function BatchCheckInModal({
   // 筛选器渲染
   const renderFilters = (isCompact = false) => (
     <div className={`flex ${isCompact ? 'items-center gap-2' : 'gap-3'}`}>
-      <Select
+      <PanelSelect
         placeholder={isCompact ? "选择楼栋" : "楼栋过滤"}
         className={`apple-select-ios ${isCompact ? 'flex-1' : 'w-[160px]'}`}
         classNames={{ popup: { root: "apple-dropdown" } }}
@@ -191,7 +192,7 @@ export default function BatchCheckInModal({
           setModalFilters((prev) => ({ ...prev, building: value ?? null, floor: null }))
         }
       />
-      <Select
+      <PanelSelect
         placeholder="楼层"
         className={`apple-select-ios ${isCompact ? 'w-24' : 'w-[110px]'}`}
         classNames={{ popup: { root: "apple-dropdown" } }}
@@ -230,7 +231,7 @@ export default function BatchCheckInModal({
         extra={
           <Button
             type="primary"
-            className="apple-btn-primary rounded-xl px-6"
+            className="apple-btn-primary"
             onClick={onSubmit}
             loading={loading}
             disabled={!hasWritableDormTargets}
@@ -249,7 +250,7 @@ export default function BatchCheckInModal({
               percent={progressPercent} 
               size="small" 
               status="active" 
-              strokeColor="#007AFF"
+              strokeColor="var(--co-primary)"
               className="mb-0"
             />
           </div>
@@ -286,10 +287,10 @@ export default function BatchCheckInModal({
       className="glass-modal apple-modal"
       footer={
         <div className="flex justify-end gap-3 mt-4">
-          <Button className="apple-btn-secondary px-6" onClick={onClose}>取消</Button>
+          <Button className="apple-btn-secondary" onClick={onClose}>取消</Button>
           <Button
             type="primary"
-            className="apple-btn-primary px-10"
+            className="apple-btn-primary px-8"
             onClick={onSubmit}
             disabled={!hasWritableDormTargets}
           >
@@ -310,7 +311,7 @@ export default function BatchCheckInModal({
               percent={progressPercent} 
               size="small" 
               status="active" 
-              strokeColor="#007AFF"
+              strokeColor="var(--co-primary)"
             />
           </div>
           

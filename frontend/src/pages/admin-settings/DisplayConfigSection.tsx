@@ -20,7 +20,7 @@ export const DisplayConfigSection = ({
         <Col span={10}>
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <FontSizeOutlined className="text-primary text-[16px]" />
+              <FontSizeOutlined className="text-primary text-base" />
               <Text className="text-[13px] font-medium">全局字体缩放系数</Text>
             </div>
             <Text type="secondary" className="text-[11px] opacity-60">
@@ -43,7 +43,7 @@ export const DisplayConfigSection = ({
                 />
               </div>
               <div className="shrink-0 flex justify-end">
-                 <span className="px-2 py-1 bg-primary/10 text-primary text-[12px] font-bold rounded-lg min-w-[50px] text-center">
+                 <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg min-w-[50px] text-center">
                     {Math.round(fontSizeScale * 100)}%
                  </span>
               </div>
@@ -52,7 +52,7 @@ export const DisplayConfigSection = ({
                <Button 
                 onClick={() => setFontSizeScale(1.0)}
                 disabled={fontSizeScale === 1.0}
-                className="dorm-toolbar-button dorm-toolbar-button-subtle flex items-center justify-center"
+                className="dorm-toolbar-button dorm-toolbar-button-subtle flex items-center justify-center active:scale-95 transition-all"
               >
                 重置
               </Button>

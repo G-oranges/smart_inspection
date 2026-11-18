@@ -90,14 +90,14 @@ function RoomSelectHeader({
           <Link to="/tasks/entry/buildings" className="hover:text-blue-500">
             楼栋
           </Link>
-          <RightOutlined className="text-[10px]" />
+          <RightOutlined className="text-[11px]" />
           <Link
             to={`/tasks/entry/buildings/${encodeURIComponent(decodedBuilding)}/floors?taskId=${encodeURIComponent(taskId)}&campus=${encodeURIComponent(campus)}`}
             className="hover:text-blue-500"
           >
             {decodedBuilding}
           </Link>
-          <RightOutlined className="text-[10px]" />
+          <RightOutlined className="text-[11px]" />
           <span className="text-blue-600">{decodedFloor} 楼</span>
         </Space>
         <Button
@@ -192,7 +192,7 @@ function RoomSelectBody({
                   </div>
                 ) : null}
                 <span
-                  className={`text-2xl font-black transition-colors ${isRecorded ? 'text-green-600' : 'text-gray-800 dark:text-white group-hover:text-blue-600'}`}
+                  className={`text-2xl font-bold transition-colors ${isRecorded ? 'text-green-600' : 'text-gray-800 dark:text-white group-hover:text-blue-600'}`}
                 >
                   {room.roomNo || '--'}
                 </span>
@@ -414,7 +414,7 @@ export default function RoomSelectPage() {
           taskId={taskId}
         />
 
-        <div className="glass-panel p-2 shadow-sm border border-black/5 rounded-[32px] bg-white/40 dark:bg-zinc-800/20 backdrop-blur-xl">
+        <div className="glass-panel p-2 shadow-sm border border-black/5 rounded-glass-lg bg-white/40 dark:bg-zinc-800/20 backdrop-blur-xl">
           <Segmented
             options={TAB_OPTIONS}
             value={status}
