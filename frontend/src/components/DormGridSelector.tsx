@@ -399,8 +399,8 @@ export default function DormGridSelector({
       const cardContent = (
         <div
           className={`dorm-grid-card glass-panel ${viewMode} ${isSelected ? 'selected' : ''} ${statusClass}`}
-          onClick={() => handleToggle(item.id)}
-          style={{ width: '100%' }}
+          onClick={onChange ? () => handleToggle(item.id) : undefined}
+          style={{ width: '100%', cursor: !onChange && bedDisplayMode === 'inline' ? 'default' : undefined }}
         >
           {isSelected ? (
             <div className="selection-badge">
@@ -497,6 +497,7 @@ export default function DormGridSelector({
       handlePopoverOpenChange,
       handleToggle,
       onCardAction,
+      onChange,
       occupancyDots,
       popoverOpen,
       renderInlineBeds,

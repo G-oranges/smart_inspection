@@ -556,6 +556,44 @@
   padding: 12px;
 }
 
+.room-selector-wrapper .dorm-mini-grid-container {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+}
+
+.room-selector-wrapper .dorm-grid-card.mini {
+  min-height: 0;
+  padding: 10px;
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.room-selector-wrapper .mini-content {
+  flex-flow: row wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+.room-selector-wrapper .mini-occupancy {
+  min-height: 0;
+}
+
+.room-selector-wrapper .dorm-grid-card.mini > .mt-2 {
+  margin-top: 0;
+}
+
+.room-selector-wrapper .dorm-grid-card.mini button {
+  min-width: 0;
+  padding-inline: 4px;
+}
+
+.room-selector-wrapper .dorm-grid-card.mini button > .flex {
+  gap: 4px;
+}
+
+.room-selector-wrapper .dorm-grid-card.mini button .tabular-nums {
+  flex-shrink: 0;
+}
+
 [data-theme="dark"] .dorm-grid-card {
   background: color-mix(in srgb, var(--co-bg) 82%, transparent) !important;
   border-color: color-mix(in srgb, var(--co-on-primary) 12%, transparent) !important;

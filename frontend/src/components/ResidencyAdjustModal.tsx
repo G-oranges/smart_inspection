@@ -524,7 +524,7 @@ export default function ResidencyAdjustModal({
                     allowSwap={mode !== 'assign'}
                     onFetchBeds={loadBedsForRoom}
                     onBedSelect={handleDualSelect}
-                    onChange={handleRoomSelect}
+                    onChange={mode === 'assign' ? undefined : handleRoomSelect}
                     grid={{ gutter: 12, xs: 2, sm: 3, md: 4, lg: 5 }}
                     activeBed={selectedBed ? { dormId: selectedRoomId, bedNo: selectedBed.bedNo } : null}
                   />
@@ -541,7 +541,7 @@ export default function ResidencyAdjustModal({
         <Form.Item label="目标床位" required>
           <Input
             readOnly
-            placeholder="请在上方房间列表中点击绿色/红色床位标签进行选择"
+            placeholder={mode === 'assign' ? '请点击上方绿色空床位' : '请在上方房间列表中点击绿色/红色床位标签进行选择'}
             value={selectedBed ? `${selectedBed.bedNo}号床  —  ${selectedBed.studentName || '空闲'}` : ''}
             className={`dark-mode-readonly-input ${selectedBed ? 'has-selection ant-input-affix-wrapper-focused' : ''}`}
             style={{ cursor: 'default', fontWeight: selectedBed ? 500 : 400 }}
