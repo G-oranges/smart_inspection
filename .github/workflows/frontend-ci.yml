@@ -3,8 +3,18 @@ name: Frontend CI
 on:
   push:
     branches: [main, develop]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
   pull_request:
     branches: [main, develop]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -17,6 +27,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # 样式护栏需要完整历史来计算 merge-base
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -28,17 +41,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Type check
+        run: npm run typecheck
+
       - name: Run ESLint
         run: npm run lint
-        continue-on-error: false
 
       - name: Check page sizes
         run: npm run lint:pagesize
-        continue-on-error: false
 
-      - name: Run Tests
+      - name: Style guardrails
+        run: npm run lint:styleguard
+        env:
+          STYLE_GUARD_BASE_REF: ${{ github.base_ref || github.event.repository.default_branch }}
+
+      - name: Run tests with coverage
         run: npm run test:coverage
-        continue-on-error: false
 
       - name: Build
         run: npm run build
