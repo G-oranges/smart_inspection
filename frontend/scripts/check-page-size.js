@@ -1,9 +1,8 @@
 /**
  * 页面文件行数检查脚本
- * 用于 CI 或本地检查 pages 目录下的文件行数
+ * 用于 CI 或本地检查 pages 目录（递归，含 .ts/.tsx/.js/.jsx，跳过测试文件）的文件行数
  * 
- * 使用方式: node scripts/check-page-size.js
- * CI 集成: 在 package.json 中添加 "check:pages": "node scripts/check-page-size.js"
+ * 使用方式: npm run lint:pagesize
  */
 
 import fs from 'fs';
@@ -53,16 +52,38 @@ function countLines(filePath) {
   return content.split('\n').length;
 }
 
+const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
+
+function isTestFile(name) {
+  return /\.(test|spec)\.[jt]sx?$/.test(name);
+}
+
+/**
+ * 递归收集 pages 目录下所有源码文件（跳过 __tests__ 与 *.test/*.spec）
+ */
+function collectSourceFiles(dir) {
+  const files = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === '__tests__') continue;
+      files.push(...collectSourceFiles(fullPath));
+    } else if (SOURCE_EXTENSIONS.includes(path.extname(entry.name)) && !isTestFile(entry.name)) {
+      files.push(fullPath);
+    }
+  }
+  return files;
+}
+
 function checkPageSizes() {
-  const files = fs.readdirSync(CONFIG.pagesDir)
-    .filter(f => f.endsWith('.jsx') || f.endsWith('.js'));
+  const files = collectSourceFiles(CONFIG.pagesDir);
 
   const results = [];
   let hasError = false;
   let hasWarning = false;
 
-  for (const file of files) {
-    const filePath = path.join(CONFIG.pagesDir, file);
+  for (const filePath of files) {
+    const file = path.relative(CONFIG.pagesDir, filePath).split(path.sep).join('/');
     const lines = countLines(filePath);
     const status = lines > CONFIG.maxLines ? 'ERROR' : 
                    lines > CONFIG.warnLines ? 'WARN' : 
@@ -80,18 +101,21 @@ function checkPageSizes() {
   // 输出报告
   console.log('\n📊 Pages 文件行数检查报告\n');
   console.log('='.repeat(60));
-  console.log(`${'文件'.padEnd(40)} ${'行数'.padStart(8)} ${'状态'.padStart(8)}`);
+  console.log(`${'文件'.padEnd(50)} ${'行数'.padStart(8)} ${'状态'.padStart(8)}`);
   console.log('-'.repeat(60));
 
-  for (const { file, lines, status } of results) {
+  // 只列出超过目标阈值的文件，避免 100+ 个小文件刷屏
+  const oversized = results.filter(r => r.status !== 'GOOD');
+  for (const { file, lines, status } of oversized) {
     const statusIcon = status === 'ERROR' ? '❌' :
                        status === 'WARN' ? '⚠️' :
                        status === 'OK' ? '📝' : '✅';
-    console.log(`${file.padEnd(40)} ${String(lines).padStart(8)} ${statusIcon} ${status}`);
+    console.log(`${file.padEnd(52)} ${String(lines).padStart(8)} ${statusIcon} ${status}`);
   }
 
   console.log('='.repeat(60));
-  console.log(`\n配置: 目标 ${CONFIG.targetLines} 行 | 警告 ${CONFIG.warnLines} 行 | 错误 ${CONFIG.maxLines} 行`);
+  console.log(`\n已扫描 ${results.length} 个文件，其中 ${oversized.length} 个超过目标阈值`);
+  console.log(`配置: 目标 ${CONFIG.targetLines} 行 | 警告 ${CONFIG.warnLines} 行 | 错误 ${CONFIG.maxLines} 行`);
   
   if (hasError) {
     console.log('\n❌ 检查失败：存在超过 ' + CONFIG.maxLines + ' 行的文件\n');

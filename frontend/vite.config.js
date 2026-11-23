@@ -310,11 +310,11 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:4001',
+        target: 'http://localhost:4002',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:4001',
+        target: 'http://localhost:4002',
         changeOrigin: true,
       },
     },

@@ -242,11 +242,12 @@ function main() {
 
   const violations = [];
 
-  if (allChangedFiles.includes(APP_CSS)) {
+  // App.css 已整体删除（未被任何入口引用）；删除本身允许，但禁止重新创建或修改
+  if (allChangedFiles.includes(APP_CSS) && fs.existsSync(path.join(repoRoot, APP_CSS))) {
     violations.push({
       file: APP_CSS,
       line: '-',
-      rule: '禁止修改 frontend/src/App.css',
+      rule: '禁止重新创建或修改 frontend/src/App.css',
       content: '请将新增样式迁移到 frontend/src/styles/components/*.css',
     });
   }
