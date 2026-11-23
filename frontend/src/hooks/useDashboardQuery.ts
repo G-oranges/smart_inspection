@@ -2,9 +2,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { request, tokenManager } from '../utils/api';
 
+export type DashboardRangeKey = 'month' | '3m' | '6m' | 'all';
+
 export interface DashboardTrendPoint {
   label?: string;
   score?: number | string | null;
+  count?: number | string | null;
 }
 
 export interface DashboardDistributionItem {
@@ -45,7 +48,49 @@ export interface DashboardRecentInspection {
   [key: string]: unknown;
 }
 
+export interface DashboardActiveTask {
+  id: string;
+  title: string;
+  deadline?: string | null;
+  totalDorms: number;
+  completedDorms: number;
+  myTotalDorms: number;
+  myPendingDorms: number;
+}
+
+export interface DashboardLowScoreDorm {
+  inspectionId: string;
+  dormId: string;
+  dormName: string;
+  totalScore: number;
+  taskId?: string;
+  taskTitle: string;
+  createdAt: string;
+}
+
+export interface DashboardPendingAppeal {
+  id: string;
+  inspectionId: string;
+  dormName: string;
+  studentName: string;
+  totalScore?: number | null;
+  content: string;
+  createdAt: string;
+}
+
+export interface DashboardMyDormSummary {
+  dormId: string;
+  dormName: string;
+  latestScore?: number | null;
+  latestTime?: string | null;
+  avgScore?: number | null;
+  myPendingAppeals: number;
+  hasActiveTask: boolean;
+}
+
 export interface DashboardSummary {
+  range?: DashboardRangeKey;
+  scopeLabel?: string;
   totalStudents?: number;
   totalDorms?: number;
   totalBeds?: number;
@@ -53,17 +98,29 @@ export interface DashboardSummary {
   activeTasks?: number;
   pendingAppeals?: number;
   averageScore?: number | null;
+  scoreDelta?: number | null;
   trendData?: DashboardTrendPoint[];
   distribution?: DashboardDistributionItem[];
   recentInspections?: DashboardRecentInspection[];
+  activeTaskList?: DashboardActiveTask[];
+  lowScoreDorms?: DashboardLowScoreDorm[];
+  pendingAppealList?: DashboardPendingAppeal[];
+  myDormSummary?: DashboardMyDormSummary | null;
   [key: string]: unknown;
 }
 
 const DASHBOARD_SUMMARY_BASE_KEY = ['dashboard', 'summary'] as const;
 
-export function useDashboardSummary(roleKey?: string | number | null) {
+export function useDashboardSummary(
+  roleKey?: string | number | null,
+  range: DashboardRangeKey = '6m',
+) {
   const hasToken = tokenManager.hasTokens();
-  const scopedKey = [...DASHBOARD_SUMMARY_BASE_KEY, roleKey ?? 'default'] as const;
+  const scopedKey = [
+    ...DASHBOARD_SUMMARY_BASE_KEY,
+    roleKey ?? 'default',
+    range,
+  ] as const;
 
   return useQuery<DashboardSummary | null>({
     queryKey: scopedKey,
@@ -72,11 +129,14 @@ export function useDashboardSummary(roleKey?: string | number | null) {
         return null;
       }
 
-      return request<DashboardSummary>('/api/dashboard/summary');
+      return request<DashboardSummary>(
+        `/api/dashboard/summary?range=${encodeURIComponent(range)}`,
+      );
     },
     enabled: hasToken,
     staleTime: 60 * 1000,
     refetchOnWindowFocus: true,
+    placeholderData: (previousData) => previousData,
   });
 }
 

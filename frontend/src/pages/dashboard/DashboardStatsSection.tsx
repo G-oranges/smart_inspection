@@ -110,7 +110,7 @@ export default function DashboardStatsSection({
       value: stats.pendingAppeals,
       label: viewMode === 'student' ? '待处理申诉' : '待审申诉',
       dotColor: stats.pendingAppeals > 0 ? 'red' : 'gray',
-      path: canViewResults ? '/results' : undefined,
+      path: canViewResults ? '/results?focus=appeals' : undefined,
     };
 
     if (viewMode === 'inspector') {
@@ -146,13 +146,14 @@ export default function DashboardStatsSection({
               unit={card.unit}
               label={card.label}
               dotColor={card.dotColor}
+              trend={card.id === 'avg-score' ? stats.scoreDelta : undefined}
               onClick={card.path ? () => navigate(card.path!) : undefined}
             />
           </Col>
         ))}
       </>
     ),
-    [cards, navigate],
+    [cards, navigate, stats.scoreDelta],
   );
 
   return (

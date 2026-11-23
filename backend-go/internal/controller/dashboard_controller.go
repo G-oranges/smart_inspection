@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/my-project/backend-go/internal/service"
@@ -18,7 +18,8 @@ func NewDashboardController(service service.DashboardService) *DashboardControll
 
 func (ctrl *DashboardController) GetSummary(c *gin.Context) {
 	userID, _ := c.Get("userId")
-	stats, err := ctrl.service.GetSummary(fmt.Sprintf("%v", userID))
+	rangeKey := c.Query("range")
+	stats, err := ctrl.service.GetSummaryWithRange(fmt.Sprintf("%v", userID), rangeKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return

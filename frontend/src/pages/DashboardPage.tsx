@@ -1,28 +1,31 @@
 import { ReloadOutlined } from '@ant-design/icons';
 import { Col, Row } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { StatCardSkeletonGroup } from '../components/Skeletons';
 import { useAppContext } from '../context/AppContext';
-import { useDashboardSummary } from '../hooks/useDashboardQuery';
+import {
+  useDashboardSummary,
+  type DashboardRangeKey,
+} from '../hooks/useDashboardQuery';
 import { useMobile } from '../hooks/useMobile';
+import DashboardAlertsPanel from './dashboard/DashboardAlertsPanel';
 import {
   DistributionPanel,
   MobileInsightsPanel,
   TrendChartPanel,
 } from './dashboard/DashboardCharts';
+import DashboardMyDormCard from './dashboard/DashboardMyDormCard';
 import {
   DesktopQuickActionsPanel,
   MobileTopActions,
 } from './dashboard/DashboardQuickActions';
-import DashboardRecentList from './dashboard/DashboardRecentList';
 import DashboardStatsSection from './dashboard/DashboardStatsSection';
 import {
   buildQuickActions,
   buildStatSnapshot,
   normalizeDistributionData,
-  normalizeRecentInspections,
   normalizeTrendData,
   resolveDashboardViewMode,
 } from './dashboard/dashboardUtils';
@@ -30,6 +33,7 @@ import {
 export default function DashboardPage() {
   const { user, activeRole, hasPermission } = useAppContext();
   const isMobile = useMobile();
+  const [range, setRange] = useState<DashboardRangeKey>('6m');
 
   const roleKey = activeRole?.id || activeRole?.code || user?.role || 'default';
   const {
@@ -38,7 +42,7 @@ export default function DashboardPage() {
     isFetching,
     dataUpdatedAt,
     refetch,
-  } = useDashboardSummary(roleKey);
+  } = useDashboardSummary(roleKey, range);
 
   const viewMode = useMemo(
     () => resolveDashboardViewMode(hasPermission),
@@ -57,10 +61,15 @@ export default function DashboardPage() {
     [summary?.distribution],
   );
 
-  const recentInspections = useMemo(
-    () => normalizeRecentInspections(summary?.recentInspections),
-    [summary?.recentInspections],
+  const lowScoreDorms = useMemo(
+    () => summary?.lowScoreDorms || [],
+    [summary?.lowScoreDorms],
   );
+  const pendingAppealList = useMemo(
+    () => summary?.pendingAppealList || [],
+    [summary?.pendingAppealList],
+  );
+  const myDormSummary = summary?.myDormSummary ?? null;
 
   const quickActions = useMemo(
     () => buildQuickActions(hasPermission, stats, activeRole?.code),
@@ -71,7 +80,8 @@ export default function DashboardPage() {
   const updatedTimeText = dataUpdatedAt
     ? dayjs(dataUpdatedAt).format('HH:mm')
     : '--:--';
-  const roleTag = activeRole?.name || user?.role || '当前视角';
+  const scopeTag =
+    summary?.scopeLabel || activeRole?.name || user?.role || '当前视角';
 
   const statsNode = isLoading ? (
     <StatCardSkeletonGroup />
@@ -83,13 +93,18 @@ export default function DashboardPage() {
     />
   );
 
+  const showAlertsSection =
+    viewMode === 'manager' ||
+    pendingAppealList.length > 0 ||
+    lowScoreDorms.length > 0;
+
   return (
     <div
       className={`dashboard-page co-animate-in ${isMobile ? 'dashboard-page--mobile' : ''}`}
       key={String(roleKey)}
     >
       <div className="dashboard-context-bar">
-        <span className="dashboard-role-chip">{roleTag}</span>
+        <span className="dashboard-role-chip">{scopeTag}</span>
         <div className="dashboard-context-actions">
           <span className="dashboard-updated-at">更新于 {updatedTimeText}</span>
           <button
@@ -107,35 +122,59 @@ export default function DashboardPage() {
 
       {isMobile ? (
         <div className="dashboard-mobile-stack">
-          <MobileTopActions
-            actions={quickActions}
-            stats={stats}
-            viewMode={viewMode}
-            hasPermission={hasPermission}
-          />
+          {viewMode === 'student' && myDormSummary ? (
+            <DashboardMyDormCard
+              summary={myDormSummary}
+              canViewResults={canViewResults}
+            />
+          ) : (
+            <MobileTopActions
+              actions={quickActions}
+              stats={stats}
+              viewMode={viewMode}
+              hasPermission={hasPermission}
+            />
+          )}
 
           <div>{statsNode}</div>
 
           <MobileInsightsPanel
             trendData={trendData}
             distributionData={distributionData}
+            range={range}
+            onRangeChange={setRange}
           />
 
-          <DashboardRecentList
-            items={recentInspections}
-            isMobile
-            canViewResults={canViewResults}
-          />
+          {showAlertsSection &&
+          (pendingAppealList.length > 0 || lowScoreDorms.length > 0) ? (
+            <DashboardAlertsPanel
+              pendingAppeals={pendingAppealList}
+              lowScoreDorms={lowScoreDorms}
+              isMobile
+              canViewResults={canViewResults}
+            />
+          ) : null}
         </div>
       ) : (
         <div className="dashboard-desktop-stack">
           <div>{statsNode}</div>
 
+          {viewMode === 'student' && myDormSummary ? (
+            <DashboardMyDormCard
+              summary={myDormSummary}
+              canViewResults={canViewResults}
+            />
+          ) : null}
+
           <Row gutter={[20, 20]} className="items-stretch">
-            <Col xs={24} xl={16}>
-              <TrendChartPanel trendData={trendData} />
+            <Col xs={24} lg={15} xl={16}>
+              <TrendChartPanel
+                trendData={trendData}
+                range={range}
+                onRangeChange={setRange}
+              />
             </Col>
-            <Col xs={24} xl={8}>
+            <Col xs={24} lg={9} xl={8}>
               <DesktopQuickActionsPanel
                 actions={quickActions}
                 stats={stats}
@@ -146,16 +185,23 @@ export default function DashboardPage() {
           </Row>
 
           <Row gutter={[20, 20]} className="items-stretch">
-            <Col xs={24} lg={10}>
-              <DistributionPanel distributionData={distributionData} />
-            </Col>
-            <Col xs={24} lg={14}>
-              <DashboardRecentList
-                items={recentInspections}
-                isMobile={false}
-                canViewResults={canViewResults}
+            <Col xs={24} lg={showAlertsSection ? 12 : 24}>
+              <DistributionPanel
+                distributionData={distributionData}
+                range={range}
+                onRangeChange={setRange}
               />
             </Col>
+            {showAlertsSection ? (
+              <Col xs={24} lg={12}>
+                <DashboardAlertsPanel
+                  pendingAppeals={pendingAppealList}
+                  lowScoreDorms={lowScoreDorms}
+                  isMobile={false}
+                  canViewResults={canViewResults}
+                />
+              </Col>
+            ) : null}
           </Row>
         </div>
       )}

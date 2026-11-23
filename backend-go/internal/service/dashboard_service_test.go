@@ -152,6 +152,154 @@ func TestDashboardServiceGetSummary_RespectsRoleDataScope(t *testing.T) {
 	if len(scopedStats.RecentInspections) >= len(fullStats.RecentInspections) {
 		t.Fatalf("expected scoped recent inspections to be smaller, scoped=%d full=%d", len(scopedStats.RecentInspections), len(fullStats.RecentInspections))
 	}
+	if scopedStats.ScopeLabel != "1号楼 · 计算机学院" {
+		t.Fatalf("unexpected scoped label: %q", scopedStats.ScopeLabel)
+	}
+	if fullStats.ScopeLabel != "全校数据" {
+		t.Fatalf("unexpected full scope label: %q", fullStats.ScopeLabel)
+	}
+	if len(scopedStats.ActiveTaskList) != 1 || len(fullStats.ActiveTaskList) != 2 {
+		t.Fatalf("unexpected active task list sizes: scoped=%d full=%d", len(scopedStats.ActiveTaskList), len(fullStats.ActiveTaskList))
+	}
+	if len(scopedStats.PendingAppealList) != 1 || len(fullStats.PendingAppealList) != 2 {
+		t.Fatalf("unexpected pending appeal list sizes: scoped=%d full=%d", len(scopedStats.PendingAppealList), len(fullStats.PendingAppealList))
+	}
+}
+
+func TestDashboardServiceGetSummaryWithRange_ExtendedMetrics(t *testing.T) {
+	db := openDashboardTestDB(t)
+	if err := db.AutoMigrate(
+		&model.RoleEntity{},
+		&model.RoleDataScope{},
+		&model.User{},
+		&model.Student{},
+		&model.Dormitory{},
+		&model.DormBed{},
+		&model.Task{},
+		&model.TaskDorm{},
+		&model.TaskExecutor{},
+		&model.TaskExecutorDorm{},
+		&model.Inspection{},
+		&model.Appeal{},
+	); err != nil {
+		t.Fatalf("migrate failed: %v", err)
+	}
+	if err := db.Exec("DROP TABLE IF EXISTS `_roleentitytouser`").Error; err != nil {
+		t.Fatalf("drop join table failed: %v", err)
+	}
+	if err := db.Exec("CREATE TABLE IF NOT EXISTS `_roleentitytouser` (A char(36) NOT NULL, B char(36) NOT NULL, PRIMARY KEY (A, B))").Error; err != nil {
+		t.Fatalf("create join table failed: %v", err)
+	}
+
+	admin := model.User{ID: uuid.NewString(), Username: "admin2", Password: "x", Role: "ADMIN", FullName: "Admin"}
+	studentUser := model.User{ID: uuid.NewString(), Username: "stu1", Password: "x", Role: "STUDENT", FullName: "同学甲"}
+	if err := db.Create(&[]model.User{admin, studentUser}).Error; err != nil {
+		t.Fatalf("seed users failed: %v", err)
+	}
+
+	dorm1ID := uuid.NewString()
+	dorm2ID := uuid.NewString()
+	if err := db.Create(&[]model.Dormitory{
+		{ID: dorm1ID, Building: strPtr("东1"), Floor: intPtr(3), RoomNo: strPtr("301"), Capacity: intPtr(4)},
+		{ID: dorm2ID, Building: strPtr("东1"), Floor: intPtr(3), RoomNo: strPtr("302"), Capacity: intPtr(4)},
+	}).Error; err != nil {
+		t.Fatalf("seed dorms failed: %v", err)
+	}
+
+	stuID := uuid.NewString()
+	if err := db.Create(&model.Student{
+		ID:       stuID,
+		FullName: "同学甲",
+		DormID:   &dorm1ID,
+		UserID:   &studentUser.ID,
+	}).Error; err != nil {
+		t.Fatalf("seed student failed: %v", err)
+	}
+
+	now := time.Now()
+	prevMonth := time.Date(now.Year(), now.Month(), 1, 12, 0, 0, 0, now.Location()).AddDate(0, -1, 5)
+	startedAt := now.Add(-time.Hour)
+	deadline := now.Add(4 * time.Hour)
+	taskID := uuid.NewString()
+	if err := db.Create(&model.Task{
+		ID:       taskID,
+		Title:    "本周例行查寝",
+		Date:     &startedAt,
+		Deadline: &deadline,
+	}).Error; err != nil {
+		t.Fatalf("seed task failed: %v", err)
+	}
+	if err := db.Create(&[]model.TaskDorm{
+		{ID: uuid.NewString(), TaskID: taskID, DormID: dorm1ID},
+		{ID: uuid.NewString(), TaskID: taskID, DormID: dorm2ID},
+	}).Error; err != nil {
+		t.Fatalf("seed task dorms failed: %v", err)
+	}
+	if err := db.Create(&model.TaskExecutorDorm{
+		ID:         uuid.NewString(),
+		TaskID:     taskID,
+		ExecutorID: admin.ID,
+		DormID:     dorm2ID,
+	}).Error; err != nil {
+		t.Fatalf("seed task executor dorm failed: %v", err)
+	}
+
+	lowScore := 54
+	highScore := 92
+	prevScore := 80
+	lowInsID := uuid.NewString()
+	if err := db.Create(&[]model.Inspection{
+		{ID: lowInsID, TaskID: &taskID, DormID: &dorm1ID, TotalScore: &lowScore, CreatedAt: now},
+		{ID: uuid.NewString(), DormID: &dorm2ID, TotalScore: &highScore, CreatedAt: now},
+		{ID: uuid.NewString(), DormID: &dorm1ID, TotalScore: &prevScore, CreatedAt: prevMonth},
+	}).Error; err != nil {
+		t.Fatalf("seed inspections failed: %v", err)
+	}
+	if err := db.Create(&model.Appeal{
+		ID:           uuid.NewString(),
+		InspectionID: lowInsID,
+		StudentID:    stuID,
+		Content:      "复核请求",
+		Status:       model.AppealPending,
+	}).Error; err != nil {
+		t.Fatalf("seed appeal failed: %v", err)
+	}
+
+	svc := NewDashboardService(db)
+	stats3m, err := svc.GetSummaryWithRange(admin.ID, "3m")
+	if err != nil {
+		t.Fatalf("get 3m summary failed: %v", err)
+	}
+	if stats3m.Range != "3m" || len(stats3m.TrendData) != 3 {
+		t.Fatalf("expected 3m range with 3 trend points, got range=%s len=%d", stats3m.Range, len(stats3m.TrendData))
+	}
+	if stats3m.ScoreDelta == nil || *stats3m.ScoreDelta != -7.0 {
+		t.Fatalf("expected scoreDelta=-7.0 (avg 73 - prev 80), got %v", stats3m.ScoreDelta)
+	}
+	if len(stats3m.LowScoreDorms) != 1 || stats3m.LowScoreDorms[0].DormName != "东1-301" || stats3m.LowScoreDorms[0].TotalScore != 54 {
+		t.Fatalf("unexpected lowScoreDorms: %+v", stats3m.LowScoreDorms)
+	}
+	if len(stats3m.ActiveTaskList) != 1 {
+		t.Fatalf("expected 1 active task, got %d", len(stats3m.ActiveTaskList))
+	}
+	taskSummary := stats3m.ActiveTaskList[0]
+	if taskSummary.TotalDorms != 2 || taskSummary.CompletedDorms != 1 || taskSummary.MyTotalDorms != 1 || taskSummary.MyPendingDorms != 1 {
+		t.Fatalf("unexpected task progress: %+v", taskSummary)
+	}
+
+	stuStats, err := svc.GetSummaryWithRange(studentUser.ID, "month")
+	if err != nil {
+		t.Fatalf("get student summary failed: %v", err)
+	}
+	if stuStats.MyDormSummary == nil {
+		t.Fatalf("expected myDormSummary for student user")
+	}
+	if stuStats.MyDormSummary.DormName != "东1-301" || stuStats.MyDormSummary.LatestScore == nil || *stuStats.MyDormSummary.LatestScore != 54 {
+		t.Fatalf("unexpected myDormSummary: %+v", stuStats.MyDormSummary)
+	}
+	if !stuStats.MyDormSummary.HasActiveTask || stuStats.MyDormSummary.MyPendingAppeals != 1 {
+		t.Fatalf("unexpected myDormSummary flags: %+v", stuStats.MyDormSummary)
+	}
 }
 
 func openDashboardTestDB(t *testing.T) *gorm.DB {

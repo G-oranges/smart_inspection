@@ -1,6 +1,6 @@
 import type { Dispatch, Key, SetStateAction } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Col, FloatButton, Form, Input, Row, Select, Table } from 'antd';
 import PanelSelect from '../components/common/PanelSelect';
 import type { ColumnsType } from 'antd/es/table';
@@ -357,7 +357,10 @@ function ResultAuxiliaryPanels({
       ) : null}
 
       {showReviewPanel ? (
-        <div className="glass-panel p-6 rounded-3xl shadow-sm border border-black/5">
+        <div
+          id="appeal-review-section"
+          className="glass-panel p-6 rounded-3xl shadow-sm border border-black/5"
+        >
           <div className="flex items-center gap-2 mb-6">
             <div className="w-1.5 h-6 bg-red-500 rounded-full" />
             <h3 className="text-lg font-bold">待处理申诉队列</h3>
@@ -1005,6 +1008,7 @@ export default function ResultViewPage() {
   const pageData = data as ResultPageData;
   const pageActions = actions as ResultPageActions;
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useMobile();
 
   const {
@@ -1149,6 +1153,29 @@ export default function ResultViewPage() {
     },
     [setAppealForm],
   );
+
+  useEffect(() => {
+    const appealId = searchParams.get('appealId');
+    const focus = searchParams.get('focus');
+    if (!appealId && focus !== 'appeals') {
+      return;
+    }
+
+    if (appealId && appeals.some((item) => String(item.id) === appealId)) {
+      setHandleForm((prev) => ({ ...prev, appealId }));
+    }
+
+    const target =
+      document.getElementById('appeal-review-section') ||
+      document.getElementById('appeal-section');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('appealId');
+      nextParams.delete('focus');
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [appeals, searchParams, setHandleForm, setSearchParams]);
 
   const totalCount = filteredInspections.length;
   const showAuxPanels =

@@ -4,12 +4,12 @@ import {
   RiseOutlined,
 } from '@ant-design/icons';
 import { Segmented } from 'antd';
-import { useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
   Cell,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -18,18 +18,62 @@ import {
   YAxis,
 } from 'recharts';
 
-import type {
-  DashboardTrendItem,
-  NormalizedDistributionItem,
-  ScoreTone,
+import { useAppContext } from '../../context/AppContext';
+import type { DashboardRangeKey } from '../../hooks/useDashboardQuery';
+import {
+  DASHBOARD_RANGE_OPTIONS,
+  getRangeLabel,
+  type DashboardTrendItem,
+  type NormalizedDistributionItem,
+  type ScoreTone,
 } from './dashboardUtils';
 
-const TONE_COLOR_VAR: Record<ScoreTone, string> = {
-  success: 'var(--co-success)',
-  primary: 'var(--co-primary)',
-  warning: 'var(--co-warning)',
-  error: 'var(--co-error)',
-};
+interface ChartPalette {
+  primary: string;
+  success: string;
+  warning: string;
+  error: string;
+  muted: string;
+  border: string;
+  bg: string;
+}
+
+function readToken(name: string, fallback: string): string {
+  if (typeof window === 'undefined') {
+    return fallback;
+  }
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return value || fallback;
+}
+
+function useChartPalette(): ChartPalette {
+  const { activeTheme } = useAppContext();
+  const [palette, setPalette] = useState<ChartPalette>(() => ({
+    primary: readToken('--co-primary', 'currentColor'),
+    success: readToken('--co-success', 'currentColor'),
+    warning: readToken('--co-warning', 'currentColor'),
+    error: readToken('--co-error', 'currentColor'),
+    muted: readToken('--co-text-muted', 'currentColor'),
+    border: readToken('--co-glass-border', 'currentColor'),
+    bg: readToken('--co-bg', 'transparent'),
+  }));
+
+  useEffect(() => {
+    setPalette({
+      primary: readToken('--co-primary', 'currentColor'),
+      success: readToken('--co-success', 'currentColor'),
+      warning: readToken('--co-warning', 'currentColor'),
+      error: readToken('--co-error', 'currentColor'),
+      muted: readToken('--co-text-muted', 'currentColor'),
+      border: readToken('--co-glass-border', 'currentColor'),
+      bg: readToken('--co-bg', 'transparent'),
+    });
+  }, [activeTheme]);
+
+  return palette;
+}
 
 const TOOLTIP_STYLE = {
   borderRadius: 'var(--co-radius-md)',
@@ -43,65 +87,95 @@ const TOOLTIP_STYLE = {
 function TrendChartCanvas({
   trendData,
   height,
+  range,
+  onRangeChange,
+  palette,
 }: {
   trendData: DashboardTrendItem[];
   height: number;
+  range: DashboardRangeKey;
+  onRangeChange: (next: DashboardRangeKey) => void;
+  palette: ChartPalette;
 }) {
-  const hasAnyScore = trendData.some((item) => item.score > 0);
+  const gradientId = useId();
+  const hasAnyScore = trendData.some(
+    (item) => item.score > 0 || item.count > 0,
+  );
 
   if (!hasAnyScore) {
     return (
       <div className="dashboard-empty-state" style={{ height }}>
         <BarChartOutlined className="dashboard-empty-icon" />
-        <span>近 6 个月暂无评分记录</span>
+        <span>{getRangeLabel(range)}暂无评分记录</span>
+        {range !== 'all' ? (
+          <button
+            type="button"
+            onClick={() => onRangeChange('all')}
+            className="apple-btn-secondary dashboard-inline-cta co-press"
+          >
+            查看全部历史
+          </button>
+        ) : null}
       </div>
     );
   }
 
   return (
     <div className="w-full" style={{ height }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
+      <ResponsiveContainer width="100%" height={height}>
+        <AreaChart
           data={trendData}
-          margin={{ top: 8, right: 12, left: -18, bottom: 0 }}
+          margin={{ top: 12, right: 16, left: -16, bottom: 4 }}
         >
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={palette.primary} stopOpacity={0.28} />
+              <stop offset="95%" stopColor={palette.primary} stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="var(--co-glass-border)"
+            stroke={palette.border}
             vertical={false}
           />
           <XAxis
             dataKey="month"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: 'var(--co-text-muted)', fontSize: 11, fontWeight: 500 }}
+            tick={{ fill: palette.muted, fontSize: 11, fontWeight: 500 }}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
             domain={[0, 100]}
-            tick={{ fill: 'var(--co-text-muted)', fontSize: 11, fontWeight: 500 }}
+            tick={{ fill: palette.muted, fontSize: 11, fontWeight: 500 }}
           />
           <RechartsTooltip
             contentStyle={TOOLTIP_STYLE}
             labelStyle={{ color: 'var(--co-text-secondary)', fontWeight: 600 }}
-            formatter={(value) => [`${value} 分`, '均分']}
+            formatter={(value, _name, item) => {
+              const count = (item?.payload as DashboardTrendItem | undefined)
+                ?.count;
+              const scoreText = `${value} 分`;
+              return count ? [`${scoreText}（${count} 间）`, '均分'] : [scoreText, '均分'];
+            }}
           />
-          <Line
+          <Area
             type="monotone"
             dataKey="score"
             name="均分"
-            stroke="var(--co-primary)"
+            stroke={palette.primary}
             strokeWidth={3}
+            fill={`url(#${gradientId})`}
             dot={{
               r: 3.5,
               strokeWidth: 2,
-              fill: 'var(--co-bg)',
-              stroke: 'var(--co-primary)',
+              fill: palette.bg,
+              stroke: palette.primary,
             }}
-            activeDot={{ r: 6, strokeWidth: 0, fill: 'var(--co-primary)' }}
+            activeDot={{ r: 6, strokeWidth: 0, fill: palette.primary }}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );
@@ -111,29 +185,53 @@ function DistributionChartCanvas({
   distributionData,
   height,
   compact = false,
+  range,
+  onRangeChange,
+  palette,
 }: {
   distributionData: NormalizedDistributionItem[];
   height: number;
   compact?: boolean;
+  range: DashboardRangeKey;
+  onRangeChange: (next: DashboardRangeKey) => void;
+  palette: ChartPalette;
 }) {
   const totalCount = distributionData.reduce((sum, item) => sum + item.value, 0);
+  const rangeLabel = getRangeLabel(range);
 
   if (totalCount === 0) {
     return (
       <div className="dashboard-empty-state" style={{ height }}>
         <PieChartOutlined className="dashboard-empty-icon" />
-        <span>本月暂无成绩分布数据</span>
+        <span>{rangeLabel}暂无成绩分布</span>
+        {range !== 'all' ? (
+          <button
+            type="button"
+            onClick={() => onRangeChange('all')}
+            className="apple-btn-secondary dashboard-inline-cta co-press"
+          >
+            查看全部历史
+          </button>
+        ) : null}
       </div>
     );
   }
 
-  const innerRadius = compact ? 46 : 62;
-  const outerRadius = compact ? 66 : 86;
+  const toneColor: Record<ScoreTone, string> = {
+    success: palette.success,
+    primary: palette.primary,
+    warning: palette.warning,
+    error: palette.error,
+  };
+
+  const ringHeight = compact ? 156 : 196;
+  const innerRadius = compact ? 46 : 58;
+  const outerRadius = compact ? 66 : 82;
 
   return (
     <div className="dashboard-dist-layout">
-      <div className="dashboard-dist-ring" style={{ height: compact ? 156 : 204 }}>
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="dashboard-dist-ring" style={{ height: ringHeight }}>
+        <ResponsiveContainer width="100%" height={ringHeight}>
           <PieChart>
             <Pie
               data={distributionData}
@@ -145,7 +243,7 @@ function DistributionChartCanvas({
               dataKey="value"
             >
               {distributionData.map((entry) => (
-                <Cell key={entry.name} fill={TONE_COLOR_VAR[entry.tone]} />
+                <Cell key={entry.name} fill={toneColor[entry.tone]} />
               ))}
             </Pie>
             <RechartsTooltip
@@ -156,7 +254,7 @@ function DistributionChartCanvas({
         </ResponsiveContainer>
         <div className="dashboard-dist-center">
           <span className="dashboard-dist-total">{totalCount}</span>
-          <span className="dashboard-dist-unit">本月已查</span>
+          <span className="dashboard-dist-unit">已查间次</span>
         </div>
       </div>
 
@@ -182,37 +280,68 @@ function DistributionChartCanvas({
 
 export function TrendChartPanel({
   trendData,
+  range,
+  onRangeChange,
 }: {
   trendData: DashboardTrendItem[];
+  range: DashboardRangeKey;
+  onRangeChange: (next: DashboardRangeKey) => void;
 }) {
+  const palette = useChartPalette();
+
   return (
-    <section className="co-glass-panel dashboard-panel h-full">
+    <section className="co-glass-panel dashboard-panel h-full flex flex-col justify-between">
       <header className="dashboard-panel-header">
         <h3 className="dashboard-panel-title">
           <RiseOutlined className="dashboard-panel-icon" />
           卫生得分趋势
         </h3>
-        <span className="dashboard-panel-meta">近 6 个月</span>
+        <Segmented
+          size="small"
+          value={range}
+          onChange={(val) => onRangeChange(val as DashboardRangeKey)}
+          options={DASHBOARD_RANGE_OPTIONS}
+        />
       </header>
-      <TrendChartCanvas trendData={trendData} height={248} />
+      <TrendChartCanvas
+        trendData={trendData}
+        height={286}
+        range={range}
+        onRangeChange={onRangeChange}
+        palette={palette}
+      />
     </section>
   );
 }
 
 export function DistributionPanel({
   distributionData,
+  range,
+  onRangeChange,
 }: {
   distributionData: NormalizedDistributionItem[];
+  range: DashboardRangeKey;
+  onRangeChange: (next: DashboardRangeKey) => void;
 }) {
+  const palette = useChartPalette();
+  const rangeLabel = getRangeLabel(range);
+
   return (
-    <section className="co-glass-panel dashboard-panel h-full">
+    <section className="co-glass-panel dashboard-panel h-full flex flex-col justify-between">
       <header className="dashboard-panel-header">
         <h3 className="dashboard-panel-title">
           <PieChartOutlined className="dashboard-panel-icon" />
-          本月成绩分布
+          成绩分布
         </h3>
+        <span className="dashboard-panel-meta">{rangeLabel}</span>
       </header>
-      <DistributionChartCanvas distributionData={distributionData} height={248} />
+      <DistributionChartCanvas
+        distributionData={distributionData}
+        height={286}
+        range={range}
+        onRangeChange={onRangeChange}
+        palette={palette}
+      />
     </section>
   );
 }
@@ -220,16 +349,20 @@ export function DistributionPanel({
 export function MobileInsightsPanel({
   trendData,
   distributionData,
+  range,
+  onRangeChange,
 }: {
   trendData: DashboardTrendItem[];
   distributionData: NormalizedDistributionItem[];
+  range: DashboardRangeKey;
+  onRangeChange: (next: DashboardRangeKey) => void;
 }) {
+  const palette = useChartPalette();
   const [activeTab, setActiveTab] = useState<'trend' | 'distribution'>('trend');
 
   return (
     <section className="co-glass-panel dashboard-panel dashboard-panel--mobile">
-      <header className="dashboard-panel-header">
-        <h3 className="dashboard-panel-title">数据概览</h3>
+      <header className="dashboard-panel-header dashboard-panel-header--wrap">
         <Segmented
           size="small"
           value={activeTab}
@@ -239,14 +372,29 @@ export function MobileInsightsPanel({
             { label: '成绩分布', value: 'distribution' },
           ]}
         />
+        <Segmented
+          size="small"
+          value={range}
+          onChange={(val) => onRangeChange(val as DashboardRangeKey)}
+          options={DASHBOARD_RANGE_OPTIONS}
+        />
       </header>
       {activeTab === 'trend' ? (
-        <TrendChartCanvas trendData={trendData} height={190} />
+        <TrendChartCanvas
+          trendData={trendData}
+          height={200}
+          range={range}
+          onRangeChange={onRangeChange}
+          palette={palette}
+        />
       ) : (
         <DistributionChartCanvas
           distributionData={distributionData}
-          height={190}
+          height={200}
           compact
+          range={range}
+          onRangeChange={onRangeChange}
+          palette={palette}
         />
       )}
     </section>

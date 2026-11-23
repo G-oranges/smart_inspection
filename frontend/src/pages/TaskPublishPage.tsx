@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FloatButton } from 'antd';
 import dayjs from 'dayjs';
 
@@ -398,6 +399,7 @@ function TaskPublishOverlays(props: TaskPublishOverlaysProps) {
 
 export default function TaskPublishPage() {
   const { data, actions, hasPermission, permissionsReady, setSelection } = useAppContext();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useMobile();
 
   const taskPublishData = createTaskPublishDataStore(data);
@@ -578,6 +580,19 @@ export default function TaskPublishPage() {
     setAppliedTaskSearch,
     setSelectedTaskIds,
   });
+
+  useEffect(() => {
+    if (!permissionsReady || !canCreateTasks) {
+      return;
+    }
+    if (searchParams.get('action') !== 'create') {
+      return;
+    }
+    handleOpenCreateModal();
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('action');
+    setSearchParams(nextParams, { replace: true });
+  }, [canCreateTasks, handleOpenCreateModal, permissionsReady, searchParams, setSearchParams]);
 
   const steps = [
     { title: '任务信息', description: isMobile ? undefined : '名称与时段' },

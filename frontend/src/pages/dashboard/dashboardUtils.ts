@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 
 import type {
   DashboardDistributionItem,
+  DashboardRangeKey,
   DashboardRecentInspection,
   DashboardSummary,
   DashboardTrendPoint,
@@ -21,11 +22,13 @@ export interface DashboardStatSnapshot {
   pendingAppeals: number;
   avgScoreValue: number;
   avgScoreText: string;
+  scoreDelta: number | null;
 }
 
 export interface DashboardTrendItem {
   month: string;
   score: number;
+  count: number;
 }
 
 export interface NormalizedDistributionItem {
@@ -52,6 +55,29 @@ export interface QuickActionConfig {
   path: string;
   tone: ScoreTone;
   badge?: number;
+}
+
+export const DASHBOARD_RANGE_OPTIONS: Array<{
+  label: string;
+  value: DashboardRangeKey;
+}> = [
+  { label: '近30天', value: 'month' },
+  { label: '近3月', value: '3m' },
+  { label: '近6月', value: '6m' },
+  { label: '全部', value: 'all' },
+];
+
+export function getRangeLabel(range: DashboardRangeKey): string {
+  switch (range) {
+    case 'month':
+      return '近 30 天';
+    case '3m':
+      return '近 3 个月';
+    case 'all':
+      return '全部记录';
+    default:
+      return '近 6 个月';
+  }
 }
 
 export function toFiniteNumber(value: number | string | null | undefined): number {
@@ -94,6 +120,11 @@ export function buildStatSnapshot(
   const activeTasks = toFiniteNumber(summary?.activeTasks);
   const pendingAppeals = toFiniteNumber(summary?.pendingAppeals);
   const avgScoreValue = toFiniteNumber(summary?.averageScore);
+  const rawDelta = summary?.scoreDelta;
+  const scoreDelta =
+    rawDelta !== null && rawDelta !== undefined && Number.isFinite(Number(rawDelta))
+      ? Number(Number(rawDelta).toFixed(1))
+      : null;
 
   return {
     totalStudents,
@@ -105,6 +136,7 @@ export function buildStatSnapshot(
     pendingAppeals,
     avgScoreValue,
     avgScoreText: avgScoreValue.toFixed(1),
+    scoreDelta,
   };
 }
 
@@ -114,6 +146,7 @@ export function normalizeTrendData(
   return (trendData || []).map((item) => ({
     month: item.label || '--',
     score: Number(toFiniteNumber(item.score).toFixed(1)),
+    count: toFiniteNumber(item.count),
   }));
 }
 
@@ -203,7 +236,7 @@ export function formatTaskLabel(item: DashboardRecentInspection): string {
   return '日常查寝';
 }
 
-export function formatInspectionTime(createdAt?: string): string {
+export function formatInspectionTime(createdAt?: string | null): string {
   if (!createdAt) {
     return '--';
   }
@@ -219,6 +252,35 @@ export function formatInspectionTime(createdAt?: string): string {
     return `今天 ${parsed.format('HH:mm')}`;
   }
   return parsed.format('MM-DD HH:mm');
+}
+
+export function formatDeadlineCountdown(deadline?: string | null): {
+  label: string;
+  urgent: boolean;
+} {
+  if (!deadline) {
+    return { label: '长期有效', urgent: false };
+  }
+  const target = dayjs(deadline);
+  if (!target.isValid()) {
+    return { label: '--', urgent: false };
+  }
+  const diffMinutes = target.diff(dayjs(), 'minute');
+  if (diffMinutes <= 0) {
+    return { label: '即将截止', urgent: true };
+  }
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) {
+    return {
+      label: diffHours < 1 ? `剩 ${diffMinutes} 分钟` : `剩 ${diffHours} 小时`,
+      urgent: true,
+    };
+  }
+  const diffDays = Math.ceil(diffHours / 24);
+  return {
+    label: `剩 ${diffDays} 天`,
+    urgent: diffDays <= 1,
+  };
 }
 
 export function normalizeRecentInspections(
@@ -255,14 +317,14 @@ export function buildQuickActions(
     {
       key: 'publish',
       label: '发布任务',
-      path: '/tasks/publish',
+      path: '/tasks/publish?action=create',
       tone: 'primary',
       visible: hasPermission('TASK_PUBLISH'),
     },
     {
       key: 'results',
       label: stats.pendingAppeals > 0 ? '处理申诉' : '查寝结果',
-      path: '/results',
+      path: stats.pendingAppeals > 0 ? '/results?focus=appeals' : '/results',
       tone: stats.pendingAppeals > 0 ? 'error' : 'success',
       badge: stats.pendingAppeals > 0 ? stats.pendingAppeals : undefined,
       visible: hasPermission('RESULT_VIEW'),
