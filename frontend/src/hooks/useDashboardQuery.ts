@@ -13,16 +13,40 @@ export interface DashboardDistributionItem {
   [key: string]: string | number | null | undefined;
 }
 
+export interface DashboardInspectionDorm {
+  id?: string;
+  building?: string | null;
+  floor?: number | null;
+  roomNo?: string | null;
+  name?: string | null;
+}
+
+export interface DashboardInspectionUser {
+  id?: string;
+  fullName?: string | null;
+  username?: string | null;
+}
+
+export interface DashboardInspectionTask {
+  id?: string;
+  title?: string | null;
+}
+
 export interface DashboardRecentInspection {
+  id?: string;
   totalScore?: number | string | null;
-  dormName?: string;
-  inspectorName?: string;
-  taskTitle?: string;
+  dormName?: string | null;
+  inspectorName?: string | null;
+  taskTitle?: string | null;
   createdAt?: string;
+  dorm?: DashboardInspectionDorm | null;
+  createdBy?: DashboardInspectionUser | null;
+  task?: DashboardInspectionTask | null;
   [key: string]: unknown;
 }
 
 export interface DashboardSummary {
+  totalStudents?: number;
   totalDorms?: number;
   totalBeds?: number;
   occupiedBeds?: number;
@@ -35,13 +59,14 @@ export interface DashboardSummary {
   [key: string]: unknown;
 }
 
-const DASHBOARD_SUMMARY_QUERY_KEY = ['dashboard', 'summary'] as const;
+const DASHBOARD_SUMMARY_BASE_KEY = ['dashboard', 'summary'] as const;
 
-export function useDashboardSummary() {
+export function useDashboardSummary(roleKey?: string | number | null) {
   const hasToken = tokenManager.hasTokens();
+  const scopedKey = [...DASHBOARD_SUMMARY_BASE_KEY, roleKey ?? 'default'] as const;
 
   return useQuery<DashboardSummary | null>({
-    queryKey: DASHBOARD_SUMMARY_QUERY_KEY,
+    queryKey: scopedKey,
     queryFn: async () => {
       if (!hasToken) {
         return null;
@@ -60,6 +85,6 @@ export function useInvalidateDashboard() {
 
   return {
     invalidateSummary: () =>
-      queryClient.invalidateQueries({ queryKey: DASHBOARD_SUMMARY_QUERY_KEY }),
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_SUMMARY_BASE_KEY }),
   };
 }
