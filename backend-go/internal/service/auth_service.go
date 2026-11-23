@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -228,9 +227,9 @@ func (s *authService) VerifyPassword(id, password string) (string, error) {
 	}
 
 	// 生成一个短期的"已验证"令牌 (5分钟)
-	secret := []byte(os.Getenv("JWT_SECRET"))
-	if len(secret) == 0 {
-		secret = []byte("default_secret_for_dev_only")
+	secret, err := utils.JWTSecret()
+	if err != nil {
+		return "", err
 	}
 
 	claims := &utils.Claims{

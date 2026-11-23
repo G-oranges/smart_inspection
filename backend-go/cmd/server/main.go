@@ -30,6 +30,14 @@ func main() {
 		log.Printf("Warning: Error loading shared .env file from ../backend/.env: %v", err)
 	}
 
+	// 校验 JWT 密钥配置：非开发环境缺失或过短时拒绝启动，避免使用可被伪造的默认密钥
+	if err := utils.ValidateJWTConfig(); err != nil {
+		log.Fatalf("JWT 配置无效: %v", err)
+	}
+	if utils.IsDevEnvironment() && os.Getenv("JWT_SECRET") == "" {
+		log.Println("Warning: JWT_SECRET 未配置，正在使用开发环境默认密钥（仅限本地开发）")
+	}
+
 	// 初始化数据库连接
 	initDB()
 

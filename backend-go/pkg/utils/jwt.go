@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -25,9 +24,9 @@ const (
 // GenerateAccessToken 生成访问令牌（短期）
 // tokenVersion: 用户当前的 token 版本号，用于禁用/改密后失效旧 Token
 func GenerateAccessToken(id, role string, tokenVersion int) (string, error) {
-	secret := []byte(os.Getenv("JWT_SECRET"))
-	if len(secret) == 0 {
-		secret = []byte("default_secret_for_dev_only")
+	secret, err := JWTSecret()
+	if err != nil {
+		return "", err
 	}
 
 	claims := &Claims{
@@ -48,14 +47,9 @@ func GenerateAccessToken(id, role string, tokenVersion int) (string, error) {
 // GenerateRefreshToken 生成刷新令牌（长期）
 // tokenVersion: 用户当前的 token 版本号，用于禁用/改密后失效旧 Refresh Token
 func GenerateRefreshToken(id string, tokenVersion int) (string, error) {
-	secret := []byte(os.Getenv("JWT_REFRESH_SECRET"))
-	if len(secret) == 0 {
-		// 如果未配置，使用派生密钥（匹配 Node.js 逻辑）
-		jwtSecret := os.Getenv("JWT_SECRET")
-		if jwtSecret == "" {
-			jwtSecret = "default_secret_for_dev_only"
-		}
-		secret = []byte(jwtSecret + "_refresh")
+	secret, err := JWTRefreshSecret()
+	if err != nil {
+		return "", err
 	}
 
 	claims := &Claims{
@@ -74,9 +68,9 @@ func GenerateRefreshToken(id string, tokenVersion int) (string, error) {
 
 // ParseToken 解析并验证 JWT Access Token
 func ParseToken(tokenString string) (*Claims, error) {
-	secret := []byte(os.Getenv("JWT_SECRET"))
-	if len(secret) == 0 {
-		secret = []byte("default_secret_for_dev_only")
+	secret, err := JWTSecret()
+	if err != nil {
+		return nil, err
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
@@ -102,13 +96,9 @@ func ParseToken(tokenString string) (*Claims, error) {
 
 // ParseRefreshToken 解析并验证 JWT Refresh Token
 func ParseRefreshToken(tokenString string) (*Claims, error) {
-	secret := []byte(os.Getenv("JWT_REFRESH_SECRET"))
-	if len(secret) == 0 {
-		jwtSecret := os.Getenv("JWT_SECRET")
-		if jwtSecret == "" {
-			jwtSecret = "default_secret_for_dev_only"
-		}
-		secret = []byte(jwtSecret + "_refresh")
+	secret, err := JWTRefreshSecret()
+	if err != nil {
+		return nil, err
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
