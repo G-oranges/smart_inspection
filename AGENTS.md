@@ -24,8 +24,7 @@
 ### Style Entry
 
 - `frontend/src/styles/index.css` 是唯一全局样式入口。
-- 不要新增第二个全局样式入口。
-- 不要把新规范回写到 `App.css` 作为首选路径；`App.css` 仅视作迁移兼容层。
+- 不要新增第二个全局样式入口，也不要重新创建 `App.css` 或 `src/index.css`。
 
 ### Management Theme
 

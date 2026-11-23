@@ -1,6 +1,7 @@
 # 桌面端弹窗统一规范（co-modal）
 
 > 适用范围：所有桌面端（>= 768px）的 `antd Modal`。移动端底部抽屉、ActionSheet、全屏弹窗不受此规范约束。
+> 总体样式范式：[前端样式总体范式（Style Handbook）](./style_handbook.md)
 > 样式实现：`frontend/src/styles/components/overlay.css`（`co-modal` 段落）
 > 宽度档位：`frontend/src/components/common/modalSizes.ts`
 
@@ -93,8 +94,7 @@ import { MODAL_WIDTH } from "@/components/common/modalSizes"; // 按相对路径
 
 | 弹窗 | 文件 | 标题 | 宽度 |
 | --- | --- | --- | --- |
-| 修改密码（新版布局） | `layouts/AppLayout.tsx` | 修改密码 / 请先修改密码 | sm |
-| 修改密码（旧布局） | `components/Layout.tsx` | 修改密码 | sm |
+| 修改密码 | `layouts/AppLayout.tsx` | 修改密码 / 请先修改密码 | sm |
 | 床位详情 | `components/BedDetailModal.tsx` | N号床 | sm |
 | 宿位异动 / 入住分配 | `components/ResidencyAdjustModal.tsx` | 宿位异动 / 入住分配 | xl |
 | 字段设置 | `components/TableFieldSettings.tsx` | 传入标题 | lg |
