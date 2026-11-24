@@ -68,7 +68,7 @@ export default function DashboardMyDormCard({
           </span>
         </div>
         <div className="dashboard-my-dorm__metric">
-          <span className="dashboard-my-dorm__metric-label">待审申诉</span>
+          <span className="dashboard-my-dorm__metric-label">待处理申诉</span>
           <span
             className="dashboard-my-dorm__metric-val"
             data-tone={summary.myPendingAppeals > 0 ? 'error' : 'primary'}
@@ -84,7 +84,7 @@ export default function DashboardMyDormCard({
           onClick={() => navigate('/results')}
           className="apple-btn-secondary dashboard-my-dorm__cta co-press"
         >
-          <span>查看成绩与申诉</span>
+          <span>查看查寝成绩</span>
           <ArrowRightOutlined />
         </button>
       ) : null}

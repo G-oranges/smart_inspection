@@ -91,7 +91,7 @@ export const AuditLogTable = ({
                   borderRadius: 6,
                   border: "1px solid #f0f0f0"
                 }}>
-                  <Text strong style={{ minWidth: 100, color: "var(--co-text-secondary)" }}>{label}:</Text>
+                  <Text strong style={{ minWidth: 100, color: "var(--co-text-secondary)" }}>{label}：</Text>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
                     <Tag color="red" style={{ margin: 0 }}>
                       {formatFieldValue(field, oldVal)}
@@ -115,7 +115,7 @@ export const AuditLogTable = ({
               readArrayLength(oldValue, 'dorms') !== null &&
               readArrayLength(newValue, 'dorms') !== null ? (
                 <div>
-                  <Text type="secondary">宿舍列表变更:</Text>
+                  <Text type="secondary">宿舍列表变更：</Text>
                   <span style={{ marginLeft: 8 }}>
                     <Text delete>{readArrayLength(oldValue, 'dorms') || 0} 个</Text>
                     <SwapOutlined style={{ margin: "0 8px", color: "var(--co-text-muted)" }} />
@@ -127,7 +127,7 @@ export const AuditLogTable = ({
               readArrayLength(oldValue, 'executors') !== null &&
               readArrayLength(newValue, 'executors') !== null ? (
                 <div>
-                  <Text type="secondary">执行人变更:</Text>
+                  <Text type="secondary">执行人变更：</Text>
                   <span style={{ marginLeft: 8 }}>
                     <Text delete>{readArrayLength(oldValue, 'executors') || 0} 人</Text>
                     <SwapOutlined style={{ margin: "0 8px", color: "var(--co-text-muted)" }} />
@@ -155,7 +155,7 @@ export const AuditLogTable = ({
       ),
     },
     {
-      title: "操作",
+      title: "操作类型",
       dataIndex: "action",
       key: "action",
       width: 110,
@@ -226,7 +226,7 @@ export const AuditLogTable = ({
       ),
     },
     {
-      title: "IP地址",
+      title: "IP 地址",
       dataIndex: "ipAddress",
       key: "ipAddress",
       width: 130,

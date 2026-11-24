@@ -8,7 +8,7 @@ import type { AppSettings } from '../types/app';
 const DEFAULT_SETTINGS: AppSettings = {
   gradingRules: [
     { label: '不合格', min: null, max: 60 },
-    { label: '一般', min: 60, max: 75 },
+    { label: '合格', min: 60, max: 75 },
     { label: '良好', min: 75, max: 90 },
     { label: '优秀', min: 90, max: null },
   ],

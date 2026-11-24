@@ -189,7 +189,7 @@ export function OverviewFiltersSection({
             icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
             onClick={onOpenSettings}
           >
-            字段管理
+            字段设置
           </Button>
         </div>
       </div>

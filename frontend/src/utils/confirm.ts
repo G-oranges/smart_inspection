@@ -25,7 +25,7 @@ interface ConfirmDangerCountdownOptions extends Omit<ModalFuncProps, 'okType' | 
  * @param {Object}           options
  * @param {string}           options.title       - 弹窗标题
  * @param {React.ReactNode}  options.content     - 弹窗内容
- * @param {string}           [options.okText="是否确认"] - 确认按钮文字
+ * @param {string}           [options.okText="确认删除"] - 确认按钮文字
  * @param {string}           [options.cancelText="取消"] - 取消按钮文字
  * @param {number}           [options.seconds=5] - 倒计时秒数
  * @param {Object}           [options.rest]      - 其他 Modal.confirm 配置（不可覆盖 okType/maskClosable/keyboard）
@@ -34,7 +34,7 @@ interface ConfirmDangerCountdownOptions extends Omit<ModalFuncProps, 'okType' | 
 export async function confirmDangerCountdown({
   title,
   content,
-  okText = "是否确认",
+  okText = "确认删除",
   cancelText = "取消",
   seconds = 5,
   ...rest

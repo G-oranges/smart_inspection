@@ -188,8 +188,8 @@ function coerceValue(
             rowNo,
             errorType: 'B', // 枚举不合法为 B 类
             errorCode: PreprocessErrorCodes.INVALID_ENUM_VALUE,
-            reason: `${label} 值 [${result.value}] 不在允许范围内`,
-            suggestion: `请使用以下值之一：${enumValues.join('、')}`,
+            reason: `${label}「${result.value}」不在允许范围内`,
+            suggestion: `请填写以下选项之一：${enumValues.join('、')}`,
             affectedFields: [key],
           }
         };
@@ -227,8 +227,8 @@ function coerceValue(
             rowNo,
             errorType: 'A', // 明确的枚举类型，校验失败为 A 类
             errorCode: PreprocessErrorCodes.INVALID_ENUM_VALUE,
-            reason: `${label} 值 [${result.value}] 不在允许范围内`,
-            suggestion: `请使用以下值之一：${enumValues.join('、')}`,
+            reason: `${label}「${result.value}」不在允许范围内`,
+            suggestion: `请填写以下选项之一：${enumValues.join('、')}`,
             affectedFields: [key],
           }
         };
@@ -283,8 +283,8 @@ function coerceToString(
             rowNo,
             errorType: 'A',
             errorCode: PreprocessErrorCodes.INVALID_SCI_NOTATION,
-            reason: `${label} 值 [${value}] 包含小数，无法作为编码使用`,
-            suggestion: '请将该单元格设置为"文本"格式后重新填写完整编号；编码类字段建议使用文本格式以保留前导 0',
+            reason: `${label}「${value}」包含小数，请填写完整编号`,
+            suggestion: '请将该单元格设为文本格式后重新填写',
             affectedFields: [fieldKey],
           }
         };
@@ -300,8 +300,8 @@ function coerceToString(
             rowNo,
             errorType: 'A',
             errorCode: PreprocessErrorCodes.INVALID_SCI_NOTATION,
-            reason: `${label} 值 [${strValue}] 为科学计数法，可能丢失精度`,
-            suggestion: '请将该单元格设置为"文本"格式后重新填写完整编号',
+            reason: `${label}「${strValue}」被表格转为科学计数法，可能丢失数字`,
+            suggestion: '请将该单元格设为文本格式后重新填写完整内容',
             affectedFields: [fieldKey],
           }
         };
@@ -359,8 +359,8 @@ function coerceToNumber(
         rowNo,
         errorType: 'A',
         errorCode: PreprocessErrorCodes.TYPE_COERCION_FAILED,
-        reason: `${label} 值 [${value}] 无法转换为数字`,
-        suggestion: '请输入有效的数字',
+        reason: `${label}「${value}」不是有效数字`,
+        suggestion: '请输入有效数字',
         affectedFields: [fieldKey],
       }
     };
@@ -375,7 +375,7 @@ function coerceToNumber(
         rowNo,
         errorType: 'A',
         errorCode: PreprocessErrorCodes.INVALID_INTEGER_VALUE,
-        reason: `${label} 值 [${numValue}] 必须为整数`,
+        reason: `${label}「${numValue}」必须为整数`,
         suggestion: '请输入整数（不含小数）',
         affectedFields: [fieldKey],
       }
@@ -391,8 +391,8 @@ function coerceToNumber(
         rowNo,
         errorType: 'A',
         errorCode: PreprocessErrorCodes.VALUE_OUT_OF_RANGE,
-        reason: `${label} 值 [${numValue}] 小于最小值 ${min}`,
-        suggestion: `请输入 ${min} 以上的数值`,
+        reason: `${label}「${numValue}」不能小于 ${min}`,
+        suggestion: `请输入不小于 ${min} 的数值`,
         affectedFields: [fieldKey],
       }
     };
@@ -405,8 +405,8 @@ function coerceToNumber(
         rowNo,
         errorType: 'A',
         errorCode: PreprocessErrorCodes.VALUE_OUT_OF_RANGE,
-        reason: `${label} 值 [${numValue}] 大于最大值 ${max}`,
-        suggestion: `请输入 ${max} 以下的数值`,
+        reason: `${label}「${numValue}」不能大于 ${max}`,
+        suggestion: `请输入不大于 ${max} 的数值`,
         affectedFields: [fieldKey],
       }
     };

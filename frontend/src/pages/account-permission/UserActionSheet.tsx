@@ -29,12 +29,11 @@ export default function UserActionSheet({
     <IOSActionSheet
       open={open}
       onClose={onClose}
-      title={`已选择 ${selectedCount} 个账号`}
-      subtitle="可执行批量管理操作"
+      title={`已选 ${selectedCount} 个用户`}
       actions={[
         {
           key: "reset",
-          label: "密码初始化",
+          label: "重置密码",
           icon: <LockOutlined />,
           type: "default",
           onClick: () => {
@@ -44,7 +43,7 @@ export default function UserActionSheet({
         },
         {
           key: "delete",
-          label: "彻底删除账号",
+          label: "删除用户",
           icon: <DeleteOutlined />,
           type: "danger",
           onClick: () => {

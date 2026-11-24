@@ -270,7 +270,7 @@ function BuildingFiltersBar({
                 icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
                 onClick={() => setSettingsOpen(true)}
               >
-                字段管理
+                字段设置
               </Button>
               {selectedIds.length > 0 ? (
                 <Button
@@ -669,14 +669,6 @@ export default function BuildingManagementPage() {
           />
         }
       >
-        <div className="table-head dorm-table-head mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="dorm-table-head-accent" />
-            <h3 className="dorm-table-head-title">实时列表</h3>
-          </div>
-          <div className="flex items-center gap-2" />
-        </div>
-
         <div className="table-wrapper dorm-table-wrapper">
           <BuildingTablePane
             isMobile={isMobile}

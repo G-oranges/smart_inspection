@@ -74,6 +74,7 @@ export interface UseAuditLogActionsProps {
 export interface AuditLogActionsResult {
   logs: AuditLogRecord[];
   loading: boolean;
+  error: string;
   options: AuditLogOptions;
   stats: AuditLogStatsState;
   loadLogs: (page?: number, pageSize?: number) => Promise<void>;

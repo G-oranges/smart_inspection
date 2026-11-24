@@ -127,13 +127,6 @@ export default function TableFieldSettings({
         </div>
       }
     >
-      <div className="bg-blue-50/50 dark:bg-blue-500/5 p-3 rounded-xl mb-4 border border-blue-100/50 dark:border-blue-500/10">
-        <p className="text-xs text-blue-600 dark:text-blue-400 m-0 flex items-center gap-2">
-          <HolderOutlined />
-          提示：长按拖动左侧图标可调整列显示顺序，勾选框控制列表展示项与排序功能。
-        </p>
-      </div>
-
       <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
         <div className="flex flex-col gap-2">
           {draft.map((col, index) => (
@@ -154,21 +147,8 @@ export default function TableFieldSettings({
                 <HolderOutlined style={{ fontSize: 18 }} />
               </div>
 
-              {/* 字段标识 */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[11px] font-medium px-1.5 py-0.5 bg-gray-100 dark:bg-white/10 rounded text-gray-500 uppercase tracking-wider">
-                    {col.fieldKey}
-                  </span>
-                  {col.required && (
-                    <Tag
-                      color="error"
-                      className="text-[10px] scale-90 border-none rounded-full"
-                    >
-                      必填
-                    </Tag>
-                  )}
-                </div>
+              {/* 字段名称 */}
+              <div className="flex-1 min-w-0 flex items-center gap-2">
                 <Input
                   variant="borderless"
                   className="p-0 text-sm font-bold text-gray-800 dark:text-gray-200 !bg-transparent hover:!placeholder-blue-300"
@@ -178,6 +158,14 @@ export default function TableFieldSettings({
                     handleChange(col.fieldKey, { label: e.target.value })
                   }
                 />
+                {col.required && (
+                  <Tag
+                    color="error"
+                    className="text-[10px] scale-90 border-none rounded-full shrink-0"
+                  >
+                    必填
+                  </Tag>
+                )}
               </div>
 
               {/* 控件组 */}

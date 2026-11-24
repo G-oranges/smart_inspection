@@ -83,7 +83,7 @@ function useSingleAccountState(
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          message.error(error instanceof Error ? error.message : '加载账号授权失败');
+          message.error(error instanceof Error ? error.message : '加载用户授权失败');
         }
       })
       .finally(() => {
@@ -111,7 +111,7 @@ function useSingleAccountState(
           rules: scope.rules,
         });
       }
-      message.success('账号数据范围已保存');
+      message.success('用户数据范围已保存');
     } catch (error) {
       message.error(error instanceof Error ? error.message : '保存数据范围失败');
     } finally {
@@ -284,7 +284,7 @@ export default function BatchAuthSection({
           <h3 className="dorm-table-head-title">授权配置</h3>
         </div>
         <div className="table-head-actions">
-          <Tag color="blue">已选择 {selectedUserIds.length} 个账号</Tag>
+          <Tag color="blue">已选 {selectedUserIds.length} 个用户</Tag>
           <Button
             type="primary"
             onClick={() => onSave(account.baseline)}
@@ -348,10 +348,10 @@ export default function BatchAuthSection({
           <div className="table-head dorm-table-head mb-4">
             <div className="flex items-center gap-2">
               <div className="dorm-table-head-accent" />
-              <h3 className="dorm-table-head-title">账户列表</h3>
+              <h3 className="dorm-table-head-title">用户列表</h3>
             </div>
             <div className="table-head-actions">
-              {selectedUserIds.length ? <Tag color="blue">已选择 {selectedUserIds.length} 个账号</Tag> : null}
+              {selectedUserIds.length ? <Tag color="blue">已选 {selectedUserIds.length} 个用户</Tag> : null}
             </div>
           </div>
           {userTable}
@@ -366,10 +366,10 @@ export default function BatchAuthSection({
     <Card className="table-card glass-card" variant="borderless">
       <div className="table-head">
         <div>
-          <h3 className="section-title">账户单独授权</h3>
+          <h3 className="section-title">用户例外授权</h3>
         </div>
         <div className="table-head-actions">
-          {selectedUserIds.length ? <Tag color="blue">已选择 {selectedUserIds.length} 个账号</Tag> : null}
+          {selectedUserIds.length ? <Tag color="blue">已选 {selectedUserIds.length} 个用户</Tag> : null}
         </div>
       </div>
       {userTable}

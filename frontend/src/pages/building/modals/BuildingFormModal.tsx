@@ -53,6 +53,7 @@ export function BuildingFormModal({
   isEditing,
 }: BuildingFormModalProps) {
   const title = isEditing ? "编辑楼栋" : "新增楼栋";
+  const submitLabel = isEditing ? "保存修改" : "新增楼栋";
 
   const formContent = (
     <Form
@@ -66,7 +67,7 @@ export function BuildingFormModal({
         label="楼栋名称"
         rules={[{ required: true, message: "请输入楼栋名称" }]}
       >
-        <Input className="apple-input" placeholder="例如: 荟园1栋" />
+        <Input className="apple-input" placeholder="例如：荟园 1 栋" />
       </Form.Item>
 
       {isMobile ? (
@@ -77,7 +78,7 @@ export function BuildingFormModal({
               label="校区"
               rules={[{ required: true, message: "请输入校区" }]}
             >
-              <Input className="apple-input" placeholder="例如: 本部" />
+              <Input className="apple-input" placeholder="例如：本部" />
             </Form.Item>
             <Form.Item name="type" label="类型" rules={[{ required: true }]}>
               <PanelSelect className="apple-select" classNames={{ popup: { root: "apple-dropdown" } }}>
@@ -99,7 +100,7 @@ export function BuildingFormModal({
             >
               <InputNumber min={1} max={50} className="apple-input-number w-full" />
             </Form.Item>
-            <Form.Item name="hasElevator" label="是否有电梯" valuePropName="checked" className="mb-0">
+            <Form.Item name="hasElevator" label="电梯" valuePropName="checked" className="mb-0">
               <Switch className="apple-switch" checkedChildren="有" unCheckedChildren="无" />
             </Form.Item>
           </div>
@@ -117,7 +118,7 @@ export function BuildingFormModal({
                 label="校区"
                 rules={[{ required: true, message: "请输入校区" }]}
               >
-                <Input className="apple-input" placeholder="例如: 本部" />
+                <Input className="apple-input" placeholder="例如：本部" />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -144,7 +145,7 @@ export function BuildingFormModal({
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="hasElevator" label="是否有电梯" valuePropName="checked">
+              <Form.Item name="hasElevator" label="电梯" valuePropName="checked">
                 <Switch className="apple-switch" checkedChildren="有" unCheckedChildren="无" />
               </Form.Item>
             </Col>
@@ -173,7 +174,7 @@ export function BuildingFormModal({
               取消
             </Button>
             <Button type="primary" className="apple-btn-primary" onClick={onOk}>
-              提交
+              {submitLabel}
             </Button>
           </Space>
         }
@@ -198,7 +199,7 @@ export function BuildingFormModal({
           取消
         </Button>,
         <Button key="ok" type="primary" className="apple-btn-primary" onClick={onOk}>
-          确认提交
+          {submitLabel}
         </Button>,
       ]}
     >

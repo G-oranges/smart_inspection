@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FloatButton } from 'antd';
+import { Button, FloatButton } from 'antd';
 
 import PageLayout from '../components/PageLayout';
 import ResponsiveDataView from '../components/ResponsiveDataView';
@@ -42,6 +42,7 @@ export default function AuditLogPage() {
   const {
     logs,
     loading,
+    error,
     options,
     stats,
     loadLogs,
@@ -62,6 +63,24 @@ export default function AuditLogPage() {
   const handleReset = (): void => {
     setFilters(INITIAL_FILTERS);
   };
+
+  const handleRetry = (): void => {
+    void loadLogs(pagination.current, pagination.pageSize);
+    void loadStats();
+  };
+
+  const hasActiveFilters =
+    filters.action.length > 0 ||
+    filters.module.length > 0 ||
+    Boolean(filters.keyword.trim()) ||
+    Boolean(filters.dateRange);
+
+  const errorBlock = error ? (
+    <div className="error" style={{ padding: 24, textAlign: 'center' }}>
+      <p>{error}</p>
+      <Button onClick={handleRetry}>重新加载</Button>
+    </div>
+  ) : null;
 
   return (
     <>
@@ -88,24 +107,26 @@ export default function AuditLogPage() {
           }
         >
           {isMobile ? (
-            <ResponsiveDataView<AuditLogRecord>
-              isMobile
-              dataSource={logs}
-              loading={loading}
-              rowKey="id"
-              emptyText="暂无审计日志"
-              pagination={{
-                current: pagination.current,
-                pageSize: pagination.pageSize,
-                total: pagination.total,
-              }}
-              onPaginationChange={(page: number, pageSize: number) => {
-                handleTableChange({ current: page, pageSize });
-              }}
-              renderCard={(log: AuditLogRecord) => (
-                <AuditLogMobileCard log={log} options={options} />
-              )}
-            />
+            errorBlock || (
+              <ResponsiveDataView<AuditLogRecord>
+                isMobile
+                dataSource={logs}
+                loading={loading}
+                rowKey="id"
+                emptyText={hasActiveFilters ? '没有匹配的审计日志' : '暂无审计日志'}
+                pagination={{
+                  current: pagination.current,
+                  pageSize: pagination.pageSize,
+                  total: pagination.total,
+                }}
+                onPaginationChange={(page: number, pageSize: number) => {
+                  handleTableChange({ current: page, pageSize });
+                }}
+                renderCard={(log: AuditLogRecord) => (
+                  <AuditLogMobileCard log={log} options={options} />
+                )}
+              />
+            )
           ) : (
             <>
               <div className="table-head dorm-table-head mb-4">
@@ -115,13 +136,15 @@ export default function AuditLogPage() {
                 </div>
               </div>
               <div className="table-wrapper dorm-table-wrapper">
-                <AuditLogTable
-                  logs={logs}
-                  loading={loading}
-                  pagination={pagination}
-                  handleTableChange={handleTableChange}
-                  options={options}
-                />
+                {errorBlock || (
+                  <AuditLogTable
+                    logs={logs}
+                    loading={loading}
+                    pagination={pagination}
+                    handleTableChange={handleTableChange}
+                    options={options}
+                  />
+                )}
               </div>
             </>
           )}

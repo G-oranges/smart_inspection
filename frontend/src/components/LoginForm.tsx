@@ -48,13 +48,10 @@ export default function LoginForm({
       </div>
 
       {/* 品牌区域 */}
-      <div className="text-center mb-10">
-        <h1 className="text-[28px] font-black tracking-tight text-black dark:text-white leading-tight mb-2">
-          查寝管理系统
+      <div className="text-center mb-8">
+        <h1 className="text-[28px] font-black tracking-tight text-black dark:text-white leading-tight">
+          宿舍管理系统
         </h1>
-        <p className="text-[14px] font-bold text-ios-gray-label uppercase tracking-widest">
-          Smart Inspection AI
-        </p>
       </div>
 
       {/* 登录表单 */}
@@ -67,13 +64,14 @@ export default function LoginForm({
       >
         <Form.Item
           name="username"
-          rules={[{ required: true, message: "请输入用户名" }]}
+          label="账号"
+          rules={[{ required: true, message: "请输入账号" }]}
         >
           <Input
             id="username"
             name="username"
             prefix={<UserOutlined className="text-ios-gray-label" />}
-            placeholder="用户名"
+            placeholder="学号或工号"
             className="apple-input h-14"
             autoComplete="username"
           />
@@ -81,6 +79,7 @@ export default function LoginForm({
 
         <Form.Item
           name="password"
+          label="密码"
           rules={[{ required: true, message: "请输入密码" }]}
           className="!mb-4"
         >
@@ -88,7 +87,7 @@ export default function LoginForm({
             id="password"
             name="password"
             prefix={<LockOutlined className="text-ios-gray-label" />}
-            placeholder="密码"
+            placeholder="输入密码"
             className="apple-input h-14"
             autoComplete="current-password"
             iconRender={(visible) =>
@@ -125,18 +124,10 @@ export default function LoginForm({
             block
             className="h-14 rounded-2xl text-[17px] font-black bg-ios-blue border-none shadow-lg shadow-ios-blue/30 active-press"
           >
-            {loading ? "正在验证..." : "马上进入"}
+            登录
           </Button>
         </Form.Item>
       </Form>
-
-      {/* 底部版权 */}
-      <div className="mt-12 text-center">
-        <div className="h-[1px] w-12 bg-ios-gray-label/20 mx-auto mb-4"></div>
-        <p className="text-[11px] font-bold text-ios-gray-label uppercase tracking-widest opacity-50">
-          © 2026 Smart Dormitory Protocol
-        </p>
-      </div>
     </div>
   );
 }

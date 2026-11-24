@@ -259,7 +259,7 @@ export function useAuth(): UseAuthResult {
   const changePassword = useCallback(
     async (oldPassword: string, newPassword: string): Promise<unknown> => {
       if (!token) {
-        throw new Error('尚未登录');
+        throw new Error('未登录');
       }
 
       return authService.changePassword(oldPassword, newPassword);

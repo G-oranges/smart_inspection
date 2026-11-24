@@ -63,7 +63,7 @@ function resolveDefaultIcon(variant: PermissionDeniedVariant) {
 
 export default function PermissionDeniedState({
   mode = 'page',
-  eyebrow = '权限不足',
+  eyebrow,
   title = '访问受限',
   subtitle,
   message,

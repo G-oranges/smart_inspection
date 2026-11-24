@@ -20,13 +20,13 @@ export const DEFAULT_DEDUCTIONS: ResultEntryDeductionItem[] = [
 
 export const DEFAULT_SCORE_RULES: GradingRule[] = [
   { label: '不合格', min: null, max: 60 },
-  { label: '一般', min: 60, max: 75 },
+  { label: '合格', min: 60, max: 75 },
   { label: '良好', min: 75, max: 90 },
   { label: '优秀', min: 90, max: null },
 ];
 
 export const DEFAULT_LOCATION_OPTIONS: string[] = [
-  '通用',
+  '公共区域',
   '床位1',
   '床位2',
   '床位3',

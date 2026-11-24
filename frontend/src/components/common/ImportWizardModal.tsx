@@ -249,8 +249,8 @@ const ERROR_CODE_META = {
   VALUE_OUT_OF_RANGE: '数值超出允许范围',
   INVALID_INTEGER_VALUE: '应为整数格式',
   REQUIRED_FIELD_MISSING: '必填项缺失',
-  INVALID_FORMAT: '数据格式非法',
-  DUPLICATE_KEY: '唯一键冲突/数据已存在',
+  INVALID_FORMAT: '数据格式不正确',
+  DUPLICATE_KEY: '记录已存在',
   DATA_NOT_FOUND: '关联的基础数据不存在',
   TYPE_MISMATCH: '字段类型不匹配',
 } satisfies Record<string, string>;
@@ -421,12 +421,12 @@ const ImportWizardModal = ({
 
   // 步骤定义
   const steps = [
-    { title: '下载模板', description: '获取规范格式' },
-    { title: '上传文件', description: '解析 Sheet' },
-    { title: '字段映射', description: '确认口径' },
-    { title: '数据预检', description: '逻辑校验' },
-    { title: '确认策略', description: '冲突处理' },
-    { title: '执行工作', description: '结果复盘' },
+    { title: '下载模板' },
+    { title: '上传文件' },
+    { title: '字段映射' },
+    { title: '数据预检' },
+    { title: '确认策略' },
+    { title: '导入结果' },
   ];
 
   // 解析 Excel 文件获取 Sheet 名称
@@ -472,7 +472,7 @@ const ImportWizardModal = ({
     const maxFileSize = config?.limits?.maxFileSize || 5 * 1024 * 1024; // 默认 5MB
     if (file.size > maxFileSize) {
       const sizeMB = (maxFileSize / 1024 / 1024).toFixed(0);
-      message.error(`文件大小超出限制（最大 ${sizeMB}MB）`);
+      message.error(`文件大小超出限制（最大 ${sizeMB} MB）`);
       return Upload.LIST_IGNORE;
     }
 
@@ -565,7 +565,7 @@ const ImportWizardModal = ({
     
     // 空数据行检测
     if (dataRows.length === 0) {
-      const messageText = '所选工作表无有效数据行（仅表头或空表），请补充数据或更换 Sheet。';
+      const messageText = '所选工作表无有效数据行（仅表头或空表），请补充数据或更换工作表。';
       setSheetValidationError(messageText);
       return { valid: false, message: messageText, headers };
     }
@@ -684,7 +684,7 @@ const ImportWizardModal = ({
 
   const handleNext = async () => {
     if (current === 1 && !selectedSheet) {
-      message.warning('请选择需要导入的工作表（Sheet）');
+      message.warning('请选择需要导入的工作表');
       return;
     }
 
@@ -944,7 +944,6 @@ const ImportWizardModal = ({
           _errorRowCount: previewResult?.errorRowCount || 0,
         });
         onSuccess?.();
-        message.success('导入执行完毕');
         setCurrent(current + 1);
       }, 500);
     } catch (err) {
@@ -1176,18 +1175,18 @@ const ImportWizardModal = ({
     () => [
       {
         key: 'SKIP',
-        title: '跳过重复项 (SKIP)',
+        title: '跳过重复项',
         desc: '保持系统中已有记录不动，仅导入新条目。',
         detail:
-          '安全策略。适用于批量补录场景。如果 Excel 中的信息与系统不一致，系统记录将保持不变。',
+          '适用于批量补录场景。如果 Excel 中的信息与系统不一致，系统记录将保持不变。',
         icon: <ClearOutlined className="text-xl" />,
       },
       {
         key: 'OVERWRITE',
-        title: '覆盖现有数据 (OVERWRITE)',
+        title: '覆盖已有数据',
         desc: '以 Excel 为准，更新系统中已存在的记录。',
         detail:
-          '更新策略。适用于数据清洗或大规模信息修正场景。Excel 中的非空值将强制更新到系统对应字段。',
+          '适用于批量修正数据场景。Excel 中的非空值将覆盖更新到系统对应字段。',
         icon: <ReloadOutlined className="text-xl" />,
       },
     ],
@@ -1303,7 +1302,7 @@ const ImportWizardModal = ({
         };
       case 3: // 数据预检 (Step 4)
         return {
-          text: canContinueImport ? `继续导入（${importableRowCount} 行）` : '无可导入数据',
+          text: canContinueImport ? `继续导入（${importableRowCount} 行）` : '继续导入',
           onClick: handleNext,
           disabled: !canContinueImport,
           loading: loading,
@@ -1317,9 +1316,9 @@ const ImportWizardModal = ({
           loading: loading,
           icon: null,
         };
-      case 5: // 执行完成 (Step 6) - 主按钮为"完成退出"
+      case 5: // 执行完成 (Step 6) - 主按钮为"完成"
         return {
-          text: '完成退出',
+          text: '完成',
           onClick: onClose,
           disabled: false,
           loading: false,
@@ -1370,7 +1369,7 @@ const ImportWizardModal = ({
                   </div>
                   <div className="flex-1">
                     <Text strong className="block text-base dark:text-white/95">{config?.template?.sampleTemplateName || '示例模板.xlsx'}</Text>
-                    <Text type="secondary" className="text-xs dark:text-white/30">包含演示数据，帮助快速理解规范</Text>
+                    <Text type="secondary" className="text-xs dark:text-white/30">含 1 行示例数据，供参考填写格式</Text>
                   </div>
                 </div>
                 <Button 
@@ -1417,16 +1416,16 @@ const ImportWizardModal = ({
               <p className="ant-upload-drag-icon text-ios-blue mb-4">
                 <CloudUploadOutlined />
               </p>
-              <p className="ant-upload-text text-base dark:text-white/95">点击上传数据文件</p>
+              <p className="ant-upload-text text-base dark:text-white/95">上传 Excel 文件（支持拖拽）</p>
               <p className="ant-upload-hint text-[13px] text-gray-400 px-6 py-2">
-                仅支持 .xls, .xlsx 格式文件
+                仅支持 .xls、.xlsx 格式
               </p>
             </Dragger>
 
             {sheetNames.length > 0 && (
               <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
                 <div className="flex items-center justify-between px-1">
-                  <Text strong className="text-base dark:text-white/95">选择工作表 (Sheet)</Text>
+                  <Text strong className="text-base dark:text-white/95">选择工作表</Text>
                   <Tag color="success" className="rounded-full px-2 border-none bg-green-500/10 text-green-500">
                     已读到 {sheetNames.length} 个
                   </Tag>
@@ -1435,7 +1434,7 @@ const ImportWizardModal = ({
                   <Select
                     autoFocus
                     className="w-full apple-select h-[44px]"
-                    placeholder="请选择 Sheet"
+                    placeholder="请选择工作表"
                     value={selectedSheet}
                     onChange={setSelectedSheet}
                     options={sheetNames.map(name => ({ label: name, value: name }))}
@@ -1547,7 +1546,7 @@ const ImportWizardModal = ({
                         )}
                         {field?.description && (
                           <Text type="secondary" className="text-[12px] opacity-60 dark:text-white/40 block">
-                            含义: {field.description}
+                            含义：{field.description}
                           </Text>
                         )}
                       </div>
@@ -1572,7 +1571,7 @@ const ImportWizardModal = ({
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <Progress type="circle" percent={45} size={40} strokeColor={accentColor} />
-                <Text className="mt-4 text-gray-500 dark:text-white/60">正在深入解析逻辑...</Text>
+                <Text className="mt-4 text-gray-500 dark:text-white/60">正在校验数据…</Text>
               </div>
             ) : previewResult ? (
               <div className="space-y-6">
@@ -1605,7 +1604,7 @@ const ImportWizardModal = ({
                   {groupedIssueEntries.map(({ type, groups }) => (
                     <div key={type} className="space-y-2">
                         <div className="px-1 text-[11px] font-bold text-gray-400 dark:text-white/20 uppercase tracking-wider">
-                          {type === 'A' ? '格式错误' : type === 'B' ? '业务逻辑' : '数据冲突'}
+                          {type === 'A' ? '格式错误' : type === 'B' ? '内容校验失败' : '重复冲突'}
                         </div>
                         <Collapse 
                           ghost 
@@ -1628,7 +1627,7 @@ const ImportWizardModal = ({
                             >
                               <div className="pl-3 pb-2 space-y-3">
                                 <div className="p-3 rounded-xl bg-blue-50/50 text-[12px] text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-100/50 dark:border-blue-500/20">
-                                  <b>修复建议:</b> {group.suggestion}
+                                  <b>修复建议：</b> {group.suggestion}
                                 </div>
                                 <div className="space-y-1">
                                   {group.items.slice(0, 10).map((item, iIdx) => (
@@ -1654,7 +1653,7 @@ const ImportWizardModal = ({
         return (
           <div className="space-y-6">
             <Paragraph className="text-gray-500 dark:text-white/40 text-[13px] px-1">
-              当导入的数据在系统中已存在（基于唯一键匹配）时，请选择触达逻辑：
+              导入的数据与系统中已有记录重复时，如何处理？
             </Paragraph>
             
             <div className="space-y-4">
@@ -1689,7 +1688,7 @@ const ImportWizardModal = ({
             {loading && (
               <div className="pt-10 animate-in fade-in slide-in-from-bottom-5">
                 <div className="flex justify-between items-center mb-2 px-1">
-                  <Text className="text-sm font-medium dark:text-white/95">正在执行导入工作...</Text>
+                  <Text className="text-sm font-medium dark:text-white/95">正在导入…</Text>
                   <Text className="text-sm font-mono text-gray-400 dark:text-white/30">{importProgress}%</Text>
                 </div>
                 <Progress 
@@ -1710,8 +1709,7 @@ const ImportWizardModal = ({
               <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-4 dark:bg-green-500/10">
                 <CheckCircleFilled className="text-5xl text-green-500" />
               </div>
-              <Title level={3} className="m-0 dark:text-white/95">导入任务已完成</Title>
-              <Text type="secondary" className="mt-1 dark:text-white/40">数据处理结果如下</Text>
+              <Title level={3} className="m-0 dark:text-white/95">导入完成</Title>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -1856,7 +1854,7 @@ const ImportWizardModal = ({
                     onClick={handleReset}
                     className="rounded-[14px] h-[48px] bg-gray-100 dark:bg-white/5 dark:text-white/60 border-none active:scale-[0.98]"
                   >
-                    再次导入新文件
+                    继续导入新文件
                   </Button>
                 )}
               </div>
@@ -1937,7 +1935,7 @@ const ImportWizardModal = ({
                     <div>
                       <Text strong className="dark:text-white/95">{config?.template?.sampleTemplateName || '示例模板.xlsx'}</Text>
                       <br />
-                      <Text type="secondary" className="dark:text-white/60">包含演示数据，帮助您快速理解填写规范</Text>
+                      <Text type="secondary" className="dark:text-white/60">含 1 行示例数据，供参考填写格式</Text>
                     </div>
                   </div>
                   <Button 
@@ -1947,7 +1945,7 @@ const ImportWizardModal = ({
                     className="h-9 px-5 rounded-full min-w-[104px] border-gray-200 hover:border-gray-300 dark:border-white/20 dark:text-white/60 dark:hover:border-white/30 dark:hover:bg-white/5"
                     onClick={() => handleDownloadTemplate('sample')}
                   >
-                    示例模板
+                    下载示例模板
                   </Button>
                 </div>
               </Space>
@@ -1990,27 +1988,27 @@ const ImportWizardModal = ({
               <p className="ant-upload-drag-icon text-ios-blue">
                 <InboxOutlined />
               </p>
-              <p className="ant-upload-text">点击或将文件拖拽到此区域上传</p>
+              <p className="ant-upload-text">上传 Excel 文件（支持拖拽）</p>
               <p className="ant-upload-hint text-gray-400 px-4">
-                仅支持 .xls, .xlsx 格式文件。解析成功后请在下方选择对应的工作表。
+                仅支持 .xls、.xlsx 格式，上传后请选择对应工作表。
               </p>
             </Dragger>
 
             {sheetNames.length > 0 && (
               <div className="mt-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <Text strong className="block mb-2">
-                  选择工作表 (Workbook Sheet) <Text type="danger">*</Text>
+                  选择工作表 <Text type="danger">*</Text>
                 </Text>
                 <Select
                   className="w-full"
-                  placeholder="请选择 Sheet"
+                  placeholder="请选择工作表"
                   value={selectedSheet}
                   onChange={setSelectedSheet}
                   options={sheetNames.map(name => ({ label: name, value: name }))}
                 />
                 <Text type="secondary" className="text-xs mt-2 block">
                   <CheckCircleOutlined className="text-green-500 mr-1" />
-                  已识别到 {sheetNames.length} 个工作表，请确保选择包含导入数据的 Sheet。
+                  已识别到 {sheetNames.length} 个工作表，请选择包含导入数据的工作表。
                 </Text>
               </div>
             )}
@@ -2151,7 +2149,7 @@ const ImportWizardModal = ({
                                 {formatFieldValidation(field) && (
                                   <div className="mt-2 pt-2 border-t border-gray-100">
                                     <Text className="text-[10px] text-gray-400">
-                                      校验规则: {formatFieldValidation(field)}
+                                      校验规则：{formatFieldValidation(field)}
                                     </Text>
                                   </div>
                                 )}
@@ -2202,7 +2200,7 @@ const ImportWizardModal = ({
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-ios-blue mb-4"></div>
-                <Text type="secondary">正在解析数据逻辑，请稍候...</Text>
+                <Text type="secondary">正在校验数据…</Text>
               </div>
             ) : previewResult ? (
               <div className="space-y-4 flex-1 flex flex-col min-h-0">
@@ -2250,7 +2248,7 @@ const ImportWizardModal = ({
                   <div className="bg-blue-50/50 px-4 py-2 rounded-xl flex items-start gap-2 border border-blue-100/50 dark:bg-blue-500/10 dark:border-blue-500/20">
                     <InfoCircleOutlined className="mt-1 text-blue-500 text-xs dark:text-[#0A84FF]" />
                     <div className="text-[11px] text-blue-700 leading-normal dark:text-blue-400">
-                      已自动规范化 <b>{previewResult._preprocessStats.coercedCells}</b> 个单元格格式（数字↔文本）。提示：编码类字段建议在 Excel 中设为“文本”格式以保留前导 0。
+                      已自动整理 <b>{previewResult._preprocessStats.coercedCells}</b> 个单元格格式。学号、手机号、房号等编号建议在 Excel 中设为文本格式。
                     </div>
                   </div>
                 )}
@@ -2265,8 +2263,8 @@ const ImportWizardModal = ({
                             className="scale-75"
                           />
                           <span className="text-xs font-bold text-gray-500 dark:text-white/30">
-                            {type === 'A' ? '格式性错误' : type === 'B' ? '业务逻辑校验' : '基础冲突'}
-                            <span className="ml-1 font-normal opacity-50">({groups.length} 种)</span>
+                            {type === 'A' ? '格式错误' : type === 'B' ? '内容校验失败' : '重复冲突'}
+                            <span className="ml-1 font-normal opacity-50">（{groups.length} 种）</span>
                           </span>
                         </div>
                         
@@ -2282,9 +2280,6 @@ const ImportWizardModal = ({
                               header={
                                 <div className="flex items-center justify-between w-full">
                                   <div className="flex items-center gap-4 flex-1">
-                                    <span className="bg-gray-100 text-gray-500 text-[10px] font-mono px-1.5 py-0.5 rounded border border-gray-200 dark:bg-white/10 dark:border-white/10 dark:text-white/60">
-                                      {group.errorCode}
-                                    </span>
                                     <span className="text-[13px] font-medium text-gray-700 dark:text-white/95">{group.summary}</span>
                                   </div>
                                   <div className="flex items-center gap-2">
@@ -2314,11 +2309,6 @@ const ImportWizardModal = ({
                                       <span className="text-[12px] text-gray-500 py-0.5 break-all dark:text-white/60">{item.reason}</span>
                                     </div>
                                   ))}
-                                  {group.items.length > 20 && (
-                                    <div className="pt-2 text-center">
-                                      <Text type="secondary" className="text-[10px]">仅展示前 {group.items.length} 条明细</Text>
-                                    </div>
-                                  )}
                                 </div>
                               </div>
                             </Collapse.Panel>
@@ -2333,7 +2323,7 @@ const ImportWizardModal = ({
                         <CheckCircleOutlined className="text-3xl text-green-500" />
                       </div>
                       <Text strong className="text-gray-900">检查通过</Text>
-                      <Text className="text-[11px] mt-1">您可以放心执行后续操作</Text>
+                      <Text className="text-[11px] mt-1">可以继续下一步</Text>
                     </div>
                   )}
                 </div>
@@ -2345,13 +2335,12 @@ const ImportWizardModal = ({
                       <WarningOutlined className="text-orange-500 text-sm" />
                       <span className="text-xs text-orange-700 dark:text-orange-400">其中 <b>{errorRowCount}</b> 行需修复，剩余 <b>{importableRowCount}</b> 行可先行导入。</span>
                     </div>
-                    <Text className="text-[10px] text-orange-400 cursor-pointer hover:underline dark:text-orange-500" onClick={handleDownloadErrorRows}>获取修复清单</Text>
                   </div>
                 )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 opacity-30">
-                <Text>等待数据解析...</Text>
+                <Text>等待数据校验…</Text>
               </div>
             )}
           </div>
@@ -2363,7 +2352,7 @@ const ImportWizardModal = ({
               <Title level={5} className="m-0">第五步：冲突处理与补齐</Title>
             </div> */}
             <Paragraph className="text-gray-400 mb-8 text-[13px] dark:text-white/30">
-              当导入的数据在系统中已存在（基于唯一键匹配）时，请选择执行策略。
+              导入的数据与系统中已有记录重复时，如何处理？
             </Paragraph>
             
             <div className="grid grid-cols-2 gap-6 mb-8">
@@ -2404,7 +2393,7 @@ const ImportWizardModal = ({
             {loading && current === 4 && (
               <div className="mt-auto animate-in fade-in slide-in-from-bottom-2 duration-500">
                 <div className="flex justify-between items-end mb-2">
-                  <Text className="text-[15px] font-medium text-gray-900 dark:text-white/95">正在导入...</Text>
+                  <Text className="text-[15px] font-medium text-gray-900 dark:text-white/95">正在导入…</Text>
                   <Text className="text-[13px] font-mono text-gray-400 dark:text-white/60">{importProgress}%</Text>
                 </div>
                 <Progress 
@@ -2423,47 +2412,33 @@ const ImportWizardModal = ({
         return (
           <div className="py-2 animate-in fade-in duration-500">
             {/* 紧凑型完成态 Header */}
-            <div className="flex items-center gap-3 mb-2 bg-green-50/30 p-4 rounded-2xl border border-green-100/50 dark:bg-white/5 dark:border-white/10">
+            <div className="flex items-center gap-3 mb-4 bg-green-50/30 p-4 rounded-2xl border border-green-100/50 dark:bg-white/5 dark:border-white/10">
               <CheckCircleFilled className="text-green-500 text-xl" />
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-2 flex-wrap">
                 <span className="text-lg font-bold text-gray-900 dark:text-white/95">导入完成</span>
                 <Space split={<Divider type="vertical" className="bg-gray-300 h-3 dark:bg-white/10" />} className="text-gray-500 text-[13px] ml-2 dark:text-white/30">
                   <span>共 {executeSummary.totalCount} 行</span>
-                  <span>成功 <Text strong className="text-green-600 dark:text-green-400">{executeSummary.successCount}</Text></span>
+                  <span>
+                    成功 <Text strong className="text-green-600 dark:text-green-400">{executeSummary.successCount}</Text>
+                    <Text type="secondary" className="text-[11px] opacity-70 ml-1 dark:text-white/30">
+                      （新增 {executeSummary.createdCount} / 更新 {executeSummary.updatedCount}）
+                    </Text>
+                  </span>
                   <span>跳过 <Text strong className="text-gray-600 dark:text-white/60">{executeSummary.skippedCount}</Text></span>
                   <span>失败 <Text strong className="text-red-500 dark:text-red-400">{executeSummary.failedCount}</Text></span>
                 </Space>
               </div>
             </div>
-            
-            {/* 密集统计说明 */}
-            <div className="space-y-3 mb-2 px-1">
-              <div className="flex items-center gap-2">
-                <Text type="secondary" className="text-[13px] w-16 dark:text-white/30">处理总数:</Text>
-                <Text strong className="text-[13px] dark:text-white/95">{executeSummary.totalCount}</Text>
-              </div>
-              <div className="flex items-center gap-2">
-                <Text type="secondary" className="text-[13px] w-16 dark:text-white/30">成功导入:</Text>
-                <Text strong className="text-[13px] text-green-600 dark:text-green-400">{executeSummary.successCount}</Text>
-                <Text type="secondary" className="text-[11px] opacity-60 ml-1 dark:text-white/30">(新增 {executeSummary.createdCount} | 更新 {executeSummary.updatedCount})</Text>
-              </div>
-              <div className="flex items-center gap-2">
-                <Text type="secondary" className="text-[13px] w-16 dark:text-white/30">选择跳过:</Text>
-                <Text strong className="text-[13px] dark:text-white/95">{executeSummary.skippedCount}</Text>
-              </div>
-              {executeSummary.skippedCount > 0 && (
-                <div className="flex items-center gap-1.5 py-1 px-3 bg-gray-50 rounded-lg border border-gray-100 w-fit dark:bg-white/5 dark:border-white/10">
-                   <Text type="secondary" className="text-[11px] dark:text-white/30">跳过原因：由于系统已存在相同唯一键记录，系统自动去重</Text>
-                   <Tooltip title="数据未发生变更或已存在主键冲突，跳过以避免覆盖已有数据（取决于冲突策略）">
-                     <InfoCircleOutlined className="text-[10px] text-gray-300 cursor-help dark:text-white/20" />
-                   </Tooltip>
-                </div>
-              )}
-            </div>
 
-            {/* 资产下载区 (列表化) */}
-            <div className="mt-8">
-              <Title level={5} className="text-[13px] text-gray-400 mb-4 font-normal dark:text-white/30">后续操作与资产</Title>
+            {executeSummary.skippedCount > 0 && (
+              <div className="flex items-center gap-1.5 py-1.5 px-3 mb-4 bg-gray-50 rounded-lg border border-gray-100 w-fit dark:bg-white/5 dark:border-white/10">
+                <Text type="secondary" className="text-[11px] dark:text-white/30">部分记录在系统中已存在，已按所选策略跳过</Text>
+              </div>
+            )}
+
+            {/* 报错文件导出区 */}
+            <div className="mt-6">
+              <Title level={5} className="text-[13px] text-gray-400 mb-4 font-normal dark:text-white/30">导出报错文件</Title>
               <div className="space-y-2">
                 <div 
                   onClick={() => canDownloadFailedRows && handleDownloadFailedRows()}
@@ -2479,9 +2454,9 @@ const ImportWizardModal = ({
                     </div>
                     <div>
                       <Text strong className={`block text-[13px] ${canDownloadFailedRows ? 'text-gray-700 dark:text-white/95' : 'text-gray-400 dark:text-white/30'}`}>
-                        下载失败行数据 <span className="font-normal opacity-50 ml-1">({executeSummary.failedCount} 行)</span>
+                        下载失败行数据 <span className="font-normal opacity-50 ml-1">（{executeSummary.failedCount} 行）</span>
                       </Text>
-                      <Text type="secondary" className="text-[11px] dark:text-white/60">导出原始数据并追加错误原因，支持离线修正后重新上传</Text>
+                      <Text type="secondary" className="text-[11px] dark:text-white/60">导出原始数据并附带报错原因，修改后可重新上传</Text>
                     </div>
                   </div>
                   {canDownloadFailedRows && <ArrowRightOutlined className="text-gray-300 text-xs group-hover:text-ios-blue transition-colors dark:group-hover:text-[#0A84FF]" />}
@@ -2501,9 +2476,9 @@ const ImportWizardModal = ({
                     </div>
                     <div>
                       <Text strong className={`block text-[13px] ${canDownloadErrorReport ? 'text-gray-700 dark:text-white/95' : 'text-gray-400 dark:text-white/30'}`}>
-                        下载异常分析报告 <span className="font-normal opacity-50 ml-1">({executeSummary.failedRows.length} 条)</span>
+                        下载异常分析报告 <span className="font-normal opacity-50 ml-1">（{executeSummary.failedRows.length} 条）</span>
                       </Text>
-                      <Text type="secondary" className="text-[11px] dark:text-white/60">按错误代码聚合的统计分析，用于定位系统性数据偏差</Text>
+                      <Text type="secondary" className="text-[11px] dark:text-white/60">按问题类型汇总，方便集中排查</Text>
                     </div>
                   </div>
                   {canDownloadErrorReport && <ArrowRightOutlined className="text-gray-300 text-xs group-hover:text-ios-blue transition-colors dark:group-hover:text-[#0A84FF]" />}
@@ -2561,11 +2536,6 @@ const ImportWizardModal = ({
                       {s.title}
                     </span>
                   ),
-                  description: (
-                    <span className={`text-[10px] ${isDarkMode ? 'text-white/30' : 'text-gray-300'}`}>
-                      {s.description}
-                    </span>
-                  )
                 }))}
               />
             </div>
@@ -2597,13 +2567,13 @@ const ImportWizardModal = ({
               
               {/* 右侧：取消 + 继续导入（仅 Step 6） + 唯一主按钮 */}
               <Space size="middle">
-                {/* Step 6 显示“继续导入”次要按钮 */}
+                {/* Step 6 显示“继续导入新文件”次要按钮 */}
                 {current === 5 && (
                   <Button 
                     onClick={handleReset}
                     className="rounded-full px-8 border-gray-200 hover:border-gray-300 dark:border-white/20 dark:text-white/60 dark:hover:border-white/30 dark:hover:bg-white/5"
                   >
-                    继续导入
+                    继续导入新文件
                   </Button>
                 )}
                              

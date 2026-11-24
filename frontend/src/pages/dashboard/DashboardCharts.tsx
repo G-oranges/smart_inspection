@@ -112,14 +112,14 @@ function TrendChartCanvas({
     return (
       <div className="dashboard-empty-state" style={{ height }}>
         <BarChartOutlined className="dashboard-empty-icon" />
-        <span>{getRangeLabel(range)}暂无评分记录</span>
+        <span>{getRangeLabel(range)}没有查寝记录</span>
         {range !== 'all' ? (
           <button
             type="button"
             onClick={() => onRangeChange('all')}
             className="apple-btn-secondary dashboard-inline-cta co-press"
           >
-            查看全部历史
+            查看全部记录
           </button>
         ) : null}
       </div>
@@ -164,14 +164,14 @@ function TrendChartCanvas({
                 ?.count;
               const scoreText = `${value} 分`;
               return count
-                ? [`${scoreText}（${count} 间）`, '均分']
-                : [scoreText, '均分'];
+                ? [`${scoreText}（${count} 条）`, '卫生得分']
+                : [scoreText, '卫生得分'];
             }}
           />
           <Area
             type="monotone"
             dataKey="score"
-            name="均分"
+            name="卫生得分"
             stroke={palette.primary}
             strokeWidth={3}
             fill={`url(#${gradientId})`}
@@ -211,14 +211,14 @@ function DistributionChartCanvas({
     return (
       <div className="dashboard-empty-state" style={{ height }}>
         <PieChartOutlined className="dashboard-empty-icon" />
-        <span>{rangeLabel}暂无成绩分布</span>
+        <span>{rangeLabel}没有得分分布</span>
         {range !== 'all' ? (
           <button
             type="button"
             onClick={() => onRangeChange('all')}
             className="apple-btn-secondary dashboard-inline-cta co-press"
           >
-            查看全部历史
+            查看全部记录
           </button>
         ) : null}
       </div>
@@ -256,13 +256,13 @@ function DistributionChartCanvas({
             </Pie>
             <RechartsTooltip
               contentStyle={TOOLTIP_STYLE}
-              formatter={(value, name) => [`${value} 间`, String(name)]}
+              formatter={(value, name) => [`${value} 条`, String(name)]}
             />
           </PieChart>
         </ResponsiveContainer>
         <div className="dashboard-dist-center">
           <span className="dashboard-dist-total">{totalCount}</span>
-          <span className="dashboard-dist-unit">已查间次</span>
+          <span className="dashboard-dist-unit">条查寝记录</span>
         </div>
       </div>
 
@@ -316,12 +316,12 @@ function FullScoreDormList({
           <TrophyOutlined className="dashboard-fullscore-icon" />
           满分宿舍
         </span>
-        <span className="dashboard-fullscore-count">{dorms.length} 间次</span>
+        <span className="dashboard-fullscore-count">{dorms.length} 条</span>
       </div>
 
       {dorms.length === 0 ? (
         <div className="dashboard-empty-state dashboard-empty-state--sm">
-          <span>当前周期暂无满分宿舍</span>
+          <span>当前时间段没有满分宿舍</span>
         </div>
       ) : (
         <div className="dashboard-fullscore-list">
@@ -414,7 +414,7 @@ export function DistributionPanel({
       <header className="dashboard-panel-header">
         <h3 className="dashboard-panel-title">
           <PieChartOutlined className="dashboard-panel-icon" />
-          成绩分布
+          得分分布
         </h3>
         <span className="dashboard-panel-meta">{rangeLabel}</span>
       </header>
@@ -465,7 +465,7 @@ export function MobileInsightsPanel({
           onChange={(val) => setActiveTab(val as 'trend' | 'distribution')}
           options={[
             { label: '得分趋势', value: 'trend' },
-            { label: '成绩分布', value: 'distribution' },
+            { label: '得分分布', value: 'distribution' },
           ]}
         />
         <Segmented

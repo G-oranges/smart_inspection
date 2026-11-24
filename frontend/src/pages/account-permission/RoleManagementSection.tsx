@@ -634,7 +634,7 @@ export default function RoleManagementSection({
 
   if (!canManagePermissions) {
     return (
-      <PermissionDeniedState mode="section" message="暂无角色管理权限。" />
+      <PermissionDeniedState mode="section" message="没有管理角色的权限，请联系系统管理员开通" />
     );
   }
 
@@ -649,7 +649,7 @@ export default function RoleManagementSection({
               <h3 className="section-title">角色列表</h3>
             </div>
             <div className="role-list-toolbar" role="toolbar" aria-label="角色列表操作">
-              <Button size="small" onClick={() => setRoleTypeModalOpen(true)}>类型</Button>
+              <Button size="small" onClick={() => setRoleTypeModalOpen(true)}>角色类型</Button>
               <Button
                 size="small"
                 icon={<ReloadOutlined />}
@@ -657,7 +657,7 @@ export default function RoleManagementSection({
                 onClick={() => void Promise.all([refreshRoles(), refreshMatrix()])}
               />
               <Button size="small" type="primary" icon={<PlusOutlined />} onClick={openCreateRole}>
-                添加
+                新增角色
               </Button>
             </div>
           </div>
@@ -690,7 +690,7 @@ export default function RoleManagementSection({
                       <div className="role-list-item__title">
                         <span>{role.name}</span>
                         {role.isSystem ? <Tag color="blue">系统</Tag> : null}
-                        {role.status === 'INACTIVE' ? <Tag color="default">停用</Tag> : null}
+                        {role.status === 'INACTIVE' ? <Tag color="default">已停用</Tag> : null}
                       </div>
                       <div className="role-list-item__meta">
                         <span>{role.code}</span>
@@ -870,11 +870,11 @@ export default function RoleManagementSection({
               onChange={(event) => setRoleForm((prev) => ({ ...prev, code: normalizeRoleCodeInput(event.target.value) }))}
             />
             {codeHasWhitespace ? (
-              <span className="field-hint field-hint--error">角色编码不能包含空格。</span>
+              <span className="field-hint field-hint--error">不能包含空格</span>
             ) : null}
             {!codeHasWhitespace && codeFormatInvalid ? (
               <span className="field-hint field-hint--error">
-                角色编码仅支持大写字母、数字和下划线，且必须以字母开头。
+                仅支持大写字母、数字和下划线，且以字母开头
               </span>
             ) : null}
           </label>
@@ -901,8 +901,8 @@ export default function RoleManagementSection({
               value={roleForm.status}
               disabled={Boolean(editingRole?.isSystem)}
               options={[
-                { value: 'ACTIVE', label: '启用' },
-                { value: 'INACTIVE', label: '停用' },
+                { value: 'ACTIVE', label: '已启用' },
+                { value: 'INACTIVE', label: '已停用' },
               ]}
               onChange={(value) => setRoleForm((prev) => ({ ...prev, status: value }))}
             />
@@ -929,11 +929,11 @@ export default function RoleManagementSection({
       >
         <div className="stack">
           <div className="flex items-center justify-between">
-            <div className="hero-hint">内置类型不可删除，不可停用。</div>
+            <div className="hero-hint">系统类型不可停用或删除</div>
             <Space>
               <Button icon={<ReloadOutlined />} onClick={() => void refreshRoleTypes()} />
               <Button type="primary" icon={<PlusOutlined />} onClick={openCreateRoleType}>
-                添加类型
+                新增角色类型
               </Button>
             </Space>
           </div>
@@ -949,7 +949,7 @@ export default function RoleManagementSection({
                     <div className="role-list-item__title">
                       <span>{roleType.name}</span>
                       {roleType.isSystem ? <Tag color="blue">系统</Tag> : <Tag color="purple">自定义</Tag>}
-                      {roleType.status === 'INACTIVE' ? <Tag color="default">停用</Tag> : <Tag color="green">启用</Tag>}
+                      {roleType.status === 'INACTIVE' ? <Tag color="default">已停用</Tag> : <Tag color="green">已启用</Tag>}
                     </div>
                     <div className="role-list-item__meta">
                       <span>{roleType.code}</span>
@@ -1007,6 +1007,14 @@ export default function RoleManagementSection({
               readOnly={Boolean(editingRoleType)}
               onChange={(event) => setRoleTypeForm((prev) => ({ ...prev, code: normalizeRoleCodeInput(event.target.value) }))}
             />
+            {roleTypeCodeHasWhitespace ? (
+              <span className="field-hint field-hint--error">不能包含空格</span>
+            ) : null}
+            {!roleTypeCodeHasWhitespace && roleTypeCodeFormatInvalid ? (
+              <span className="field-hint field-hint--error">
+                仅支持大写字母、数字和下划线，且以字母开头
+              </span>
+            ) : null}
           </label>
           <label className="field-block">
             <span className="field-label">排序</span>
@@ -1022,8 +1030,8 @@ export default function RoleManagementSection({
               value={roleTypeForm.status}
               disabled={Boolean(editingRoleType?.isSystem)}
               options={[
-                { value: 'ACTIVE', label: '启用' },
-                { value: 'INACTIVE', label: '停用' },
+                { value: 'ACTIVE', label: '已启用' },
+                { value: 'INACTIVE', label: '已停用' },
               ]}
               onChange={(value) => setRoleTypeForm((prev) => ({ ...prev, status: value }))}
             />

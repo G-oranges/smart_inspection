@@ -2,7 +2,6 @@ import type {
   Dispatch,
   FormEvent,
   Key,
-  ReactNode,
   SetStateAction,
 } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -10,15 +9,14 @@ import {
   Button,
   Card,
   Col,
-  Empty,
   FloatButton,
   Input,
   Tabs,
   Tag,
+  message,
 } from 'antd';
 import {
   CheckCircleOutlined,
-  CloseCircleOutlined,
   DeleteOutlined,
   LockOutlined,
   PlusOutlined,
@@ -69,8 +67,6 @@ import type { AppActions, RoleLike } from '../types/app';
 import type {
   EntityId,
   RoleMatrixResponse,
-  ServiceQueryParams,
-  ServiceRecord,
   ServiceTableResponse,
 } from '../types/service';
 import type {
@@ -308,15 +304,15 @@ function buildSelectionLabel(
 ): string {
   if (selectAcrossPages) {
     return tableData.total
-      ? `已选择当前筛选的全部 ${tableData.total} 条记录`
-      : '已选择全部结果';
+      ? `已选当前筛选的全部 ${tableData.total} 个用户`
+      : '已选全部用户';
   }
 
   if (selectedIds.length) {
-    return `已选择 ${selectedIds.length} 条记录`;
+    return `已选 ${selectedIds.length} 个用户`;
   }
 
-  return '未选择记录';
+  return '未选择用户';
 }
 
 function AccountPermissionStats({
@@ -344,7 +340,7 @@ function AccountPermissionStats({
         <AppleStatCard
           icon={<CheckCircleOutlined />}
           value={activeCount}
-          label="活跃账号"
+          label="已启用用户"
           unit="人"
           dotColor="green"
         />
@@ -353,7 +349,7 @@ function AccountPermissionStats({
         <AppleStatCard
           icon={<SafetyOutlined />}
           value={roleCount}
-          label="预设系统角色"
+          label="角色数"
           dotColor="orange"
         />
       </Col>
@@ -361,7 +357,7 @@ function AccountPermissionStats({
         <AppleStatCard
           icon={<TeamOutlined />}
           value={studentTotal}
-          label="寝室长覆盖"
+          label="学生总数"
           unit="名"
           dotColor="purple"
         />
@@ -390,7 +386,7 @@ interface UserManagementSectionProps {
   selectAcrossPages: boolean;
   setSelectAcrossPages: Dispatch<SetStateAction<boolean>>;
   batchLoading: boolean;
-  userMessage: string;
+  hasActiveFilters: boolean;
   visibleUserColumns: UserColumnConfig[];
   userColumns: UserColumnConfig[];
   columnLoading: boolean;
@@ -452,13 +448,13 @@ interface UserManagementToolbarProps {
   setSearchTerm: Dispatch<SetStateAction<string>>;
   tableData: TableListState<AccountUser>;
   tableItems: AccountUser[];
-  userMessage: string;
 }
 
 interface UserManagementTableCardProps {
   columnError: string;
   columnLoading: boolean;
   fetchError: string;
+  hasActiveFilters: boolean;
   isMobile: boolean;
   loading: boolean;
   onRetryLoad: () => void;
@@ -543,7 +539,6 @@ function UserManagementToolbar({
   setSearchTerm,
   tableData,
   tableItems,
-  userMessage,
 }: UserManagementToolbarProps) {
   const selectionSummary = (selectAcrossPages || selectedIds.length > 0) ? (
     <div
@@ -570,12 +565,6 @@ function UserManagementToolbar({
         </Button>
       </div>
     </div>
-  ) : null;
-
-  const helperMessage = userMessage ? (
-    <p className="muted hero-hint" style={{ marginTop: 8 }}>
-      {userMessage}
-    </p>
   ) : null;
 
   if (!isMobile) {
@@ -631,7 +620,7 @@ function UserManagementToolbar({
               }}
               className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
             >
-              密码初始化
+              重置密码
             </Button>
             <Button
               className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
@@ -639,7 +628,7 @@ function UserManagementToolbar({
               onClick={onOpenSettings}
               disabled={loading}
             >
-              字段管理
+              字段设置
             </Button>
             {selectedCount > 0 ? (
               <Button
@@ -667,7 +656,6 @@ function UserManagementToolbar({
           </div>
         </div>
         {selectionSummary}
-        {helperMessage}
       </div>
     );
   }
@@ -686,7 +674,6 @@ function UserManagementToolbar({
         onReset={onResetFilters}
       />
       {selectionSummary}
-      {helperMessage}
     </div>
   );
 }
@@ -695,6 +682,7 @@ function UserManagementTableCard({
   columnError,
   columnLoading,
   fetchError,
+  hasActiveFilters,
   isMobile,
   loading,
   onRetryLoad,
@@ -731,7 +719,7 @@ function UserManagementTableCard({
         <div className="py-20 text-center">
           <UserOutlined className="text-5xl text-gray-200 mb-3" />
           <p className="text-gray-400 text-sm font-medium tracking-wide">
-            未找到匹配的用户记录
+            {hasActiveFilters ? '没有匹配的用户' : '暂无用户'}
           </p>
         </div>
       }
@@ -920,7 +908,7 @@ function UserManagementSection({
   selectAcrossPages,
   setSelectAcrossPages,
   batchLoading,
-  userMessage,
+  hasActiveFilters,
   visibleUserColumns,
   userColumns,
   columnLoading,
@@ -1015,7 +1003,7 @@ function UserManagementSection({
     return (
       <PermissionDeniedState
         mode="section"
-        message="暂无用户管理权限。"
+        message="没有管理用户的权限，请联系系统管理员开通"
         className="mb-4"
       />
     );
@@ -1048,13 +1036,13 @@ function UserManagementSection({
         setSearchTerm={setSearchTerm}
         tableData={tableData}
         tableItems={tableItems}
-        userMessage={userMessage}
       />
 
       <UserManagementTableCard
         columnError={columnError}
         columnLoading={columnLoading}
         fetchError={fetchError}
+        hasActiveFilters={hasActiveFilters}
         isMobile={isMobile}
         loading={loading}
         onRetryLoad={onRetryLoad}
@@ -1115,7 +1103,6 @@ interface PermissionManagementSectionProps {
   matrixRoles: RoleLike[];
   rolePermissionMap: RolePermissionMap;
   onToggleRolePermission: (roleId: EntityId, permissionId: EntityId) => Promise<void>;
-  permissionMessage: string;
 }
 
 function PermissionManagementSection({
@@ -1125,32 +1112,27 @@ function PermissionManagementSection({
   matrixRoles,
   rolePermissionMap,
   onToggleRolePermission,
-  permissionMessage,
 }: PermissionManagementSectionProps) {
   if (!canManagePermissions) {
     return (
       <PermissionDeniedState
         mode="section"
-        message="暂无角色权限配置权限。"
+        message="没有配置角色权限的权限，请联系系统管理员开通"
         className="mb-4"
       />
     );
   }
 
   return (
-    <>
-      <PermissionMatrix
-        loading={matrixLoading}
-        matrix={matrix}
-        matrixRoles={matrixRoles}
-        rolePermissionMap={rolePermissionMap}
-        onToggle={(roleId: EntityId, permissionId: EntityId) => {
-          void onToggleRolePermission(roleId, permissionId);
-        }}
-      />
-
-      {permissionMessage ? <p className="muted hero-hint">{permissionMessage}</p> : null}
-    </>
+    <PermissionMatrix
+      loading={matrixLoading}
+      matrix={matrix}
+      matrixRoles={matrixRoles}
+      rolePermissionMap={rolePermissionMap}
+      onToggle={(roleId: EntityId, permissionId: EntityId) => {
+        void onToggleRolePermission(roleId, permissionId);
+      }}
+    />
   );
 }
 
@@ -1177,7 +1159,7 @@ function mapAccountPermissionStatsToSegments({
       id: 'account-active-users',
       icon: <CheckCircleOutlined />,
       value: activeCount,
-      label: '活跃',
+      label: '已启用',
       unit: '人',
       tone: 'green',
     },
@@ -1192,7 +1174,7 @@ function mapAccountPermissionStatsToSegments({
       id: 'account-monitor-coverage',
       icon: <TeamOutlined />,
       value: studentTotal,
-      label: '寝室长',
+      label: '学生',
       unit: '名',
       tone: 'purple',
     },
@@ -1487,6 +1469,12 @@ function useAccountPermissionUserState({
     [setPagination],
   );
 
+  const hasActiveFilters =
+    Boolean(appliedSearchTerm.trim()) ||
+    Boolean(appliedFilters.department?.length) ||
+    Boolean(appliedFilters.userType?.length) ||
+    Boolean(appliedFilters.isDisabled?.length);
+
   return {
     actionSheetOpen,
     batchLoading,
@@ -1505,6 +1493,7 @@ function useAccountPermissionUserState({
     handleRetryLoad,
     handleSelectAllResults,
     handleSelectPage,
+    hasActiveFilters,
     isDirty,
     loading,
     modalOpen,
@@ -1625,7 +1614,7 @@ function useAccountPermissionPermissionState({
     } catch (error) {
       const nextMessage =
         error instanceof Error ? error.message : '加载用户列表失败';
-      setPermissionMessage(nextMessage);
+      message.error(nextMessage);
     } finally {
       setBatchUserLoading(false);
     }
@@ -1662,7 +1651,7 @@ function useAccountPermissionPermissionState({
     } catch (error) {
       const nextMessage =
         error instanceof Error ? error.message : '加载学生列表失败';
-      setPermissionMessage(nextMessage);
+      message.error(nextMessage);
     } finally {
       setStudentLoading(false);
     }
@@ -1898,7 +1887,7 @@ export default function AccountPermissionPage() {
                     selectAcrossPages={userState.selectAcrossPages}
                     setSelectAcrossPages={userState.setSelectAcrossPages}
                     batchLoading={userState.batchLoading}
-                    userMessage={userState.userMessage}
+                    hasActiveFilters={userState.hasActiveFilters}
                     visibleUserColumns={userState.userColumnsVisible}
                     userColumns={userState.userColumns}
                     columnLoading={userState.columnLoading}
@@ -1964,36 +1953,31 @@ export default function AccountPermissionPage() {
               key: 'overrides',
               label: (
                 <span className="flex items-center gap-2">
-                  <SettingOutlined />账号例外授权
+                  <SettingOutlined />用户例外授权
                 </span>
               ),
               children:
                 activeTab === 'overrides' ? (
                   canManagePermissions ? (
-                    <>
-                      <BatchAuthSection
-                        searchTerm={permissionState.batchUserSearchTerm}
-                        setSearchTerm={permissionState.setBatchUserSearchTerm}
-                        setPage={permissionState.setBatchUserPage}
-                        onRefresh={() => {
-                          void permissionState.loadBatchUsers();
-                        }}
-                        tableData={permissionState.batchUserData}
-                        loading={permissionState.batchUserLoading}
-                        page={permissionState.batchUserPage}
-                        selectedUserIds={permissionState.batchUserIds}
-                        setSelectedUserIds={permissionState.setBatchUserIds}
-                        permissions={permissionState.matrix?.permissions}
-                        batchPermissions={permissionState.batchPermissions}
-                        setBatchPermissions={permissionState.setBatchPermissions}
-                        onSave={(baseline) => void handleBatchSaveOverrides(baseline)}
-                      />
-                      {permissionState.permissionMessage ? (
-                        <p className="muted hero-hint">{permissionState.permissionMessage}</p>
-                      ) : null}
-                    </>
+                    <BatchAuthSection
+                      searchTerm={permissionState.batchUserSearchTerm}
+                      setSearchTerm={permissionState.setBatchUserSearchTerm}
+                      setPage={permissionState.setBatchUserPage}
+                      onRefresh={() => {
+                        void permissionState.loadBatchUsers();
+                      }}
+                      tableData={permissionState.batchUserData}
+                      loading={permissionState.batchUserLoading}
+                      page={permissionState.batchUserPage}
+                      selectedUserIds={permissionState.batchUserIds}
+                      setSelectedUserIds={permissionState.setBatchUserIds}
+                      permissions={permissionState.matrix?.permissions}
+                      batchPermissions={permissionState.batchPermissions}
+                      setBatchPermissions={permissionState.setBatchPermissions}
+                      onSave={(baseline) => void handleBatchSaveOverrides(baseline)}
+                    />
                   ) : (
-                    <PermissionAccessFallback message="暂无账户单独授权权限。" />
+                    <PermissionAccessFallback message="没有配置用户例外授权的权限，请联系系统管理员开通" />
                   )
                 ) : null,
             },
@@ -2007,41 +1991,36 @@ export default function AccountPermissionPage() {
               children:
                 activeTab === 'monitors' ? (
                   canManagePermissions ? (
-                    <>
-                      <MonitorSetupSection
-                        dormsData={accountData.dorms}
-                        studentsData={accountData.students}
-                        searchTerm={permissionState.monitorSearchTerm}
-                        setSearchTerm={permissionState.setMonitorSearchTerm}
-                        monitorFilters={permissionState.monitorFilters}
-                        setMonitorFilters={permissionState.setMonitorFilters}
-                        studentPage={permissionState.studentPage}
-                        setStudentPage={permissionState.setStudentPage}
-                        studentData={permissionState.studentData}
-                        studentLoading={permissionState.studentLoading}
-                        selectedStudentIds={permissionState.selectedStudentIds}
-                        setSelectedStudentIds={permissionState.setSelectedStudentIds}
-                        onRefresh={() => {
-                          void permissionState.loadStudentList();
-                        }}
-                        onBatchSetMonitorCheck={() => {
-                          void accountActionHandlers.handleBatchSetMonitorCheck();
-                        }}
-                        conflictModal={permissionState.monitorConflictModal}
-                        setConflictModal={permissionState.setMonitorConflictModal}
-                        onContinueNonConflicts={() => {
-                          void handleContinueNonConflicts();
-                        }}
-                        onBatchSetMonitorExecute={(replaceExisting: boolean) => {
-                          void accountActionHandlers.handleBatchSetMonitorExecute(replaceExisting);
-                        }}
-                      />
-                      {permissionState.permissionMessage ? (
-                        <p className="muted hero-hint">{permissionState.permissionMessage}</p>
-                      ) : null}
-                    </>
+                    <MonitorSetupSection
+                      dormsData={accountData.dorms}
+                      studentsData={accountData.students}
+                      searchTerm={permissionState.monitorSearchTerm}
+                      setSearchTerm={permissionState.setMonitorSearchTerm}
+                      monitorFilters={permissionState.monitorFilters}
+                      setMonitorFilters={permissionState.setMonitorFilters}
+                      studentPage={permissionState.studentPage}
+                      setStudentPage={permissionState.setStudentPage}
+                      studentData={permissionState.studentData}
+                      studentLoading={permissionState.studentLoading}
+                      selectedStudentIds={permissionState.selectedStudentIds}
+                      setSelectedStudentIds={permissionState.setSelectedStudentIds}
+                      onRefresh={() => {
+                        void permissionState.loadStudentList();
+                      }}
+                      onBatchSetMonitorCheck={() => {
+                        void accountActionHandlers.handleBatchSetMonitorCheck();
+                      }}
+                      conflictModal={permissionState.monitorConflictModal}
+                      setConflictModal={permissionState.setMonitorConflictModal}
+                      onContinueNonConflicts={() => {
+                        void handleContinueNonConflicts();
+                      }}
+                      onBatchSetMonitorExecute={(replaceExisting: boolean) => {
+                        void accountActionHandlers.handleBatchSetMonitorExecute(replaceExisting);
+                      }}
+                    />
                   ) : (
-                    <PermissionAccessFallback message="暂无寝室长批量设置权限。" />
+                    <PermissionAccessFallback message="没有批量设置寝室长的权限，请联系系统管理员开通" />
                   )
                 ) : null,
             },

@@ -68,7 +68,7 @@ export const TaskPublishMobileCard = ({
         </div>
         <div className="compact-info-item">
           <span className="compact-label text-gray-400">
-            检查人员
+            检查人
           </span>
           <span className="compact-value font-medium">
             {task.executorIds?.length || 0} 人
@@ -79,7 +79,7 @@ export const TaskPublishMobileCard = ({
           style={{ gridColumn: "span 2" }}
         >
           <span className="compact-label text-gray-400">
-            任务时间
+            执行时间
           </span>
           <span className="compact-value font-medium">
             {dayjs(task.date).format("MM-DD HH:mm")} ~{" "}

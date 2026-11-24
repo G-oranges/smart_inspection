@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Button, Modal, Typography } from 'antd';
-import { CloudDownloadOutlined } from '@ant-design/icons';
 
 import { isServiceWorkerSupported } from './pwa';
 import { MODAL_WIDTH } from "./modalSizes";
@@ -9,7 +8,6 @@ const { Text } = Typography;
 
 export default function PWAUpdatePrompt() {
   const [needRefresh, setNeedRefresh] = useState(false);
-  const [offlineReady, setOfflineReady] = useState(false);
 
   useEffect(() => {
     if (!isServiceWorkerSupported) {
@@ -28,10 +26,6 @@ export default function PWAUpdatePrompt() {
           immediate: true,
           onNeedRefresh() {
             setNeedRefresh(true);
-          },
-          onOfflineReady() {
-            setOfflineReady(true);
-            window.setTimeout(() => setOfflineReady(false), 3000);
           },
           onRegistered(registration: ServiceWorkerRegistration | undefined) {
             console.log('[PWA] Service Worker 注册成功');
@@ -69,48 +63,22 @@ export default function PWAUpdatePrompt() {
   };
 
   return (
-    <>
-      {offlineReady ? (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 20,
-            left: 20,
-            right: 20,
-            padding: '12px 16px',
-            background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)',
-            color: 'white',
-            borderRadius: 12,
-            boxShadow: '0 8px 32px rgba(82, 196, 26, 0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            zIndex: 10000,
-            animation: 'slideUp 0.3s ease-out',
-          }}
-        >
-          <CloudDownloadOutlined style={{ fontSize: 20 }} />
-          <Text style={{ color: 'white', fontWeight: 500 }}>应用已准备好离线使用</Text>
-        </div>
-      ) : null}
-
-      <Modal
-        open={needRefresh}
-        title="发现新版本"
-        footer={[
-          <Button key="later" onClick={handleClose}>稍后再说</Button>,
-          <Button key="update" type="primary" onClick={handleUpdate}>
-            立即更新
-          </Button>,
-        ]}
-        onCancel={handleClose}
-        centered
-        width={MODAL_WIDTH.sm}
-        className="co-modal"
-        maskClosable={false}
-      >
-        <Text>更新将刷新页面，请先保存当前工作。</Text>
-      </Modal>
-    </>
+    <Modal
+      open={needRefresh}
+      title="发现新版本"
+      footer={[
+        <Button key="later" onClick={handleClose}>稍后再说</Button>,
+        <Button key="update" type="primary" onClick={handleUpdate}>
+          立即更新
+        </Button>,
+      ]}
+      onCancel={handleClose}
+      centered
+      width={MODAL_WIDTH.sm}
+      className="co-modal"
+      maskClosable={false}
+    >
+      <Text>更新将刷新页面，请先保存当前工作。</Text>
+    </Modal>
   );
 }

@@ -3,7 +3,7 @@ import { TagOutlined } from "@ant-design/icons";
 
 import type { GradingRule } from '../../types/app';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface GradingRulesSectionProps {
   gradeRules: GradingRule[];
@@ -62,7 +62,7 @@ export const GradingRulesSection = ({
       ))}
       <div>
         <Text type="secondary" style={{ fontSize: '11px' }} className="leading-relaxed">
-          说明：区间按从低到高顺序配置，建议覆盖 0-100 全区间。分值判断逻辑为：[起始分, 结束分]。
+          区间按从低到高配置，含起始分与结束分。
         </Text>
       </div>
     </div>

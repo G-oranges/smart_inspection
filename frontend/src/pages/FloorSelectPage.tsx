@@ -126,7 +126,7 @@ export default function FloorSelectPage() {
         <div className="flex items-center justify-between mb-4">
           <Space size="small" className="text-xs font-bold uppercase tracking-wider text-gray-400">
             <Link to="/tasks/entry/buildings" className="hover:text-blue-500 transition-colors">
-              所有楼栋
+              楼栋
             </Link>
             <RightOutlined className="text-[11px]" />
             <span className="text-blue-600">{decodedBuilding}</span>
@@ -158,7 +158,7 @@ export default function FloorSelectPage() {
           <div className="flex items-center gap-2 px-1">
             <div className="w-1 h-4 bg-orange-500 rounded-full" />
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">
-              指派的巡查楼层
+              楼层
             </h3>
           </div>
 
@@ -180,7 +180,7 @@ export default function FloorSelectPage() {
               <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center border border-dashed border-gray-300">
                 <LayoutOutlined className="text-3xl text-gray-300" />
               </div>
-              <Empty description="该楼栋下暂无分配给您的检查楼层" />
+              <Empty description="该楼栋下暂无分配给你的检查楼层" />
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
@@ -191,8 +191,8 @@ export default function FloorSelectPage() {
                   className="aspect-square glass-panel m-0 flex flex-col items-center justify-center cursor-pointer active:scale-90 transition-all bg-white dark:bg-zinc-900 border border-white dark:border-white/5 hover:border-blue-500/30 hover:shadow-2xl group relative overflow-hidden"
                 >
                   <div className="absolute top-0 right-0 w-12 h-12 bg-blue-50/50 rounded-bl-full translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform" />
-                  <span className="text-4xl font-bold text-gray-800 dark:text-white group-hover:text-blue-600 transition-colors">
-                    {floorValue}F
+                  <span className="text-3xl font-bold text-gray-800 dark:text-white group-hover:text-blue-600 transition-colors">
+                    {floorValue} 层
                   </span>
                 </div>
               ))}

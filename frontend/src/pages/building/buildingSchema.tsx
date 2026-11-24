@@ -40,9 +40,9 @@ export const BUILDING_FORM_DEFAULTS = {
 
 // ===== 类型选项定义 =====
 export const BUILDING_TYPE_OPTIONS: BuildingOption[] = [
-  { label: "男生宿舍", value: "男" },
-  { label: "女生宿舍", value: "女" },
-  { label: "混合宿舍", value: "混合" },
+  { label: "男生楼", value: "男" },
+  { label: "女生楼", value: "女" },
+  { label: "混合楼", value: "混合" },
 ];
 
 // ===== 导入冲突处理选项 =====
@@ -50,7 +50,7 @@ export const IMPORT_RESOLUTION_OPTIONS: Array<{
   label: string;
   value: UploadResolution;
 }> = [
-  { label: "覆盖现有数据 (推荐)", value: "overwrite" },
+  { label: "覆盖现有数据（推荐）", value: "overwrite" },
   { label: "跳过重复项", value: "skip" },
 ];
 

@@ -51,7 +51,7 @@ export default function StudentFormModal({
         <Form.Item label="学号" required>
           <Input
             className="apple-input"
-            placeholder="请输入学号"
+            placeholder="如 20240001"
             value={form.studentNo}
             onChange={(e) =>
               setForm({ ...form, studentNo: e.target.value })
@@ -61,7 +61,6 @@ export default function StudentFormModal({
         <Form.Item label="姓名" required>
           <Input
             className="apple-input"
-            placeholder="请输入姓名"
             value={form.fullName}
             onChange={(e) =>
               setForm({ ...form, fullName: e.target.value })
@@ -104,7 +103,6 @@ export default function StudentFormModal({
         <Form.Item label="学院">
           <Input
             className="apple-input"
-            placeholder="请输入学院"
             value={form.college}
             onChange={(e) =>
               setForm({ ...form, college: e.target.value })
@@ -114,7 +112,6 @@ export default function StudentFormModal({
         <Form.Item label="专业">
           <Input
             className="apple-input"
-            placeholder="请输入专业"
             value={form.major}
             onChange={(e) => setForm({ ...form, major: e.target.value })}
           />
@@ -122,7 +119,7 @@ export default function StudentFormModal({
         <Form.Item label="班级">
           <Input
             className="apple-input"
-            placeholder="请输入班级"
+            placeholder="如 计科 2401"
             value={form.className}
             onChange={(e) =>
               setForm({ ...form, className: e.target.value })
@@ -141,15 +138,14 @@ export default function StudentFormModal({
         <Form.Item label="手机号">
           <Input
             className="apple-input"
-            placeholder="11位手机号"
+            placeholder="11 位手机号"
             value={form.mobile}
             onChange={(e) => setForm({ ...form, mobile: e.target.value })}
           />
         </Form.Item>
-        <Form.Item label="QQ号">
+        <Form.Item label="QQ 号">
           <Input
             className="apple-input"
-            placeholder="请输入QQ"
             value={form.qq}
             onChange={(e) => setForm({ ...form, qq: e.target.value })}
           />
@@ -185,11 +181,11 @@ export default function StudentFormModal({
             }
           />
         </Form.Item>
-        {/* 家庭地址 + 是否寝室长 */}
-        <Form.Item label="家庭地址">
+        {/* 家庭住址 + 是否寝室长 */}
+        <Form.Item label="家庭住址">
           <Input
             className="apple-input"
-            placeholder="详细地址"
+            placeholder="省/市/详细地址"
             value={form.homeAddress}
             onChange={(e) =>
               setForm({ ...form, homeAddress: e.target.value })
@@ -227,7 +223,7 @@ export default function StudentFormModal({
               className="apple-btn-primary"
               onClick={onSubmit}
             >
-              提交
+              {isEditing ? "保存修改" : "新增学生"}
             </Button>
           </Space>
         }
@@ -254,7 +250,7 @@ export default function StudentFormModal({
             className="apple-btn-primary"
             onClick={onSubmit}
           >
-            提交
+            {isEditing ? "保存修改" : "新增学生"}
           </Button>
         </div>
       }

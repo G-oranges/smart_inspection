@@ -86,7 +86,6 @@ interface ResultListSectionProps {
   ratingForScore: RatingForScore;
   canAdjust: boolean;
   tableColumns: ColumnsType<ResultInspectionRecord>;
-  lastRefreshedAt: string;
 }
 
 interface ResultViewContentProps {
@@ -112,7 +111,6 @@ interface ResultViewContentProps {
   inspections: ResultInspectionRecord[];
   isDirty: boolean;
   isMobile: boolean;
-  lastRefreshedAt: string;
   levelOptions: string[];
   pageTasks?: ResultTaskRecord[];
   pagination: PaginationState;
@@ -154,10 +152,6 @@ function toArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
 }
 
-function formatRefreshTime(): string {
-  return new Date().toLocaleTimeString();
-}
-
 function ResultStats({ inspections, appeals, totalCount }: ResultStatsProps) {
   const today = dayjs().startOf('day');
   const todayCount = inspections.filter((inspection) => {
@@ -190,7 +184,7 @@ function ResultStats({ inspections, appeals, totalCount }: ResultStatsProps) {
           icon={<DashboardOutlined />}
           value={todayCount}
           label="今日新增"
-          unit="份"
+          unit="条"
           dotColor="green"
         />
       </Col>
@@ -250,7 +244,7 @@ function mapResultStatsToSegments(
       icon: <DashboardOutlined />,
       value: todayCount,
       label: '今日',
-      unit: '份',
+      unit: '条',
       tone: 'green',
     },
     {
@@ -265,7 +259,7 @@ function mapResultStatsToSegments(
       id: 'result-appeals',
       icon: <WarningOutlined />,
       value: pendingAppeals,
-      label: '待申诉',
+      label: '待处理申诉',
       unit: '条',
       tone: 'purple',
     },
@@ -299,7 +293,7 @@ function ResultAuxiliaryPanels({
         >
           <div className="flex items-center gap-2 mb-6">
             <div className="w-1.5 h-6 bg-purple-500 rounded-full" />
-            <h3 className="text-lg font-bold">提交异常申诉</h3>
+            <h3 className="text-lg font-bold">提交申诉</h3>
           </div>
           <Form
             layout="vertical"
@@ -309,7 +303,7 @@ function ResultAuxiliaryPanels({
           >
             <Row gutter={24}>
               <Col xs={24} md={8}>
-                <Form.Item label="选择查寝记录" required className="apple-form-item">
+                <Form.Item label="查寝记录" required className="apple-form-item">
                   <PanelSelect
                     value={appealForm.inspectionId}
                     onChange={(inspectionId: EntityId) =>
@@ -320,14 +314,14 @@ function ResultAuxiliaryPanels({
                   >
                     {inspections.map((item) => (
                       <Option key={String(item.id)} value={item.id}>
-                        {item.task?.title || item.id} ({item.totalScore}分)
+                        {item.task?.title || item.id} ({item.totalScore} 分)
                       </Option>
                     ))}
                   </PanelSelect>
                 </Form.Item>
               </Col>
               <Col xs={24} md={16}>
-                <Form.Item label="申诉原因描述" required className="apple-form-item">
+                <Form.Item label="申诉理由" required className="apple-form-item">
                   <div className="flex gap-2">
                     <Input
                       className="apple-input !rounded-xl flex-1"
@@ -338,7 +332,7 @@ function ResultAuxiliaryPanels({
                           content: event.target.value,
                         }))
                       }
-                      placeholder="请客观描述您的申诉理由及证明..."
+                      placeholder="说明具体情况或扣分异议"
                     />
                     <Button
                       type="primary"
@@ -346,7 +340,7 @@ function ResultAuxiliaryPanels({
                       icon={<SendOutlined />}
                       className="apple-btn-primary"
                     >
-                      发送
+                      提交申诉
                     </Button>
                   </div>
                 </Form.Item>
@@ -363,7 +357,7 @@ function ResultAuxiliaryPanels({
         >
           <div className="flex items-center gap-2 mb-6">
             <div className="w-1.5 h-6 bg-red-500 rounded-full" />
-            <h3 className="text-lg font-bold">待处理申诉队列</h3>
+            <h3 className="text-lg font-bold">待处理申诉</h3>
           </div>
           <Form
             layout="vertical"
@@ -386,14 +380,14 @@ function ResultAuxiliaryPanels({
                       .filter((appeal) => appeal.status === 'pending')
                       .map((appeal) => (
                         <Option key={String(appeal.id)} value={appeal.id}>
-                          {appeal.studentName || '佚名'} - {dayjs(appeal.createdAt).format('MM-DD')}
+                          {appeal.studentName || '未知学生'} - {dayjs(appeal.createdAt).format('MM-DD')}
                         </Option>
                       ))}
                   </PanelSelect>
                 </Form.Item>
               </Col>
               <Col xs={12} md={4}>
-                <Form.Item label="审核决策" className="apple-form-item">
+                <Form.Item label="处理结果" className="apple-form-item">
                   <PanelSelect
                     value={handleForm.status}
                     onChange={(status: string) =>
@@ -401,8 +395,8 @@ function ResultAuxiliaryPanels({
                     }
                     className="apple-select"
                   >
-                    <Option value="approved">予以通过 (修正分值)</Option>
-                    <Option value="rejected">驳回申请 (维持原判)</Option>
+                    <Option value="approved">通过（可修改得分）</Option>
+                    <Option value="rejected">驳回</Option>
                   </PanelSelect>
                 </Form.Item>
               </Col>
@@ -418,7 +412,7 @@ function ResultAuxiliaryPanels({
                           reply: event.target.value,
                         }))
                       }
-                      placeholder="请在此输入针对该申诉的回复结论..."
+                      placeholder="输入回复内容"
                     />
                     <Button
                       type="primary"
@@ -426,7 +420,7 @@ function ResultAuxiliaryPanels({
                       icon={<CheckCircleOutlined />}
                       className="apple-btn-primary"
                     >
-                      执行
+                      提交处理
                     </Button>
                   </div>
                 </Form.Item>
@@ -450,7 +444,6 @@ function ResultListSection({
   ratingForScore,
   canAdjust,
   tableColumns,
-  lastRefreshedAt,
 }: ResultListSectionProps) {
   return (
     <div className="space-y-4">
@@ -458,7 +451,6 @@ function ResultListSection({
         <div className="flex items-center gap-2">
           <div className="dorm-table-head-accent" />
           <h3 className="dorm-table-head-title">查寝结果列表</h3>
-          <span className="dorm-table-head-time">最后更新: {lastRefreshedAt}</span>
         </div>
       </div>
 
@@ -571,7 +563,6 @@ function ResultViewContent({
   inspections,
   isDirty,
   isMobile,
-  lastRefreshedAt,
   levelOptions,
   pageTasks,
   pagination,
@@ -598,7 +589,6 @@ function ResultViewContent({
       ratingForScore={ratingForScore}
       canAdjust={canAdjust}
       tableColumns={tableColumns}
-      lastRefreshedAt={lastRefreshedAt}
     />
   );
 
@@ -1040,7 +1030,6 @@ export default function ResultViewPage() {
     onReset: clearSelection,
   });
 
-  const [lastRefreshedAt, setLastRefreshedAt] = useState(formatRefreshTime);
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
 
   const canView = hasPermission('RESULT_VIEW');
@@ -1114,28 +1103,16 @@ export default function ResultViewPage() {
     settings,
   });
 
-  useEffect(() => {
-    if (!permissionsReady) {
-      return;
-    }
-
-    setLastRefreshedAt(formatRefreshTime());
-  }, [inspections, permissionsReady]);
-
   const {
     appealForm,
     setAppealForm,
     handleForm,
     setHandleForm,
-    contactForm,
-    setContactForm,
-    contactStatus,
     exporting,
     detail,
     handleOpenDetail,
     handleCloseDetail,
     handleModifyNavigation,
-    handleContactSubmit,
     handleAppealSubmit,
     handleAppealHandle,
     handleExport,
@@ -1150,7 +1127,6 @@ export default function ResultViewPage() {
     filteredInspections,
     clearSelection,
     navigate,
-    setLastRefreshedAt,
     myProfile,
   });
 
@@ -1243,7 +1219,6 @@ export default function ResultViewPage() {
         inspections={inspections}
         isDirty={isDirty}
         isMobile={isMobile}
-        lastRefreshedAt={lastRefreshedAt}
         levelOptions={levelOptions}
         pageTasks={pageData.tasks}
         pagination={pagination}

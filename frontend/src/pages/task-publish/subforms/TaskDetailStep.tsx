@@ -33,11 +33,7 @@ export default function TaskDetailStep({
           variant="filled"
           value={form.title}
           onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-          placeholder={
-            isMobile
-              ? "例如：1月第一周安全卫生检查"
-              : "例如：2025年1月第一周生保部安全卫生检查"
-          }
+          placeholder="例如：第 1 周宿舍卫生检查"
           maxLength={MAX_TITLE_LENGTH}
           className={isMobile ? "h-10" : "h-12"}
         />
@@ -46,7 +42,7 @@ export default function TaskDetailStep({
       {/* 时间周期 */}
       <div className="animate-apple-in" style={{ animationDelay: "0.05s" }}>
         <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
-          执行周期 *
+          执行时间 *
         </div>
         <DatePicker.RangePicker
           variant="filled"
@@ -81,11 +77,7 @@ export default function TaskDetailStep({
           value={form.notes}
           onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
           rows={isMobile ? 2 : 3}
-          placeholder={
-            isMobile
-              ? "额外注意事项（限50字）"
-              : "告知执行人需要额外注意的事项（限50字）"
-          }
+          placeholder="填写检查注意事项（选填）"
           maxLength={MAX_NOTES_LENGTH}
           className="!rounded-xl text-sm py-2"
         />

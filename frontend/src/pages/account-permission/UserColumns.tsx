@@ -4,7 +4,7 @@
  */
 
 import type { ReactNode } from 'react';
-import { Button, Switch, Space, Popconfirm, Tooltip } from 'antd';
+import { Button, Switch, Space, Tooltip } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { DeleteOutlined, EditOutlined, KeyOutlined } from '@ant-design/icons';
 import { USER_RENDERERS } from './accountPermissionSchema';
@@ -146,25 +146,18 @@ export function buildAntTableColumns(
             aria-label="生成临时密码"
           />
         </Tooltip>
-        <Popconfirm
-          title="确定删除该用户吗？"
-          description="删除后无法恢复"
-          onConfirm={() => onDelete(user)}
-          okText="确定"
-          cancelText="取消"
-        >
-          <Tooltip title="删除用户">
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              disabled={batchLoading}
-              className="dorm-table-action-btn is-danger"
-              aria-label="删除用户"
-            />
-          </Tooltip>
-        </Popconfirm>
+        <Tooltip title="删除用户">
+          <Button
+            type="text"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            disabled={batchLoading}
+            onClick={() => void onDelete(user)}
+            className="dorm-table-action-btn is-danger"
+            aria-label="删除用户"
+          />
+        </Tooltip>
       </Space>
     ),
   });

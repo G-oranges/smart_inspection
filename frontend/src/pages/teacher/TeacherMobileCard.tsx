@@ -73,11 +73,11 @@ export default function TeacherMobileCard({
         <div className="compact-info-item">
           <span className="compact-label text-gray-400">院系/部门</span>
           <span className="compact-value font-medium">
-            {teacher.department || "校本部"}
+            {teacher.department || "-"}
           </span>
         </div>
         <div className="compact-info-item">
-          <span className="compact-label text-gray-400">联系电话</span>
+          <span className="compact-label text-gray-400">手机号</span>
           <span className="compact-value font-medium">
             {teacher.mobile || "-"}
           </span>

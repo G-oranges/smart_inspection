@@ -41,7 +41,7 @@ export const DORM_IMPORT_CONFIG = {
     },
     {
       key: 'building',
-      label: '楼宇',
+      label: '楼栋',
       required: true,
       type: 'string',
       description: '所属楼栋名称',
@@ -95,13 +95,13 @@ export const DORM_IMPORT_CONFIG = {
 
   // 复合唯一键（用于 C 类冲突校验提示）
   uniqueKeys: ['campus', 'building', 'roomNo'],
-  uniqueKeyDescription: '复合主键（校区+楼宇+房间号）',
+  uniqueKeyDescription: '校区 + 楼栋 + 房间号',
 
   // 冲突处理策略
   strategies: ['SKIP', 'OVERWRITE'],
   strategyDescriptions: {
-    SKIP: '跳过冲突行，保留数据库中原有记录',
-    OVERWRITE: '覆盖冲突行，使用新数据更新原有记录',
+    SKIP: '跳过重复行，保留系统中原有记录',
+    OVERWRITE: '覆盖重复行，使用新数据更新原有记录',
   },
 
   // API 端点
@@ -293,7 +293,7 @@ export const STUDENT_IMPORT_CONFIG = {
       required: true,
       type: 'string',
       group: '核心基础信息',
-      description: '学生唯一标识，系统主键',
+      description: '学生唯一编号',
       help: '必须唯一，建议使用学校统一编号',
     },
     {
@@ -375,7 +375,7 @@ export const STUDENT_IMPORT_CONFIG = {
       type: 'string',
       group: '学籍与联系信息',
       description: '学生手机号码',
-      help: '11位手机号码',
+      help: '11 位手机号码',
     },
     {
       key: 'isMonitor',
@@ -403,7 +403,7 @@ export const STUDENT_IMPORT_CONFIG = {
       required: false,
       type: 'string',
       group: '背景扩展信息',
-      description: '证件号码（脱敏存储）',
+      description: '证件号码',
     },
     {
       key: 'politicalStatus',
@@ -539,8 +539,8 @@ export const STUDENT_IMPORT_CONFIG = {
   // 冲突处理策略
   strategies: ['SKIP', 'OVERWRITE'],
   strategyDescriptions: {
-    SKIP: '跳过冲突行，保留数据库中原有记录',
-    OVERWRITE: '覆盖冲突行，使用新数据更新原有记录',
+    SKIP: '跳过重复行，保留系统中原有记录',
+    OVERWRITE: '覆盖重复行，使用新数据更新原有记录',
   },
 
   // API 端点（V2 增强版）
@@ -725,7 +725,7 @@ export const CHECKIN_IMPORT_CONFIG = {
       type: 'string',
       group: '核心信息',
       description: '学生学号，必须在系统中已存在',
-      help: '学号必须已存在于学生库中',
+      help: '学号必须已存在于系统中',
     },
     {
       key: 'building',
@@ -794,7 +794,7 @@ export const CHECKIN_IMPORT_CONFIG = {
     '系统仅支持 <strong>.xls</strong> 和 <strong>.xlsx</strong> 格式。',
     '请勿修改模板中的第一行表头。',
     '<strong>学号、楼栋、房间号、床位号</strong>均为必填项。',
-    '学号必须已存在于学生库中，否则该行将报错。',
+    '学号必须已存在于系统中，否则该行将报错。',
     '楼栋+房间号+床位号必须指向系统中已存在的可用床位。',
     '若学生已有入住记录，将按所选策略（跳过/覆盖）处理。',
     '若目标床位已被其他学生占用，该行将报错。',

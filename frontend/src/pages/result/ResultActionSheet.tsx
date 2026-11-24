@@ -102,7 +102,7 @@ export default function ResultActionSheet({
       subtitle={
         selectedIds.length === 1
           ? selectedRecord?.task?.title
-          : "可查阅详细检查报告"
+          : undefined
       }
       actions={actions}
     />

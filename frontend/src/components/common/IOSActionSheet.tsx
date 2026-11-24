@@ -1,5 +1,6 @@
 import React from 'react';
 import { Drawer } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
 
 export interface IOSActionSheetAction {
   key?: string;
@@ -133,7 +134,7 @@ const IOSActionSheet = ({
                 disabled={action.type === 'disabled' || action.loading}
               >
                 {action.loading ? (
-                  <span className="animate-spin">⏳</span>
+                  <LoadingOutlined spin />
                 ) : action.icon}
                 <span>{action.label}</span>
               </button>

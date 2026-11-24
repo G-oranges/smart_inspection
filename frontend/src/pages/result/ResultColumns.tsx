@@ -3,7 +3,7 @@
  */
 
 import type { ColumnsType } from 'antd/es/table';
-import { Button, Image, Space, Tag, Tooltip, Popconfirm } from "antd";
+import { Button, Image, Space, Tag, Tooltip } from "antd";
 import { DeleteOutlined, EyeOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { resolvePhotoUrl } from "../../utils/url";
@@ -144,7 +144,7 @@ export function createBaseColumns({
       },
     },
     {
-      title: "分值",
+      title: "得分",
       dataIndex: "totalScore",
       key: "score",
       align: "center",
@@ -153,7 +153,7 @@ export function createBaseColumns({
       ),
     },
     {
-      title: "评价",
+      title: "等级",
       key: "grade",
       align: "center",
       render: (_, record) => {
@@ -217,28 +217,21 @@ export function createActionColumn({
           />
         </Tooltip>
         {canAdjust && (
-          <Popconfirm
-            title="确定删除该记录吗？"
-            description="删除后无法恢复"
-            onConfirm={() => {
-              if (record.id !== undefined && record.id !== null) {
-                void onDelete([record.id]);
-              }
-            }}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Tooltip title="删除记录">
-              <Button
-                type="text"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                className="dorm-table-action-btn is-danger"
-                aria-label="删除记录"
-              />
-            </Tooltip>
-          </Popconfirm>
+          <Tooltip title="删除记录">
+            <Button
+              type="text"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => {
+                if (record.id !== undefined && record.id !== null) {
+                  void onDelete([record.id]);
+                }
+              }}
+              className="dorm-table-action-btn is-danger"
+              aria-label="删除记录"
+            />
+          </Tooltip>
         )}
       </Space>
     ),

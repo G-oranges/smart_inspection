@@ -141,8 +141,6 @@ export function useResultEntryActions({
     });
   const [isScrolled, setIsScrolled] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
-  const [clickCount, setClickCount] = useState(0);
-  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -168,30 +166,9 @@ export function useResultEntryActions({
     return () => mainElement.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (clickTimeoutRef.current) {
-        clearTimeout(clickTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const canRecord = hasPermission('RESULT_RECORD');
 
   const handleScoreClick = (): void => {
-    if (clickCount === 0) {
-      setClickCount(1);
-      antdMessage.info('再点击一次修改基础分');
-      clickTimeoutRef.current = setTimeout(() => {
-        setClickCount(0);
-      }, 2000);
-      return;
-    }
-
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-    }
-    setClickCount(0);
     if (canSubmit) {
       setEditingScore(true);
     }
@@ -521,7 +498,7 @@ export function useResultEntryActions({
       selectedTaskId &&
       hasLocationInfo
     ) {
-      setDormError(assignmentError || '本次任务未为您分配该宿舍或您无权录入');
+      setDormError(assignmentError || '本次任务未为你分配该宿舍或你无权录入');
     }
   }, [
     assignmentChecked,
@@ -642,7 +619,7 @@ export function useResultEntryActions({
 
       event.preventDefault();
       event.returnValue = '';
-      return '您有未保存的更改，确定要离开吗？';
+      return '你有未保存的更改，确定要离开吗？';
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -797,7 +774,6 @@ export function useResultEntryActions({
         ...prev,
         photoUrls: [...prev.photoUrls, ...uploads],
       }));
-      antdMessage.success('图片上传成功');
     } catch (error) {
       antdMessage.error(readErrorMessage(error, '图片上传失败'));
     } finally {
@@ -823,12 +799,12 @@ export function useResultEntryActions({
     }
 
     if (!hasAssignment) {
-      antdMessage.warning('本次任务未授权您录入该宿舍');
+      antdMessage.warning('本次任务未授权你录入该宿舍');
       return;
     }
 
     if (!canSubmit) {
-      antdMessage.warning('当前时段无法录入，学生干部仅在查寝任务期间可操作');
+      antdMessage.warning('不在任务时间内，暂时不能录入');
       return;
     }
 
@@ -871,10 +847,10 @@ export function useResultEntryActions({
       setMembers([]);
 
       if (submitType === 'next' && nextDorm) {
-        antdMessage.success('保存成功，切换至下一间');
+        antdMessage.success('已保存');
         handleNavigateToRoom(nextDorm);
       } else {
-        antdMessage.success('保存成功，返回列表');
+        antdMessage.success('已保存');
         navigate(getRoomSelectUrl(), {
           state: { refreshTrigger: Date.now() },
         });

@@ -74,9 +74,9 @@ export default function DormEditModal({
         <Form.Item name="campus" label="校区" rules={[{ required: true, message: '请输入校区' }]}>
           <Input className="apple-input" />
         </Form.Item>
-        <Form.Item name="building" label="楼栋" rules={[{ required: true, message: '请输入楼栋' }]}>
+        <Form.Item name="building" label="楼栋" rules={[{ required: true, message: '请选择楼栋' }]}>
           <PanelSelect 
-            placeholder="选择楼栋"
+            placeholder="请选择楼栋"
             className="apple-select"
             classNames={{ popup: { root: "apple-dropdown" } }}
             onChange={(val) => {
@@ -93,12 +93,12 @@ export default function DormEditModal({
             const maxFloor = buildingInfo ? buildingInfo.floors : 99;
             return (
               <Form.Item name="floor" label="楼层" rules={[{ required: true, message: "请输入楼层" }, { type: 'number', max: maxFloor, message: `该楼栋最高 ${maxFloor} 层` }]}>
-                <InputNumber min={1} max={maxFloor} className="apple-input-number w-full" placeholder="楼层" />
+                <InputNumber min={1} max={maxFloor} className="apple-input-number w-full" />
               </Form.Item>
             );
           }}
         </Form.Item>
-        <Form.Item name="roomNo" label="房间号" rules={[{ required: true, message: '请输入房间号' }]}>
+        <Form.Item name="roomNo" label="房号" rules={[{ required: true, message: '请输入房号' }]}>
           <Input className="apple-input" />
         </Form.Item>
         <Form.Item name="capacity" label="可住人数">
@@ -122,7 +122,7 @@ export default function DormEditModal({
   if (isMobile) {
     return (
       <Drawer
-        title={<span className="text-lg font-bold">编辑宿舍信息</span>}
+        title={<span className="text-lg font-bold">编辑宿舍</span>}
         placement="bottom"
         onClose={handleClose}
         open={open}
@@ -130,7 +130,7 @@ export default function DormEditModal({
         extra={
           <Space>
             <Button className="apple-btn-secondary" onClick={handleClose}>取消</Button>
-            <Button type="primary" className="apple-btn-primary" onClick={() => form.submit()}>保存</Button>
+            <Button type="primary" className="apple-btn-primary" onClick={() => form.submit()}>保存修改</Button>
           </Space>
         }
         className="apple-drawer ios-action-sheet"

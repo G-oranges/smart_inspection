@@ -45,7 +45,7 @@ export const AuditLogMobileCard = ({
           <span className="compact-value">{log.targetName || '-'}</span>
         </div>
         <div className="compact-info-item">
-          <span className="compact-label">IP</span>
+          <span className="compact-label">IP 地址</span>
           <span className="compact-value">{log.ipAddress || '-'}</span>
         </div>
       </div>

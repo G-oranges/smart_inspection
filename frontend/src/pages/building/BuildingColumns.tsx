@@ -3,7 +3,7 @@
  * 
  * 包含基础列和操作列的创建函数
  */
-import { Button, Space, Tag, Popconfirm, Tooltip } from "antd";
+import { Button, Space, Tag, Tooltip } from "antd";
 import type { ReactNode } from 'react';
 import type { ColumnType, ColumnsType } from 'antd/es/table';
 import { EyeOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
@@ -78,7 +78,7 @@ export function createBaseColumns(): BuildingColumnConfig[] {
       width: COLUMN_WIDTHS.type,
       render: (text: unknown) => (
         <Tag className={`rounded-full border-none px-3 ${getTypeColorClass(typeof text === 'string' ? text : undefined)}`}>
-          {String(text || "未知")}
+          {String(text || "-")}
         </Tag>
       ),
     },
@@ -89,6 +89,8 @@ export function createBaseColumns(): BuildingColumnConfig[] {
       fieldKey: "floors",
       width: COLUMN_WIDTHS.floors,
       sorter: (left, right) => (left.floors || 0) - (right.floors || 0),
+      render: (floors: unknown) =>
+        floors !== null && floors !== undefined ? `${floors} 层` : "-",
     },
     {
       title: "电梯",
@@ -115,7 +117,7 @@ export function createBaseColumns(): BuildingColumnConfig[] {
       width: COLUMN_WIDTHS.dormCount,
       render: (count: unknown) => (
         <span className="font-medium text-gray-700 dark:text-gray-300">
-          {String(count || 0)} <span className="text-xs font-normal text-gray-400">个</span>
+          {String(count || 0)} <span className="text-xs font-normal text-gray-400">间</span>
         </span>
       ),
     },
@@ -168,24 +170,19 @@ export function createActionColumn({
             aria-label="编辑楼栋"
           />
         </Tooltip>
-        <Popconfirm
-          title="确定删除该楼栋吗？"
-          description="删除后无法恢复"
-          onConfirm={() => onDelete(record)}
-          okText="确定"
-          cancelText="取消"
-        >
-          <Tooltip title="删除楼栋">
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              className="dorm-table-action-btn is-danger"
-              aria-label="删除楼栋"
-            />
-          </Tooltip>
-        </Popconfirm>
+        <Tooltip title="删除楼栋">
+          <Button
+            type="text"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => {
+              void onDelete(record);
+            }}
+            className="dorm-table-action-btn is-danger"
+            aria-label="删除楼栋"
+          />
+        </Tooltip>
       </Space>
     ),
   };

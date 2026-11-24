@@ -61,10 +61,10 @@ export const DASHBOARD_RANGE_OPTIONS: Array<{
   label: string;
   value: DashboardRangeKey;
 }> = [
-  { label: '近30天', value: 'month' },
-  { label: '近3月', value: '3m' },
-  { label: '近6月', value: '6m' },
-  { label: '全部', value: 'all' },
+  { label: '近 30 天', value: 'month' },
+  { label: '近 3 月', value: '3m' },
+  { label: '近 6 月', value: '6m' },
+  { label: '全部记录', value: 'all' },
 ];
 
 export function getRangeLabel(range: DashboardRangeKey): string {
@@ -72,11 +72,11 @@ export function getRangeLabel(range: DashboardRangeKey): string {
     case 'month':
       return '近 30 天';
     case '3m':
-      return '近 3 个月';
+      return '近 3 月';
     case 'all':
       return '全部记录';
     default:
-      return '近 6 个月';
+      return '近 6 月';
   }
 }
 
@@ -153,17 +153,20 @@ export function normalizeTrendData(
 const DISTRIBUTION_ORDER: Array<{ name: string; tone: ScoreTone }> = [
   { name: '优秀', tone: 'success' },
   { name: '良好', tone: 'primary' },
-  { name: '及格', tone: 'warning' },
+  { name: '合格', tone: 'warning' },
   { name: '不及格', tone: 'error' },
 ];
 
 export function normalizeDistributionData(
   distribution?: DashboardDistributionItem[],
 ): NormalizedDistributionItem[] {
-  const rawList = (distribution || []).map((item) => ({
-    name: String(item.name || '').trim() || '其他',
-    value: toFiniteNumber(item.value),
-  }));
+  const rawList = (distribution || []).map((item) => {
+    const rawName = String(item.name || '').trim() || '其他';
+    return {
+      name: rawName === '及格' ? '合格' : rawName,
+      value: toFiniteNumber(item.value),
+    };
+  });
   const total = rawList.reduce((acc, item) => acc + item.value, 0);
 
   const toneByName = new Map<string, ScoreTone>(
@@ -267,7 +270,7 @@ export function formatDeadlineCountdown(deadline?: string | null): {
   }
   const diffMinutes = target.diff(dayjs(), 'minute');
   if (diffMinutes <= 0) {
-    return { label: '即将截止', urgent: true };
+    return { label: '已截止', urgent: true };
   }
   const diffHours = Math.floor(diffMinutes / 60);
   if (diffHours < 24) {
@@ -308,7 +311,7 @@ export function buildQuickActions(
   const candidates: Array<QuickActionConfig & { visible: boolean }> = [
     {
       key: 'entry',
-      label: '分数录入',
+      label: '查寝录入',
       path: '/tasks/entry',
       tone: 'primary',
       badge: stats.activeTasks > 0 ? stats.activeTasks : undefined,
@@ -323,7 +326,7 @@ export function buildQuickActions(
     },
     {
       key: 'results',
-      label: stats.pendingAppeals > 0 ? '处理申诉' : '查寝结果',
+      label: stats.pendingAppeals > 0 ? '处理申诉' : '查寝记录',
       path: stats.pendingAppeals > 0 ? '/results?focus=appeals' : '/results',
       tone: stats.pendingAppeals > 0 ? 'error' : 'success',
       badge: stats.pendingAppeals > 0 ? stats.pendingAppeals : undefined,
@@ -352,7 +355,7 @@ export function buildQuickActions(
     },
     {
       key: 'teachers',
-      label: '教师管理',
+      label: '教职工管理',
       path: '/teachers',
       tone: 'primary',
       visible: hasPermission('TEACHER_MANAGE'),

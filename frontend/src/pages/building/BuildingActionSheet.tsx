@@ -50,7 +50,7 @@ export function BuildingActionSheet({
   const actions: IOSActionSheetAction[] = [
     {
       key: "view",
-      label: "基础详情",
+      label: "查看详情",
       icon: <EyeOutlined />,
       hidden: selectedIds.length !== 1,
       onClick: () => {
@@ -62,7 +62,7 @@ export function BuildingActionSheet({
     },
     {
       key: "edit",
-      label: "编辑资料",
+      label: "编辑楼栋",
       icon: <EditOutlined />,
       type: "primary",
       hidden: selectedIds.length !== 1,
@@ -75,7 +75,7 @@ export function BuildingActionSheet({
     },
     {
       key: "delete",
-      label: `确认删除 (${selectedIds.length})`,
+      label: `删除 (${selectedIds.length})`,
       icon: <DeleteOutlined />,
       type: "danger",
       onClick: () => {
@@ -89,11 +89,10 @@ export function BuildingActionSheet({
     <IOSActionSheet
       open={open}
       onClose={onClose}
-      title={selectedIds.length > 1 ? `批量操作 (${selectedIds.length})` : "楼栋管理"}
-      subtitle={
-        selectedIds.length === 1
-          ? selectedBuilding?.name
-          : "对选中的楼栋执行批量维护或导出"
+      title={
+        selectedIds.length > 1
+          ? `批量操作 (${selectedIds.length})`
+          : selectedBuilding?.name || "楼栋操作"
       }
       actions={actions}
     />

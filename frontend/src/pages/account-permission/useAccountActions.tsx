@@ -1,7 +1,7 @@
 import type { FormEvent, ReactNode } from 'react';
 import { useCallback } from 'react';
 import { Modal, message } from 'antd';
-import { DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
+import { ReloadOutlined } from '@ant-design/icons';
 
 import { flattenRoleMap } from './utils';
 import { buildOverrides } from './overrideUtils';
@@ -122,7 +122,7 @@ function showGeneratedPasswords(title: string, items: GeneratedPasswordItem[], f
         ) : null}
         {failures.length ? (
           <p style={{ color: 'var(--co-error)', fontSize: '12px' }}>
-            以下账号重置失败：{failures.join('；')}
+            以下用户重置失败：{failures.join('；')}
           </p>
         ) : null}
       </div>
@@ -157,32 +157,14 @@ async function runBulkDelete({
   }
 
   if (selectAcrossPages && selectedIds.length === 0) {
-    setUserMessage('暂不支持跨页全选批量操作，请先勾选具体用户。');
-    return;
-  }
-
-  const firstConfirmed = await confirmModal({
-    title: '确认批量删除用户',
-    icon: <DeleteOutlined style={{ color: 'var(--co-error)' }} />,
-    content: (
-      <div>
-        <p>您确定要删除选中的 {selectionCount} 个用户吗？</p>
-        <p style={{ color: 'var(--co-error)', fontSize: '12px' }}>
-          警告：此操作不可撤销，且会清除该用户的所有关联权限和数据。
-        </p>
-      </div>
-    ),
-    okText: '确认删除',
-    okType: 'danger',
-  });
-  if (!firstConfirmed) {
+    message.warning('批量操作仅支持当前页勾选的用户');
     return;
   }
 
   const finalConfirmed = await confirmDangerCountdown({
-    title: '是否确认 — 批量删除用户',
-    content: `将永久删除选中的 ${selectionCount} 个用户及其所有关联权限和数据，确认继续？`,
-    okText: '确认删除',
+    title: `确定删除选中的 ${selectionCount} 个用户吗？`,
+    content: '删除后无法恢复，将同时清除这些用户的关联权限和数据。',
+    okText: '删除用户',
   });
   if (!finalConfirmed) {
     return;
@@ -191,12 +173,13 @@ async function runBulkDelete({
   setBatchLoading(true);
   try {
     await deleteUsers({ ids: selectedIds });
-    setUserMessage('批量删除成功');
+    setUserMessage('');
+    message.success('已删除所选用户');
     setSelectedIds([]);
     setSelectAcrossPages(false);
     setReloadFlag((prev) => prev + 1);
   } catch (error) {
-    setUserMessage(error instanceof Error ? error.message : '批量删除失败');
+    message.error(error instanceof Error ? error.message : '批量删除失败');
   } finally {
     setBatchLoading(false);
   }
@@ -230,22 +213,22 @@ function runResetPassword(params: {
   }
 
   if (selectAcrossPages && selectedIds.length === 0) {
-    setUserMessage('暂不支持跨页全选批量操作，请先勾选具体用户。');
+    message.warning('批量操作仅支持当前页勾选的用户');
     return;
   }
 
   Modal.confirm({
-    title: '确认重置密码',
+    title: '确定重置密码吗？',
     icon: <ReloadOutlined style={{ color: 'var(--co-primary)' }} />,
     content: (
       <div>
-        <p>您确定要重置选中的 {selectionCount} 个用户的密码吗？</p>
+        <p>确定重置选中的 {selectionCount} 个用户的密码吗？</p>
         <p style={{ color: 'var(--co-text-secondary)', fontSize: '12px' }}>
-          系统会为每个账号生成新的随机密码，旧密码和已登录会话立即失效，用户下次登录时需修改密码。
+          系统会为每个用户生成新的随机密码，旧密码和已登录会话将立即失效，用户下次登录时需修改密码。
         </p>
       </div>
     ),
-    okText: '确认重置',
+    okText: '重置密码',
     cancelText: '取消',
     onOk: async () => {
       setBatchLoading(true);
@@ -263,6 +246,7 @@ function runResetPassword(params: {
             failures.push(`${label}：${reason}`);
           }
         });
+        setUserMessage('');
         showGeneratedPasswords(failures.length ? '密码重置部分完成' : '密码重置成功', generated, failures);
         setSelectedIds([]);
         setSelectAcrossPages(false);
@@ -294,9 +278,9 @@ async function runGenerateTempPassword({
   }
 
   const confirmed = await confirmModal({
-    title: '确认生成临时密码',
+    title: '确定生成临时密码吗？',
     content: `即将为用户「${user.fullName || user.username}」生成 12 小时内有效的一次性临时密码。用户用它登录后，临时密码会替换原密码，并被要求立即设置新密码。`,
-    okText: '确认生成',
+    okText: '生成临时密码',
   });
   if (!confirmed) {
     return;
@@ -304,13 +288,14 @@ async function runGenerateTempPassword({
 
   try {
     const result = await generateTemporaryPassword(user.id);
+    setUserMessage('');
     setTempPasswordModal({
       visible: true,
       password: result.temporaryPassword || '',
       username: user.username,
     });
   } catch (error) {
-    setUserMessage(error instanceof Error ? error.message : '生成临时密码失败');
+    message.error(error instanceof Error ? error.message : '生成临时密码失败');
   }
 }
 
@@ -330,18 +315,20 @@ function runToggleStatus({
   }
 
   const userId = user.id;
-  const actionLabel = user.isDisabled ? '激活' : '停用';
+  const actionLabel = user.isDisabled ? '启用' : '停用';
   Modal.confirm({
-    title: `确认${actionLabel}账号`,
-    content: `您确定要${actionLabel}用户 "${user.fullName}(${user.username})" 的账号吗？${user.isDisabled ? '' : '停用后该用户将无法正常登录。'}`,
-    okText: '确认',
+    title: `确定${actionLabel}用户吗？`,
+    content: `确定${actionLabel}用户「${user.fullName || user.username}（${user.username}）」吗？${user.isDisabled ? '' : '停用后该用户将无法登录。'}`,
+    okText: actionLabel,
     cancelText: '取消',
     onOk: async () => {
       try {
         await updateUser(userId, { isDisabled: !user.isDisabled });
+        setUserMessage('');
+        message.success(`用户已${actionLabel}`);
         setReloadFlag((prev) => prev + 1);
       } catch (error) {
-        setUserMessage(error instanceof Error ? error.message : '更新状态失败');
+        message.error(error instanceof Error ? error.message : '更新状态失败');
       }
     },
   });
@@ -370,9 +357,9 @@ async function runDeleteSingleUser({
   }
 
   const finalConfirmed = await confirmDangerCountdown({
-    title: '是否确认 — 删除用户',
-    content: `即将永久删除用户「${user.fullName}」(${user.username})及其所有关联数据，确认继续？`,
-    okText: '确认删除',
+    title: `确定删除用户「${user.fullName}（${user.username}）」吗？`,
+    content: '删除后无法恢复，将同时清除该用户的关联权限和数据。',
+    okText: '删除用户',
   });
   if (!finalConfirmed) {
     return;
@@ -381,10 +368,11 @@ async function runDeleteSingleUser({
   setBatchLoading(true);
   try {
     await deleteUsers({ ids: [user.id] });
-    setUserMessage('删除成功');
+    setUserMessage('');
+    message.success('用户已删除');
     setReloadFlag((prev) => prev + 1);
   } catch (error) {
-    setUserMessage(error instanceof Error ? error.message : '删除失败');
+    message.error(error instanceof Error ? error.message : '删除失败');
   } finally {
     setBatchLoading(false);
   }
@@ -420,11 +408,11 @@ async function runToggleRolePermission({
     '权限';
 
   const confirmed = await confirmModal({
-    title: '确认权限变更',
+    title: '确定变更角色权限吗？',
     content: willEnable
-      ? `即将为「${roleName}」授予「${permissionName}」权限，确认继续？`
-      : `即将取消「${roleName}」的「${permissionName}」权限，确认继续？`,
-    okText: willEnable ? '确认授予' : '确认取消',
+      ? `确定为「${roleName}」授予「${permissionName}」权限吗？`
+      : `确定取消「${roleName}」的「${permissionName}」权限吗？`,
+    okText: willEnable ? '授予' : '取消权限',
   });
   if (!confirmed) {
     return;
@@ -448,8 +436,10 @@ async function runToggleRolePermission({
 
   try {
     await updateRolePermissions(roleId, Array.from(rolePermissions));
+    setPermissionMessage('');
+    message.success('角色权限已更新');
   } catch (error) {
-    setPermissionMessage(error instanceof Error ? error.message : '更新角色权限失败');
+    message.error(error instanceof Error ? error.message : '更新角色权限失败');
   }
 }
 
@@ -475,9 +465,10 @@ async function runSaveOverrides({
 
   try {
     await updateUserOverrides(selectedUserId, overrides);
-    setPermissionMessage('账号权限已更新');
+    setPermissionMessage('');
+    message.success('用户权限已更新');
   } catch (error) {
-    setPermissionMessage(error instanceof Error ? error.message : '更新失败');
+    message.error(error instanceof Error ? error.message : '更新失败');
   }
 }
 
@@ -499,7 +490,7 @@ async function runBatchSaveOverrides({
   }
 
   if (!batchUserIds.length) {
-    message.warning('请选择至少一个用户后再执行批量更新');
+    message.warning('请至少选择一个用户后再执行批量更新');
     return false;
   }
 
@@ -510,9 +501,9 @@ async function runBatchSaveOverrides({
   }
 
   const confirmed = await confirmModal({
-    title: '确认更新例外授权',
-    content: `即将为 ${batchUserIds.length} 个账号修改 ${overrides.length} 个功能点的授权，其他功能点的已有设置保持不变，确认继续？`,
-    okText: '确认更新',
+    title: '确定更新例外授权吗？',
+    content: `确定为 ${batchUserIds.length} 个用户修改 ${overrides.length} 个功能点的授权吗？其他功能点的已有设置保持不变。`,
+    okText: '保存授权',
   });
   if (!confirmed) {
     return false;
@@ -520,10 +511,11 @@ async function runBatchSaveOverrides({
 
   try {
     const result = await batchUpdateUserOverrides(batchUserIds, overrides);
-    setPermissionMessage(readMessage(result, `已为 ${batchUserIds.length} 个用户更新权限`));
+    setPermissionMessage('');
+    message.success(readMessage(result, `已为 ${batchUserIds.length} 个用户更新权限`));
     return true;
   } catch (error) {
-    setPermissionMessage(error instanceof Error ? error.message : '批量授权失败');
+    message.error(error instanceof Error ? error.message : '批量授权失败');
     return false;
   }
 }
@@ -548,9 +540,9 @@ async function runBatchSetMonitorCheck({
   }
 
   const confirmed = await confirmModal({
-    title: '确认批量设置寝室长',
-    content: `即将为 ${selectedStudentIds.length} 名学生批量设置寝室长，确认继续？`,
-    okText: '确认设置',
+    title: '确定批量设置寝室长吗？',
+    content: `确定将选中的 ${selectedStudentIds.length} 名学生设为寝室长吗？`,
+    okText: '设为寝室长',
   });
   if (!confirmed) {
     return;
@@ -568,11 +560,12 @@ async function runBatchSetMonitorCheck({
     }
 
     const executeResult = await batchSetMonitor(selectedStudentIds, true);
-    setPermissionMessage(readMessage(executeResult, '寝室长设置成功'));
+    setPermissionMessage('');
+    message.success(readMessage(executeResult, '寝室长设置成功'));
     setSelectedStudentIds([]);
     await loadStudentList();
   } catch (error) {
-    setPermissionMessage(error instanceof Error ? error.message : '检测冲突失败');
+    message.error(error instanceof Error ? error.message : '检测冲突失败');
   }
 }
 
@@ -599,12 +592,13 @@ async function runBatchSetMonitorExecute({
 
   try {
     const result = await batchSetMonitor(selectedStudentIds, replaceExisting);
-    setPermissionMessage(readMessage(result, '寝室长设置成功'));
+    setPermissionMessage('');
+    message.success(readMessage(result, '寝室长设置成功'));
     setSelectedStudentIds([]);
     setMonitorConflictModal({ visible: false, conflicts: [], nonConflicts: [] });
     await loadStudentList();
   } catch (error) {
-    setPermissionMessage(error instanceof Error ? error.message : '设置寝室长失败');
+    message.error(error instanceof Error ? error.message : '设置寝室长失败');
   }
 }
 
@@ -634,12 +628,13 @@ async function runContinueNonConflicts({
 
   try {
     const result = await batchSetMonitor(nonConflictIds, false);
-    setPermissionMessage(readMessage(result, '寝室长设置成功'));
+    setPermissionMessage('');
+    message.success(readMessage(result, '寝室长设置成功'));
     setSelectedStudentIds([]);
     setMonitorConflictModal({ visible: false, conflicts: [], nonConflicts: [] });
     await loadStudentList();
   } catch (error) {
-    setPermissionMessage(error instanceof Error ? error.message : '设置寝室长失败');
+    message.error(error instanceof Error ? error.message : '设置寝室长失败');
   }
 }
 
@@ -665,21 +660,21 @@ async function runFormSubmit({
   event.preventDefault();
 
   if (!form.role) {
-    message.warning('请选择主角色后再提交');
+    message.warning('请选择主角色');
     return;
   }
   if (!form.roles.length) {
-    message.warning('请至少分配一个角色后再提交');
+    message.warning('请至少选择一个角色');
     return;
   }
 
   const isEdit = Boolean(editingId);
   const confirmed = await confirmModal({
-    title: isEdit ? '确认更新账号' : '确认新增账号',
+    title: isEdit ? '确定更新用户吗？' : '确定新增用户吗？',
     content: isEdit
-      ? `即将更新账号「${form.fullName || form.username || '未命名'}」的信息，确认继续？`
-      : `即将新增账号「${form.fullName || form.username || '未命名'}」，确认继续？`,
-    okText: isEdit ? '确认更新' : '确认新增',
+      ? `确定更新用户「${form.fullName || form.username || '未命名'}」的信息吗？`
+      : `确定新增用户「${form.fullName || form.username || '未命名'}」吗？`,
+    okText: isEdit ? '保存' : '新增用户',
   });
   if (!confirmed) {
     return;
@@ -688,13 +683,15 @@ async function runFormSubmit({
   try {
     if (editingId && updateUser) {
       await updateUser(editingId, form);
-      setUserMessage('更新用户信息成功');
+      setUserMessage('');
+      message.success('用户信息已更新');
     } else if (!editingId && createUser) {
       const created = await createUser(form);
-      setUserMessage('新增用户成功');
+      setUserMessage('');
+      message.success('用户已新增');
       const initialPassword = readGeneratedPassword(created, 'initialPassword');
       if (initialPassword) {
-        showGeneratedPasswords('账号已创建', [
+        showGeneratedPasswords('用户已创建', [
           { label: form.fullName ? `${form.fullName}（${form.username}）` : form.username, password: initialPassword },
         ]);
       }
@@ -702,7 +699,7 @@ async function runFormSubmit({
     onSuccess?.();
     setReloadFlag((prev) => prev + 1);
   } catch (error) {
-    setUserMessage(error instanceof Error ? error.message : '提交失败');
+    message.error(error instanceof Error ? error.message : '提交失败');
   }
 }
 

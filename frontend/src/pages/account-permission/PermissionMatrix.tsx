@@ -90,7 +90,6 @@ export default function PermissionMatrix({
           <div className="dorm-table-head-accent" />
           <h3 className="dorm-table-head-title">角色权限矩阵</h3>
         </div>
-        {loading ? <p className="muted">加载中...</p> : null}
       </div>
       {matrix ? (
         <div className={`table-wrapper${isMobile ? '' : ' dorm-table-wrapper'}`}>

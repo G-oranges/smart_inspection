@@ -89,6 +89,7 @@ interface StudentTableSectionProps {
   onRetryLoad: () => void;
   isMobile: boolean;
   canEdit: boolean;
+  hasActiveFilter: boolean;
   tableData: TableResponse<StudentRecord>;
   loading: boolean;
   resizableColumns: ServiceRecord[];
@@ -252,6 +253,7 @@ function StudentTableSection({
   onRetryLoad,
   isMobile,
   canEdit,
+  hasActiveFilter,
   tableData,
   loading,
   resizableColumns,
@@ -325,7 +327,7 @@ function StudentTableSection({
       }}
       size="middle"
       className="dorm-table"
-      emptyText="暂无学生数据"
+      emptyText={hasActiveFilter ? '没有匹配的学生' : '还没有学生'}
       resizable={true}
       pagination={{
         current: pagination.current,
@@ -404,7 +406,7 @@ function StudentFloatingActions({
           {canImport ? (
             <FloatButton
               icon={<DownloadOutlined />}
-              tooltip="模板"
+              tooltip="下载模板"
               onClick={handleDownloadTemplate}
             />
           ) : null}
@@ -677,23 +679,15 @@ function StudentPageOverlays({
 function useStudentManagementUi() {
   const [reloadFlag, setReloadFlag] = useState(0);
   const [toastMsg, setToastMsg] = useState('');
-  const [lastRefreshedAt, setLastRefreshedAt] = useState(() =>
-    new Date().toLocaleTimeString(),
-  );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
   const [importWizardOpen, setImportWizardOpen] = useState(false);
 
-  useEffect(() => {
-    setLastRefreshedAt(new Date().toLocaleTimeString());
-  }, [reloadFlag]);
-
   return {
     actionSheetOpen,
     advancedFilterOpen,
     importWizardOpen,
-    lastRefreshedAt,
     reloadFlag,
     setActionSheetOpen,
     setAdvancedFilterOpen,
@@ -998,10 +992,11 @@ function useStudentManagementModel() {
     handleRetryLoad,
     handleSearch,
     handleTableChange,
+    hasActiveFilter:
+      Boolean(appliedSearchTerm.trim()) || getActiveFilterCount(appliedFilters) > 0,
     importWizardOpen: uiState.importWizardOpen,
     isDirty,
     isMobile,
-    lastRefreshedAt: uiState.lastRefreshedAt,
     loading,
     pagination,
     resizableColumns,
@@ -1092,20 +1087,13 @@ export default function StudentManagementPage() {
           />
         }
       >
-        <div className="table-head dorm-table-head mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="dorm-table-head-accent" />
-            <h3 className="dorm-table-head-title">实时列表</h3>
-            <span className="dorm-table-head-time">最后更新: {model.lastRefreshedAt}</span>
-          </div>
-        </div>
-
         <div className="table-wrapper dorm-table-wrapper">
           <StudentTableSection
             fetchError={model.fetchError}
             onRetryLoad={model.handleRetryLoad}
             isMobile={model.isMobile}
             canEdit={model.canEdit}
+            hasActiveFilter={model.hasActiveFilter}
             tableData={model.tableData}
             loading={model.loading}
             resizableColumns={model.resizableColumns}

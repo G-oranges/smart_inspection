@@ -26,17 +26,16 @@ export const PRESET_OPTIONS: Array<{ value: ScopePresetCode; label: string }> = 
 export const INHERIT_OPTION = { value: 'INHERIT' as const, label: '跟随角色（不单独设置）' };
 
 export const PRESET_HINTS: Record<ScopeEditorMode, string> = {
-  INHERIT: '该账号按其角色的数据范围计算；多个角色时合并生效。',
-  OWN_COLLEGE:
-    '只看本人所在学院（账号的部门/学院）的学生，以及这些学生入住的宿舍、查寝结果和任务。账号未填写学院时看不到数据。',
-  SELF: '学生只能看到本人宿舍的数据；教职工没有本人宿舍，相当于看不到他人数据。',
-  ACADEMIC: '可见所选学院/专业/班级的学生，以及这些学生入住的宿舍、查寝结果和任务。',
-  DORMITORY: '可见所选楼栋/楼层/房间的宿舍、查寝结果和任务；看不到学生名单。',
-  CUSTOM: '学院规则与楼栋规则同时生效，可见范围为两者合并。',
-  ALL: '可见全校全部数据，请仅授予管理类角色。',
+  INHERIT: '按用户所属角色的数据范围计算，多角色合并生效。',
+  OWN_COLLEGE: '仅可见本学院的学生及其宿舍、查寝结果和任务；未填学院时不可见数据。',
+  SELF: '仅可见本人宿舍数据（教职工无本人宿舍）。',
+  ACADEMIC: '可见所选学院、专业或班级的学生及其宿舍、查寝结果和任务。',
+  DORMITORY: '可见所选楼栋、楼层或房间的宿舍、查寝结果和任务。',
+  CUSTOM: '学院范围与楼栋范围合并生效。',
+  ALL: '可见全校全部数据，仅建议授予管理类角色。',
 };
 
-export const SCOPE_DEFAULTS_HINT = '未配置时：管理员为全部数据，学生为仅本人，其他角色为本学院。';
+export const SCOPE_DEFAULTS_HINT = '默认规则：管理员为全部数据，学生为仅本人，其他角色为本学院。';
 
 export const ACADEMIC_RULE_HINT =
   '按层级收窄：选了学院再选其下的专业，只看这些专业；再选其下的班级，只看这些班级。不属于已选学院的专业或班级会额外加入。';

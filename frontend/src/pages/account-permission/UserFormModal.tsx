@@ -149,7 +149,7 @@ export default function UserFormModal({
             />
           </label>
           <label className="field-block full-row">
-            <span className="field-label">附加角色（可选，权限与数据范围与主角色合并）</span>
+            <span className="field-label">附加角色</span>
             {rolesLoading && <p className="muted">加载角色中...</p>}
             {rolesError && <p className="error">{rolesError}</p>}
             <PanelSelect
@@ -165,9 +165,10 @@ export default function UserFormModal({
                   label: role.name,
                   disabled: role.status === 'INACTIVE',
                 }))}
-              placeholder="不需要可留空"
+              placeholder="选择附加角色"
               style={{ width: "100%" }}
             />
+            <span className="field-hint muted">权限和数据范围与主角色合并</span>
           </label>
           <div className="field-block">
             <span className="field-label">启用状态</span>
@@ -179,7 +180,7 @@ export default function UserFormModal({
                 }
               />
               <span className="muted">
-                {!form.isDisabled ? "启用中" : "已停用"}
+                {!form.isDisabled ? "已启用" : "已停用"}
               </span>
             </div>
           </div>

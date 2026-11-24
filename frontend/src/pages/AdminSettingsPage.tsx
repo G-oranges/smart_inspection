@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Alert, Badge, Button, Space, Typography, ConfigProvider, theme } from 'antd';
+import { Alert, Button, Typography, theme } from 'antd';
 import { 
   DownloadOutlined, 
   SaveOutlined, 
@@ -32,7 +32,7 @@ import {
 
 import type { AdminSettingsActions } from './admin-settings/types';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 /**
  * 设置页面分区配置
@@ -66,13 +66,13 @@ export default function AdminSettingsPage() {
       typeof appActions.updateSettings === 'function'
         ? appActions.updateSettings
         : async () => {
-            throw new Error('保存设置接口不可用');
+            throw new Error('当前无法保存设置，请刷新后重试');
           };
     const downloadTemplate =
       typeof appActions.downloadTemplate === 'function'
         ? appActions.downloadTemplate
         : async () => {
-            throw new Error('模板下载接口不可用');
+            throw new Error('当前无法下载模板，请刷新后重试');
           };
 
     return {
@@ -257,7 +257,7 @@ export default function AdminSettingsPage() {
               {isDirty && (
                 <div className="px-1 py-1 flex items-center gap-2 text-orange-500 co-animate-in">
                   <ExclamationCircleOutlined className="text-xs" />
-                  <span className="text-[11px] font-semibold">内容有未保存修改</span>
+                  <span className="text-[11px] font-semibold">有未保存的修改</span>
                 </div>
               )}
               <Button
@@ -342,42 +342,36 @@ export default function AdminSettingsPage() {
 
           {renderSection('permission-entry', '权限管理入口', <UserOutlined />, (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200/20 flex items-start gap-4">
-                <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg">
-                   <UserOutlined className="text-lg" />
-                </div>
-                <div className="flex-1">
-                  <div className="text-[13px] font-bold mb-1">权限快速导航</div>
-                  <div className="text-[11px] text-co-muted mb-4 leading-relaxed">
-                    如需调整各角色的具体操作权限，请前往账号与权限管理页面进行矩阵式授权。本页仅负责应用级的基础参数配置。
+              <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200/20 flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg">
+                    <UserOutlined className="text-lg" />
                   </div>
-                  <Button type="primary" size="small" onClick={() => navigate('/accounts')} className="rounded-lg h-8 text-[11px]">
-                    立即前往账号管理
-                  </Button>
+                  <div className="text-[13px] text-co-text">
+                    角色与用户权限请在用户与权限管理中配置
+                  </div>
                 </div>
+                <Button type="primary" size="small" onClick={() => navigate('/accounts')} className="rounded-lg h-8 text-[11px]">
+                  前往用户与权限管理
+                </Button>
               </div>
             </div>
           ))}
 
           {renderSection('template-download', '模板下载', <FileDoneOutlined />, (
-            <div className="space-y-4">
-              <Text type="secondary" className="text-[11px] opacity-70 block mb-4">
-                下载现有的学生档案和宿管档案模板，按照模板格式录入后进行批量导入。
-              </Text>
-              <div className="flex flex-wrap gap-3">
-                {TEMPLATE_OPTIONS.map((item) => (
-                  <Button
-                    key={item.type}
-                    icon={<DownloadOutlined />}
-                    onClick={() => {
-                      void handleTemplateDownload(item.type);
-                    }}
-                    className="co-glass-btn h-10 rounded-xl px-6 text-xs font-medium border-black/5 dark:border-white/5"
-                  >
-                    下载{item.label}
-                  </Button>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-3">
+              {TEMPLATE_OPTIONS.map((item) => (
+                <Button
+                  key={item.type}
+                  icon={<DownloadOutlined />}
+                  onClick={() => {
+                    void handleTemplateDownload(item.type);
+                  }}
+                  className="co-glass-btn h-10 rounded-xl px-6 text-xs font-medium border-black/5 dark:border-white/5"
+                >
+                  下载{item.label}
+                </Button>
+              ))}
             </div>
           ))}
         </main>

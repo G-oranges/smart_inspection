@@ -8,7 +8,6 @@ import {
   FloatButton,
   Form,
   Input,
-  Modal,
   Pagination,
   Segmented,
   message,
@@ -164,6 +163,7 @@ interface DormFiltersBarProps {
 }
 
 interface DormContentPaneProps {
+  emptyText: string;
   fetchError: string | null;
   isMobile: boolean;
   tableData: { items: DormRecord[]; total: number };
@@ -205,6 +205,7 @@ interface DormManagementContentProps {
   desktopFilterConfig: ReturnType<typeof createDesktopFilterConfig>;
   dormStats: DormStatsState;
   draftSearchTerm: string;
+  emptyText: string;
   fetchError: string | null;
   filterCount: number;
   handleBedClick: (bed: ServiceRecord, room: DormRecord) => void;
@@ -218,7 +219,6 @@ interface DormManagementContentProps {
   handleTableChange: UseTableStateResult['handleTableChange'];
   isDirty: boolean;
   isMobile: boolean;
-  lastRefreshedAt: string;
   loading: boolean;
   normalizedTableData: { items: DormRecord[]; total: number };
   pagination: PaginationState;
@@ -403,7 +403,7 @@ function DormFiltersBar({
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <Input
-              placeholder="搜索宿舍..."
+              placeholder="搜索房号、楼栋、学生或教职工"
               prefix={<SearchOutlined className="text-gray-400" />}
               className="apple-search-input !rounded-xl !bg-gray-100/60 dark:!bg-white/5 border-none h-10 flex-1"
               value={draftSearchTerm}
@@ -449,7 +449,7 @@ function DormFiltersBar({
         <div className="dorm-toolbar-shell">
           <div className="dorm-toolbar-row dorm-toolbar-row-main">
             <Input
-              placeholder="搜索宿舍、教工、学生..."
+              placeholder="搜索房号、楼栋、学生或教职工"
               prefix={<SearchOutlined className="text-gray-400" />}
               className="apple-search-input dorm-toolbar-search !bg-gray-100/50 dark:!bg-white/5 border-none flex-1 min-w-[220px]"
               value={draftSearchTerm}
@@ -514,7 +514,7 @@ function DormFiltersBar({
               icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
               onClick={() => setSettingsOpen(true)}
             >
-              字段管理
+              字段设置
             </Button>
             {canEdit && selectedCount > 0 ? (
               <Button
@@ -562,7 +562,7 @@ function DormFiltersBar({
         <div className="mt-2 flex items-center justify-between p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20">
           <div className="flex items-center gap-3">
             <span className="text-blue-600 font-medium text-sm">
-              已选择 {selectedCount} 项{selectAcrossPages ? ' (跨全页)' : ''}
+              已选 {selectedCount} 间{selectAcrossPages ? '（全部筛选结果）' : ''}
             </span>
             {(currentPage > 1 || tableDataTotal > currentPageItemCount) && !selectAcrossPages ? (
               <Button
@@ -571,12 +571,12 @@ function DormFiltersBar({
                 className="text-blue-600 font-semibold p-0 h-auto"
                 onClick={selectAllResults}
               >
-                选择所有筛选结果 ({tableDataTotal})
+                全选筛选结果 ({tableDataTotal})
               </Button>
             ) : null}
           </div>
           <Button type="link" size="small" className="text-gray-500 p-0 h-auto" onClick={clearSelection}>
-            清空
+            取消选择
           </Button>
         </div>
       ) : null}
@@ -585,6 +585,7 @@ function DormFiltersBar({
 }
 
 function DormContentPane({
+  emptyText,
   fetchError,
   isMobile,
   tableData,
@@ -660,7 +661,7 @@ function DormContentPane({
             pageSize: pageSize || prev.pageSize,
           }));
         }}
-        emptyText="暂无宿舍数据"
+        emptyText={emptyText}
       />
     );
   }
@@ -708,7 +709,7 @@ function DormContentPane({
             ))}
           </div>
           {tableData.items.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">暂无宿舍数据</div>
+            <div className="text-center py-12 text-gray-400">{emptyText}</div>
           ) : null}
         </div>
         <div className="dorm-pagination-shell">
@@ -807,7 +808,7 @@ function DormContentPane({
             },
           );
         }}
-        locale={{ emptyText: '暂无宿舍数据' }}
+        locale={{ emptyText }}
         resizable={true}
       />
     </div>
@@ -833,7 +834,7 @@ function DormFloatingActions({
       <FloatButton.BackTop style={{ bottom: selectedIds.length > 0 ? 170 : 100, right: 20 }} />
       {selectedIds.length === 0 ? (
         <FloatButton.Group trigger="click" type="primary" style={{ right: 20, bottom: 100 }} icon={<PlusOutlined />} closeIcon={<PlusOutlined rotate={45} />}>
-          {canEdit ? <FloatButton icon={<PlusOutlined />} tooltip="新增" onClick={() => setModalOpen(true)} /> : null}
+          {canEdit ? <FloatButton icon={<PlusOutlined />} tooltip="新增宿舍" onClick={() => setModalOpen(true)} /> : null}
           {canImport ? (
             <FloatButton
               icon={<ImportOutlined />}
@@ -882,9 +883,6 @@ function useDormManagementUi({
   const [bedModalOpen, setBedModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<DormRecord | null>(null);
   const [selectedBed, setSelectedBed] = useState<ServiceRecord | null>(null);
-  const [lastRefreshedAt, setLastRefreshedAt] = useState(() =>
-    new Date().toLocaleTimeString(),
-  );
 
   useEffect(() => {
     if (!isMobile) {
@@ -909,7 +907,6 @@ function useDormManagementUi({
     editModalOpen,
     editingDorm,
     importWizardOpen,
-    lastRefreshedAt,
     modalOpen,
     reloadFlag,
     selectedBed,
@@ -923,7 +920,6 @@ function useDormManagementUi({
     setEditModalOpen,
     setEditingDorm,
     setImportWizardOpen,
-    setLastRefreshedAt,
     setModalOpen,
     setReloadFlag,
     setSelectedBed,
@@ -1197,27 +1193,11 @@ function useDormManagementHandlers({
         return;
       }
 
-      const confirmed = await new Promise<boolean>((resolve) => {
-        Modal.confirm({
-          title: '确认新增宿舍',
-          content: `即将新增宿舍 ${payload.building || ''} ${payload.roomNo || ''}，确认继续？`,
-          okText: '确认新增',
-          cancelText: '取消',
-          maskClosable: false,
-          keyboard: false,
-          onOk: () => resolve(true),
-          onCancel: () => resolve(false),
-        });
-      });
-      if (!confirmed) {
-        return;
-      }
-
       try {
         await pageActions.createDorm(payload);
         form.resetFields();
         setModalOpen(false);
-        message.success('提交成功');
+        message.success('已新增宿舍');
         setReloadFlag((prev) => prev + 1);
       } catch (error) {
         message.error(error instanceof Error ? error.message : '提交失败');
@@ -1232,28 +1212,12 @@ function useDormManagementHandlers({
         return;
       }
 
-      const confirmed = await new Promise<boolean>((resolve) => {
-        Modal.confirm({
-          title: '确认更新宿舍',
-          content: `即将更新宿舍 ${payload.building || ''} ${payload.roomNo || ''} 的信息，确认继续？`,
-          okText: '确认更新',
-          cancelText: '取消',
-          maskClosable: false,
-          keyboard: false,
-          onOk: () => resolve(true),
-          onCancel: () => resolve(false),
-        });
-      });
-      if (!confirmed) {
-        return;
-      }
-
       try {
         await pageActions.updateDorm(editingDorm.id, payload);
         editForm.resetFields();
         setEditModalOpen(false);
         setEditingDorm(null);
-        message.success('更新成功');
+        message.success('已保存修改');
         setReloadFlag((prev) => prev + 1);
       } catch (error) {
         message.error(error instanceof Error ? error.message : '更新失败');
@@ -1286,6 +1250,7 @@ function DormManagementContent({
   desktopFilterConfig,
   dormStats,
   draftSearchTerm,
+  emptyText,
   fetchError,
   filterCount,
   handleBedClick,
@@ -1299,7 +1264,6 @@ function DormManagementContent({
   handleTableChange,
   isDirty,
   isMobile,
-  lastRefreshedAt,
   loading,
   normalizedTableData,
   pagination,
@@ -1365,15 +1329,9 @@ function DormManagementContent({
           />
         }
       >
-        <div className="table-head dorm-table-head mb-4">
-          <div className="flex items-center gap-2">
-            <div className="dorm-table-head-accent" />
-            <h3 className="dorm-table-head-title">实时列表</h3>
-            <span className="dorm-table-head-time">最后更新: {lastRefreshedAt}</span>
-          </div>
-        </div>
         <div className="table-wrapper dorm-table-wrapper">
           <DormContentPane
+            emptyText={emptyText}
             fetchError={fetchError}
             isMobile={isMobile}
             tableData={normalizedTableData}
@@ -1650,7 +1608,6 @@ export default function DormManagementPage() {
     enabled: canView,
     onSuccess: (result) => {
       setPagination((prev) => ({ ...prev, total: result.total || 0 }));
-      uiState.setLastRefreshedAt(new Date().toLocaleTimeString());
     },
     onError: (error) => {
       console.error('获取宿舍列表失败:', error);
@@ -1742,6 +1699,12 @@ export default function DormManagementPage() {
   const selectedCount = selectAcrossPages
     ? derivedData.normalizedTableData.total
     : selectedIds.length;
+  const hasActiveFilter =
+    Boolean(appliedSearchTerm.trim()) ||
+    Object.values(appliedFilters).some(
+      (value) => Array.isArray(value) && value.length > 0,
+    );
+  const emptyText = hasActiveFilter ? '没有符合条件的宿舍' : '还没有宿舍';
 
   if (!canView) {
     return (
@@ -1762,6 +1725,7 @@ export default function DormManagementPage() {
         desktopFilterConfig={desktopFilterConfig}
         dormStats={derivedData.dormStats}
         draftSearchTerm={draftSearchTerm}
+        emptyText={emptyText}
         fetchError={fetchError}
         filterCount={filterCount}
         handleBedClick={handleBedClick}
@@ -1775,7 +1739,6 @@ export default function DormManagementPage() {
         handleTableChange={handleTableChange}
         isDirty={isDirty}
         isMobile={isMobile}
-        lastRefreshedAt={uiState.lastRefreshedAt}
         loading={loading}
         normalizedTableData={derivedData.normalizedTableData}
         pagination={pagination}

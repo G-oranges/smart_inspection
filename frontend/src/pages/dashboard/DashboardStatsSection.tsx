@@ -73,7 +73,7 @@ export default function DashboardStatsSection({
             id: 'students',
             icon: <TeamOutlined />,
             value: stats.totalStudents,
-            label: '管辖学生',
+            label: '负责学生',
             dotColor: 'blue',
             path: canViewStudents ? '/students' : undefined,
           };
@@ -108,7 +108,7 @@ export default function DashboardStatsSection({
       id: 'pending-appeals',
       icon: <AlertOutlined />,
       value: stats.pendingAppeals,
-      label: viewMode === 'student' ? '待处理申诉' : '待审申诉',
+      label: '待处理申诉',
       dotColor: stats.pendingAppeals > 0 ? 'red' : 'gray',
       path: canViewResults ? '/results?focus=appeals' : undefined,
     };

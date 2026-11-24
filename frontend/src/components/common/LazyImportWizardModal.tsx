@@ -19,7 +19,7 @@ function ImportWizardFallback({ open, onClose }: Pick<ImportWizardModalProps, 'o
       className="co-modal"
     >
       <div className="flex min-h-[180px] items-center justify-center">
-        <Spin size="large" tip="导入向导加载中..." />
+        <Spin size="large" tip="正在加载…" />
       </div>
     </Modal>
   );

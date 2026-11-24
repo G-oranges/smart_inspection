@@ -63,7 +63,7 @@ export const TEACHER_DEFAULT_COLUMNS: TeacherColumnConfig[] = [
   },
   {
     fieldKey: "classes",
-    label: "所带班级",
+    label: "负责班级",
     visible: true,
     sortable: false,
     order: 5,

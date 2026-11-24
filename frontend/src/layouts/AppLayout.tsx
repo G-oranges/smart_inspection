@@ -30,7 +30,7 @@ import {
   CameraOutlined,
   LoadingOutlined
 } from '@ant-design/icons';
-import { Dropdown, Modal, Form, Input, App, Drawer, Button, Slider, Select, Popconfirm, Popover, Divider, Upload } from 'antd';
+import { Dropdown, Modal, Form, Input, App, Drawer, Button, Slider, Select, Popover, Divider, Upload } from 'antd';
 import { RightOutlined } from '@ant-design/icons';
 import IOSActionSheet from '../components/common/IOSActionSheet';
 import type { IOSActionSheetAction } from '../components/common/IOSActionSheet';
@@ -171,7 +171,7 @@ const MobileLayout = ({ navItems, location, selection, user, onOpenUserMenu }: M
     return activeGroup?.children?.find(c => location.pathname.startsWith(c.key));
   }, [activeGroup, location.pathname]);
 
-  const displayTitle = activeChild?.label || activeGroup?.label || '查寝系统';
+  const displayTitle = activeChild?.label || activeGroup?.label || '宿舍管理系统';
   const displayName = user?.fullName || user?.username || '用户';
   // 检测是否为沉浸式页面 (查寝录入详情页)
   const isImmersive = useMemo(() => {
@@ -344,11 +344,10 @@ const DesktopLayout = ({ navItems, userMenuProps, location, user, activeRole }: 
         <div className="p-6 mb-2">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-ios-blue to-ios-indigo rounded-[22%] flex items-center justify-center text-white shadow-lg shadow-ios-blue/20">
-              <span className="text-xl">🏠</span>
+              <HomeOutlined className="text-xl" />
             </div>
             <div>
-              <h2 className="text-[15px] font-black tracking-tight text-co-text leading-tight">查寝系统</h2>
-              <p className="text-[10px] font-bold text-co-muted uppercase tracking-widest">Smart Protocol</p>
+              <h2 className="text-[15px] font-black tracking-tight text-co-text leading-tight">宿舍管理系统</h2>
             </div>
           </div>
         </div>
@@ -495,9 +494,7 @@ const AppLayout = () => {
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [savingContact, setSavingContact] = useState(false);
   const [rolePopoverOpen, setRolePopoverOpen] = useState(false);
-  const [roleBanner, setRoleBanner] = useState("");
   const [avatarUploading, setAvatarUploading] = useState(false);
-  const roleBannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [pwdForm] = Form.useForm<PasswordFormValues>();
   const { message: antMessage } = App.useApp();
   const displayName = layoutUser?.fullName || layoutUser?.username || "用户";
@@ -545,7 +542,7 @@ const AppLayout = () => {
         children: [
           { key: '/buildings', label: '楼栋管理', permission: 'SYSTEM_SETTINGS' },
           { key: '/dorms', label: '宿舍管理', permission: 'DORM_VIEW', roleExclude: ['LEADER'] },
-          { key: '/teachers', label: '教师管理', permission: 'TEACHER_MANAGE' },
+          { key: '/teachers', label: '教职工管理', permission: 'TEACHER_MANAGE' },
           { key: '/students', label: '学生管理', permission: 'STUDENT_VIEW' },
           { key: '/occupancy', label: '入住管理', permission: 'DORM_VIEW' },
         ],
@@ -716,16 +713,6 @@ const AppLayout = () => {
   };
 
 
-  const showRoleBanner = (message: string) => {
-    setRoleBanner(message);
-    if (roleBannerTimerRef.current) {
-      clearTimeout(roleBannerTimerRef.current);
-    }
-    roleBannerTimerRef.current = setTimeout(() => {
-      setRoleBanner("");
-    }, 2500);
-  };
-
   const handleRoleSwitch = async (role: RoleLike, options: { closeMenu?: boolean; closeSheet?: boolean } = {}) => {
     if (!role || role.id === activeRole?.id) {
       if (options.closeMenu) {
@@ -737,10 +724,9 @@ const AppLayout = () => {
       setActiveRole(role);
       await refreshPermissions?.();
       await layoutActions.fetchMyProfile?.();
-      antMessage.success(`已切换为 ${role.name || role.code} 角色，权限已刷新`);
-      showRoleBanner(`已切换为 ${role.name || role.code} 角色，权限已刷新`);
+      antMessage.success(`已切换为 ${role.name || role.code}`);
     } catch (err) {
-      antMessage.error((err as ServiceError).message || "角色切换失败");
+      antMessage.error((err as ServiceError).message || "切换角色失败");
     } finally {
       if (options.closeMenu) {
         setUserMenuOpen(false);
@@ -755,9 +741,9 @@ const AppLayout = () => {
     setUserMenuOpen(false);
     setUserSheetOpen(false);
     Modal.confirm({
-      title: "确认退出",
-      content: "将清理本地会话与缓存，确认退出？",
-      okText: "确认退出",
+      title: "退出登录？",
+      content: "退出后需要重新登录。",
+      okText: "退出登录",
       cancelText: "取消",
       okType: "danger",
       className: "apple-modal",
@@ -816,7 +802,7 @@ const AppLayout = () => {
     const maxAvatarSize = 2 * 1024 * 1024;
     const fileSize = typeof file === 'object' && file && 'size' in file ? file.size : 0;
     if (fileSize > maxAvatarSize) {
-      const err = new Error("头像大小不能超过 2MB");
+      const err = new Error("头像大小不能超过 2 MB");
       onError?.(err);
       antMessage.error(err.message);
       return;
@@ -827,14 +813,14 @@ const AppLayout = () => {
       const res = await layoutActions.uploadAvatar(file as File);
       const url = res?.url || res?.data?.url;
       if (!url) {
-        throw new Error("上传成功但未返回 URL");
+        throw new Error("头像上传失败，请稍后再试");
       }
       await refreshUser?.();
       onSuccess?.(res);
       antMessage.success("头像已更新");
     } catch (err) {
       onError?.(err as Error);
-      antMessage.error(`头像上传失败：${(err as ServiceError).message || "未知错误"}`);
+      antMessage.error((err as ServiceError).message || "头像上传失败，请稍后再试");
     } finally {
       setAvatarUploading(false);
     }
@@ -862,14 +848,6 @@ const AppLayout = () => {
       layoutActions.loadAppeals?.();
     }
   }, [profileOpen, basePhone, baseEmail, layoutActions, activeRole?.code]);
-
-  useEffect(() => {
-    return () => {
-      if (roleBannerTimerRef.current) {
-        clearTimeout(roleBannerTimerRef.current);
-      }
-    };
-  }, []);
 
   const stats = useMemo(() => {
     const inspectionCount =
@@ -949,7 +927,7 @@ const AppLayout = () => {
         >
           <div className="flex items-center gap-2 text-black dark:text-white">
             <SwapOutlined className="text-[15px] text-ios-blue" />
-            <span>角色切换</span>
+            <span>切换角色</span>
           </div>
           <RightOutlined className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-ios-gray-label group-hover:translate-x-0.5 transition-transform" />
         </button>
@@ -998,7 +976,7 @@ const AppLayout = () => {
           className="w-full h-10 rounded-xl px-3 flex items-center justify-center gap-2 text-[13px] font-semibold text-red-500 hover:bg-red-500/10 transition-all active:scale-[0.98]"
         >
           <LogoutOutlined className="text-[15px]" />
-          <span>安全退出</span>
+          <span>退出登录</span>
         </button>
       </div>
     </div>
@@ -1021,7 +999,7 @@ const AppLayout = () => {
     },
     {
       key: "roles",
-      label: "角色切换",
+      label: "切换角色",
       icon: <SwapOutlined />,
       hidden: (userRoles?.length ?? 0) <= 1,
       onClick: () => {
@@ -1049,7 +1027,7 @@ const AppLayout = () => {
     },
     {
       key: "logout",
-      label: "安全退出",
+      label: "退出登录",
       icon: <LogoutOutlined />,
       type: "danger",
       onClick: confirmLogout,
@@ -1094,8 +1072,7 @@ const AppLayout = () => {
       <IOSActionSheet
         open={roleSheetOpen}
         onClose={() => setRoleSheetOpen(false)}
-        title="角色切换"
-        subtitle="切换后权限将立即刷新"
+        title="切换角色"
         actions={roleSheetActions}
       />
 
@@ -1168,16 +1145,9 @@ const AppLayout = () => {
                     <span className="px-2 py-0.5 rounded-full bg-ios-blue/10 text-ios-blue text-[10px] font-bold uppercase tracking-widest truncate">
                       {roleLabel}
                     </span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-ios-green shadow-[0_0_8px_rgba(52,199,89,0.5)]"></span>
-                    <span className="text-[11px] text-ios-gray-label">在线</span>
                   </div>
                 </div>
               </div>
-              {roleBanner && (
-                <div className="mt-3 px-3 py-2 rounded-xl bg-ios-blue/10 text-ios-blue text-[12px] font-semibold border border-ios-blue/20">
-                  {roleBanner}
-                </div>
-              )}
             </div>
           </div>
 
@@ -1245,7 +1215,7 @@ const AppLayout = () => {
                         }`}
                     >
                       <span className={`text-[15px] ${!phoneDraft ? "text-ios-gray-label font-normal" : "font-semibold text-black dark:text-white"}`}>
-                        {phoneDraft || "点击填写常用联系电话"}
+                        {phoneDraft || "未填写"}
                       </span>
                     </div>
                   )}
@@ -1291,7 +1261,7 @@ const AppLayout = () => {
                         }`}
                     >
                       <span className={`text-[15px] ${!emailCandidate ? "text-ios-gray-label font-normal" : "font-semibold text-black dark:text-white"}`}>
-                        {emailCandidate || "点击设置常用邮箱"}
+                        {emailCandidate || "未填写"}
                       </span>
                     </div>
                   )}
@@ -1302,30 +1272,28 @@ const AppLayout = () => {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between gap-3 pt-2">
-                  <span className="text-[11px] text-ios-gray-label transition-opacity">
-                    {canEditContact ? "点击上方文本即可编辑" : "当前账号不支持修改联系方式"}
-                  </span>
+                {(!canEditContact || canSaveContact) && (
+                  <div className="flex items-center justify-between gap-3 pt-2">
+                    {!canEditContact ? (
+                      <span className="text-[11px] text-ios-gray-label transition-opacity">
+                        当前账号不支持修改联系方式
+                      </span>
+                    ) : (
+                      <span />
+                    )}
 
-                  {canSaveContact && (
-                    <Popconfirm
-                      title="保存修改"
-                      description="确定要更新您的联系方式吗？"
-                      onConfirm={handleSaveContact}
-                      okText="确认"
-                      cancelText="取消"
-                      placement="topLeft"
-                    >
+                    {canSaveContact && (
                       <Button
                         type="primary"
                         className="apple-btn-primary h-9 px-6 font-bold"
                         loading={savingContact}
+                        onClick={handleSaveContact}
                       >
                         保存
                       </Button>
-                    </Popconfirm>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             </section>
 
@@ -1348,26 +1316,6 @@ const AppLayout = () => {
                         {item.value}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <div className="flex items-center justify-between px-1 mb-1.5">
-                <h3 className="text-[11px] font-bold text-ios-gray-label uppercase tracking-widest">
-                  功能信息
-                </h3>
-              </div>
-              <div className="rounded-2xl border border-black/5 dark:border-white/10 bg-white/80 dark:bg-[rgba(255,255,255,0.12)] p-3">
-                <div className="flex flex-wrap gap-2">
-                  {navItems.slice(0, 4).map((item) => (
-                    <span
-                      key={item.key}
-                      className="px-3 py-1 rounded-full bg-ios-blue/10 text-ios-blue text-[11px] font-bold uppercase tracking-wider"
-                    >
-                      {item.label}
-                    </span>
                   ))}
                 </div>
               </div>
@@ -1399,26 +1347,26 @@ const AppLayout = () => {
       >
         {mustChangePassword ? (
           <p className="muted mt-2">
-            您正在使用初始密码、管理员重置的密码或临时密码登录。为保护账号安全，请设置新密码后再继续使用系统。
+            你当前使用的是初始或临时密码，修改后才能继续使用。
           </p>
         ) : null}
         <Form form={pwdForm} layout="vertical" onFinish={handleChangePassword} className="mt-4">
           <Form.Item name="oldPassword" label="当前密码" rules={[{ required: true, message: '请输入当前密码' }]}>
-            <Input.Password placeholder="请输入当前使用的密码" className="apple-input h-11" />
+            <Input.Password placeholder="当前密码" className="apple-input h-11" />
           </Form.Item>
           <Form.Item
             name="newPassword"
             label="新密码"
             rules={[
               { required: true, message: '请输入新密码' },
-              { min: 8, message: '密码不少于8位' },
+              { min: 8, message: '密码不少于 8 位' },
               {
                 pattern: STRONG_PASSWORD_PATTERN,
-                message: '需同时包含大写字母、小写字母、数字和标点符号',
+                message: '需包含大小写字母、数字和符号',
               },
             ]}
           >
-            <Input.Password placeholder="不少于8位，含大小写字母、数字和标点" className="apple-input h-11" />
+            <Input.Password placeholder="不少于 8 位，含大小写字母、数字和符号" className="apple-input h-11" />
           </Form.Item>
         </Form>
       </Modal>

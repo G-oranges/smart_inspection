@@ -14,14 +14,14 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     key: "default",
     label: "默认",
-    emoji: "⚪",
+    emoji: "",
     // 无背景图，使用原始 Tailwind 底色
     value: "none",
   },
   {
     key: "aurora",
     label: "极光蓝",
-    emoji: "🌊",
+    emoji: "",
     value:
       "radial-gradient(ellipse at 20% 50%, rgba(56,189,248,0.2) 0%, transparent 50%), " +
       "radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.15) 0%, transparent 50%), " +
@@ -36,7 +36,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     key: "warm-sun",
     label: "暖阳橙",
-    emoji: "🌅",
+    emoji: "",
     value:
       "radial-gradient(ellipse at 30% 20%, rgba(251,146,60,0.15) 0%, transparent 50%), " +
       "radial-gradient(ellipse at 70% 60%, rgba(251,191,36,0.12) 0%, transparent 50%), " +
@@ -51,7 +51,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     key: "forest",
     label: "森林绿",
-    emoji: "🌿",
+    emoji: "",
     value:
       "radial-gradient(ellipse at 25% 30%, rgba(52,211,153,0.15) 0%, transparent 50%), " +
       "radial-gradient(ellipse at 75% 70%, rgba(16,185,129,0.12) 0%, transparent 50%), " +
@@ -66,7 +66,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     key: "starry",
     label: "星空紫",
-    emoji: "🌌",
+    emoji: "",
     value:
       "radial-gradient(ellipse at 20% 80%, rgba(139,92,246,0.15) 0%, transparent 50%), " +
       "radial-gradient(ellipse at 80% 30%, rgba(99,102,241,0.12) 0%, transparent 50%), " +

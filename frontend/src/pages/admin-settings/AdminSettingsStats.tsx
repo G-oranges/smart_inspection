@@ -43,7 +43,7 @@ export const AdminSettingsStats = ({
         <AppleStatCard 
           icon={<EnvironmentOutlined className="text-sm" />} 
           value={locationOptions.length} 
-          label="位置标签密度" 
+          label="扣分位置" 
           dotColor="orange" 
           className="premium-glass bg-white/40 dark:bg-white/5 border-none shadow-sm"
         />

@@ -1,6 +1,4 @@
 import { useCallback, useState } from 'react';
-import type { ReactNode } from 'react';
-import { Modal } from 'antd';
 import type { FormInstance } from 'antd';
 
 import { buildTeacherTableParams, initialTeacherForm } from './teacherSchema';
@@ -33,27 +31,6 @@ function normalizeTeacherPayload(values: TeacherFormValues): TeacherFormValues {
   };
 }
 
-function confirmModal(options: {
-  title: string;
-  content: ReactNode;
-  okText: string;
-  okType?: 'danger' | 'primary' | 'default';
-}): Promise<boolean> {
-  return new Promise((resolve) => {
-    Modal.confirm({
-      title: options.title,
-      content: options.content,
-      okText: options.okText,
-      okType: options.okType,
-      cancelText: '取消',
-      maskClosable: false,
-      keyboard: false,
-      onOk: () => resolve(true),
-      onCancel: () => resolve(false),
-    });
-  });
-}
-
 export function useTeacherActions({
   actions,
   messageApi,
@@ -79,7 +56,7 @@ export function useTeacherActions({
 
   const handleExport = useCallback(async (): Promise<void> => {
     if (!canExport || !actions.exportTeachers) {
-      messageApi.warning('当前账号无导出权限');
+      messageApi.warning('当前无权执行此操作，请联系管理员');
       return;
     }
 
@@ -105,7 +82,7 @@ export function useTeacherActions({
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      messageApi.error(readErrorMessage(error, '导出失败，请稍后重试'));
+      messageApi.error(readErrorMessage(error, '导出失败，请检查网络后重试'));
     }
   }, [
     actions,
@@ -128,22 +105,12 @@ export function useTeacherActions({
       return;
     }
 
-    const firstConfirmed = await confirmModal({
-      title: '确认批量删除教职工',
-      content: `即将删除选中的 ${selectionCount} 名教职工，此操作不可撤销。`,
-      okText: '确认删除',
-      okType: 'danger',
+    const confirmed = await confirmDangerCountdown({
+      title: `确定删除选中的 ${selectionCount} 名教职工吗？`,
+      content: '删除后不可恢复，这些教职工的相关数据将被永久移除。',
+      okText: '删除教职工',
     });
-    if (!firstConfirmed) {
-      return;
-    }
-
-    const finalConfirmed = await confirmDangerCountdown({
-      title: '是否确认 — 批量删除教职工',
-      content: `将永久删除选中的 ${selectionCount} 名教职工及其相关数据，确认继续？`,
-      okText: '确认删除',
-    });
-    if (!finalConfirmed) {
+    if (!confirmed) {
       return;
     }
 
@@ -165,7 +132,7 @@ export function useTeacherActions({
       clearSelection();
       setReloadFlag((prev) => prev + 1);
     } catch (error) {
-      messageApi.error(readErrorMessage(error, '批量删除失败'));
+      messageApi.error(readErrorMessage(error, '批量删除失败，请检查网络后重试'));
     } finally {
       setBatchLoading(false);
     }
@@ -196,12 +163,13 @@ export function useTeacherActions({
       setSelectedIds([record.id]);
       setSelectAcrossPages(false);
 
-      const finalConfirmed = await confirmDangerCountdown({
-        title: '是否确认 — 删除教职工',
-        content: `即将永久删除教职工「${record.fullName || record.employeeNo || '未命名'}」，确认继续？`,
-        okText: '确认删除',
+      const teacherName = record.fullName || record.employeeNo || '未命名';
+      const confirmed = await confirmDangerCountdown({
+        title: `确定删除教职工「${teacherName}」吗？`,
+        content: '删除后不可恢复，该教职工的数据将被永久移除。',
+        okText: '删除教职工',
       });
-      if (!finalConfirmed) {
+      if (!confirmed) {
         return;
       }
 
@@ -212,7 +180,7 @@ export function useTeacherActions({
         clearSelection();
         setReloadFlag((prev) => prev + 1);
       } catch (error) {
-        messageApi.error(readErrorMessage(error, '删除失败'));
+        messageApi.error(readErrorMessage(error, '删除失败，请检查网络后重试'));
       } finally {
         setBatchLoading(false);
       }
@@ -263,17 +231,6 @@ export function useTeacherActions({
   const handleFormSubmit = useCallback(
     async (values: TeacherFormValues): Promise<boolean> => {
       const payload = normalizeTeacherPayload(values);
-      const isEdit = Boolean(editingId);
-      const confirmed = await confirmModal({
-        title: isEdit ? '确认更新教职工信息' : '确认新增教职工',
-        content: isEdit
-          ? `即将更新教职工「${payload.fullName || payload.employeeNo || '未命名'}」的信息，确认继续？`
-          : `即将新增教职工「${payload.fullName || payload.employeeNo || '未命名'}」，确认继续？`,
-        okText: isEdit ? '确认更新' : '确认新增',
-      });
-      if (!confirmed) {
-        return false;
-      }
 
       try {
         if (editingId && actions.updateTeacher) {
@@ -283,7 +240,7 @@ export function useTeacherActions({
           await actions.createTeacher(payload);
           messageApi.success('新增教职工成功');
         } else {
-          messageApi.warning('当前操作不可用');
+          messageApi.warning('当前操作不可用，请联系管理员');
           return false;
         }
 
@@ -292,7 +249,7 @@ export function useTeacherActions({
         setReloadFlag((prev) => prev + 1);
         return true;
       } catch (error) {
-        messageApi.error(readErrorMessage(error, '提交失败'));
+        messageApi.error(readErrorMessage(error, '保存失败，请检查网络后重试'));
         return false;
       }
     },

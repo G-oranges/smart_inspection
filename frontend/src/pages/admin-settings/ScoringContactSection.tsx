@@ -1,4 +1,4 @@
-import { Row, Col, Typography, Input, InputNumber, Switch, Tag, Button } from "antd";
+import { Alert, Row, Col, Typography, Input, InputNumber, Switch, Tag, Button } from "antd";
 
 import type { Dispatch, SetStateAction } from 'react';
 
@@ -31,9 +31,6 @@ export const ScoringContactSection = ({
         <Col span={10}>
           <div className="flex flex-col gap-1">
             <Text className="text-[13px] font-medium">录入页默认分数</Text>
-            <Text type="secondary" className="text-[11px] mb-2 opacity-60">
-              设置打分录入时的初始评分基准
-            </Text>
           </div>
         </Col>
         <Col span={14}>
@@ -60,7 +57,7 @@ export const ScoringContactSection = ({
           <div className="flex flex-col gap-1">
             <Text className="text-[13px] font-medium">联系方式修改权限</Text>
             <Text type="secondary" className="text-[11px] mb-2 opacity-60">
-              控制账号详情页内联系方式是否允许用户自编辑
+              控制用户详情页内联系方式是否允许用户自行修改
             </Text>
           </div>
         </Col>
@@ -97,7 +94,7 @@ export const ScoringContactSection = ({
               value={emailDomainDraft}
               onChange={(event) => setEmailDomainDraft(event.target.value)}
               onPressEnter={handleAddEmailDomain}
-              placeholder="输入新域名，如 @school.edu"
+              placeholder="例如：school.edu"
               className="apple-search-input h-10 !bg-gray-100/50 dark:!bg-white/5 border-none flex-1"
             />
             <Button
@@ -121,11 +118,12 @@ export const ScoringContactSection = ({
               </Tag>
             ))}
             {contactEmailDomains.length === 0 && (
-              <div className="px-4 py-3 bg-orange-50/50 dark:bg-orange-900/10 border border-orange-200/20 rounded-xl">
-                <Text type="warning" className="text-[11px]">
-                  ⚠️ 未配置可用域名时，邮箱编辑功能将自动锁定。
-                </Text>
-              </div>
+              <Alert
+                type="warning"
+                showIcon
+                message="未配置可用域名时，用户无法编辑邮箱"
+                className="w-full rounded-xl"
+              />
             )}
           </div>
         </div>

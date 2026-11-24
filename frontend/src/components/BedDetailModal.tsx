@@ -52,7 +52,7 @@ export default function BedDetailModal({
       open={open}
       onCancel={onClose}
       footer={null}
-      title={`${bed?.bedNo ?? ""}号床`}
+      title={`${bed?.bedNo ?? ""} 号床`}
       centered
       width={MODAL_WIDTH.sm}
       className="co-modal"
@@ -70,7 +70,7 @@ export default function BedDetailModal({
               {room?.building} {room?.roomNo}
             </Descriptions.Item>
             <Descriptions.Item label="床号">
-              <Tag color="blue" className="rounded-full px-3">{bed.bedNo}号床</Tag>
+              <Tag color="blue" className="rounded-full px-3">{bed.bedNo} 号床</Tag>
             </Descriptions.Item>
             <Descriptions.Item label="当前状态">
               <Tag color={bed.status === "OCCUPIED" ? "orange" : "success"} className="rounded-full px-3">

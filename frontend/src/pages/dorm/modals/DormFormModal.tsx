@@ -75,9 +75,9 @@ export default function DormFormModal({
         <Form.Item name="campus" label="校区" rules={[{ required: true, message: '请输入校区' }]}>
           <Input className="apple-input" />
         </Form.Item>
-        <Form.Item name="building" label="楼栋" rules={[{ required: true, message: '请输入楼栋' }]}>
+        <Form.Item name="building" label="楼栋" rules={[{ required: true, message: '请选择楼栋' }]}>
           <PanelSelect 
-            placeholder="选择楼栋" 
+            placeholder="请选择楼栋" 
             className="apple-select"
             classNames={{ popup: { root: "apple-dropdown" } }}
             onChange={(val) => {
@@ -94,12 +94,12 @@ export default function DormFormModal({
             const maxFloor = buildingInfo ? buildingInfo.floors : 99;
             return (
               <Form.Item name="floor" label="楼层" rules={[{ required: true, message: "请输入楼层" }, { type: 'number', max: maxFloor, message: `该楼栋最高 ${maxFloor} 层` }]}>
-                <InputNumber min={1} max={maxFloor} className="apple-input-number w-full" placeholder="楼层" />
+                <InputNumber min={1} max={maxFloor} className="apple-input-number w-full" />
               </Form.Item>
             );
           }}
         </Form.Item>
-        <Form.Item name="roomNo" label="房间号" rules={[{ required: true, message: '请输入房间号' }]}>
+        <Form.Item name="roomNo" label="房号" rules={[{ required: true, message: '请输入房号' }]}>
           <Input className="apple-input" />
         </Form.Item>
         <Form.Item name="capacity" label="可住人数">
@@ -114,7 +114,7 @@ export default function DormFormModal({
           </PanelSelect>
         </Form.Item>
         <Form.Item name="grade" label="适用年级" className="md:col-span-2">
-          <Input className="apple-input" placeholder="例如：2023级" />
+          <Input className="apple-input" placeholder="例如：2023 级" />
         </Form.Item>
         <Form.Item name="remark" label="备注" className="md:col-span-2">
           <Input.TextArea rows={3} className="apple-input h-24 p-2" />
@@ -134,7 +134,7 @@ export default function DormFormModal({
         extra={
           <Space>
             <Button className="apple-btn-secondary" onClick={handleClose}>取消</Button>
-            <Button type="primary" className="apple-btn-primary" onClick={() => form.submit()}>提交</Button>
+            <Button type="primary" className="apple-btn-primary" onClick={() => form.submit()}>新增宿舍</Button>
           </Space>
         }
         className="apple-drawer ios-action-sheet"
@@ -152,7 +152,7 @@ export default function DormFormModal({
       footer={
         <div className="co-modal-footer">
           <Button className="apple-btn-secondary" onClick={handleClose}>取消</Button>
-          <Button type="primary" className="apple-btn-primary" onClick={() => form.submit()}>确认提交</Button>
+          <Button type="primary" className="apple-btn-primary" onClick={() => form.submit()}>新增宿舍</Button>
         </div>
       }
       destroyOnHidden

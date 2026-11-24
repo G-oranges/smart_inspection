@@ -40,7 +40,7 @@ export function OverviewStats({ stats }: OccupancyOverviewStatsProps) {
         <AppleStatCard 
           icon={<TeamOutlined />} 
           value={`${stats.occupancyRate}%`}
-          label="实时入住率" 
+          label="入住率" 
           dotColor="green" 
         />
       </Col>
@@ -56,7 +56,8 @@ export function OverviewStats({ stats }: OccupancyOverviewStatsProps) {
         <AppleStatCard 
           icon={<SwapOutlined />} 
           value={stats.monthlyMoves || 0} 
-          label="本月异动频率" 
+          label="本月异动" 
+          unit="次"
           dotColor="purple" 
         />
       </Col>
@@ -95,7 +96,8 @@ export function mapOverviewStatsToSegments(
       id: "occupancy-moves",
       icon: <SwapOutlined />,
       value: stats.monthlyMoves || 0,
-      label: "异动",
+      label: "本月异动",
+      unit: "次",
       tone: "purple",
     },
   ];
@@ -130,7 +132,7 @@ export function HistoryStats({
         <AppleStatCard 
           icon={<TeamOutlined />} 
           value={studentDataTotal} 
-          label="涉及学生总数" 
+          label="学生总数" 
           dotColor="orange" 
         />
       </Col>

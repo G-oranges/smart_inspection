@@ -56,7 +56,7 @@ export const createDesktopFilterConfig = ({
   {
     key: 'floor',
     label: '楼层',
-    options: uniqueFloors.map((floor) => ({ label: `${floor}层`, value: String(floor) })),
+    options: uniqueFloors.map((floor) => ({ label: `${floor} 层`, value: String(floor) })),
     value: draftFilters.floor || [],
     onChange: (val: string[]) => {
       setDraftFilters((prev) => ({ ...prev, floor: val }));
@@ -96,7 +96,7 @@ export const createDesktopFilterConfig = ({
   },
   {
     key: 'college_major_class',
-    label: '学院专业班级',
+    label: '学院 / 专业 / 班级',
     value: [
       ...(draftFilters.college || []),
       ...(draftFilters.major || []),
@@ -151,7 +151,7 @@ export const createMobileFilterConfig = ({
   {
     key: 'floor',
     label: '楼层',
-    options: uniqueFloors.map((floor) => ({ label: `${floor}层`, value: String(floor) })),
+    options: uniqueFloors.map((floor) => ({ label: `${floor} 层`, value: String(floor) })),
     value: draftFilters.floor || [],
     onChange: (val: string[]) => {
       setDraftFilters((prev) => ({ ...prev, floor: val }));
@@ -191,7 +191,7 @@ export const createMobileFilterConfig = ({
   },
   {
     key: 'college_major_class',
-    label: '学院专业班级',
+    label: '学院 / 专业 / 班级',
     value: [
       ...(draftFilters.college || []),
       ...(draftFilters.major || []),

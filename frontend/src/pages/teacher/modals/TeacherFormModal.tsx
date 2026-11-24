@@ -57,14 +57,14 @@ export default function TeacherFormModal({
             label="工号"
             rules={[{ required: true, message: "请输入工号" }]}
           >
-            <Input className="apple-input-ios" placeholder="请输入教职工工号" />
+            <Input className="apple-input-ios" placeholder="如 T2024001" />
           </Form.Item>
           <Form.Item
             name="fullName"
             label="姓名"
             rules={[{ required: true, message: "请输入姓名" }]}
           >
-            <Input className="apple-input-ios" placeholder="请输入教职工姓名" />
+            <Input className="apple-input-ios" />
           </Form.Item>
           <Form.Item name="gender" label="性别">
             <PanelSelect
@@ -76,15 +76,15 @@ export default function TeacherFormModal({
             </PanelSelect>
           </Form.Item>
           <Form.Item name="department" label="院系/部门">
-            <Input className="apple-input-ios" placeholder="所属院系或职能部门" />
+            <Input className="apple-input-ios" placeholder="如 计算机学院" />
           </Form.Item>
           <Form.Item name="mobile" label="手机号">
-            <Input className="apple-input-ios" placeholder="联系电话" />
+            <Input className="apple-input-ios" placeholder="11 位手机号" />
           </Form.Item>
           <Form.Item name="classes" label="负责班级">
             <Input
               className="apple-input-ios"
-              placeholder="例如：软件2201, 软件2202"
+              placeholder="如 软件 2201、软件 2202"
             />
           </Form.Item>
         </>
@@ -97,14 +97,14 @@ export default function TeacherFormModal({
               label="工号"
               rules={[{ required: true, message: "请输入工号" }]}
             >
-              <Input className="apple-input" placeholder="系统唯一标识" />
+              <Input className="apple-input" placeholder="如 T2024001" />
             </Form.Item>
             <Form.Item
               name="fullName"
               label="姓名"
               rules={[{ required: true, message: "请输入姓名" }]}
             >
-              <Input className="apple-input" placeholder="真实姓名" />
+              <Input className="apple-input" />
             </Form.Item>
           </div>
           <div className="grid grid-cols-2 gap-x-6">
@@ -118,16 +118,16 @@ export default function TeacherFormModal({
               </PanelSelect>
             </Form.Item>
             <Form.Item name="mobile" label="手机号">
-              <Input className="apple-input" placeholder="联系电话" />
+              <Input className="apple-input" placeholder="11 位手机号" />
             </Form.Item>
           </div>
           <Form.Item name="department" label="院系/部门">
-            <Input className="apple-input" placeholder="所属院系或职能部门" />
+            <Input className="apple-input" placeholder="如 计算机学院" />
           </Form.Item>
           <Form.Item name="classes" label="负责班级">
             <Input
               className="apple-input"
-              placeholder="所带班级名称，多个请用逗号隔开"
+              placeholder="如 软件 2201、软件 2202，多个用逗号分隔"
             />
           </Form.Item>
         </>
@@ -150,7 +150,7 @@ export default function TeacherFormModal({
             className="apple-btn-primary"
             onClick={() => form.submit()}
           >
-            保存
+            {isEditing ? "保存修改" : "新增教职工"}
           </Button>
         }
         className="apple-drawer ios-inset-grouped-drawer"
@@ -175,7 +175,7 @@ export default function TeacherFormModal({
             className="apple-btn-primary"
             onClick={() => form.submit()}
           >
-            完成
+            {isEditing ? "保存修改" : "新增教职工"}
           </Button>
         </div>
       }

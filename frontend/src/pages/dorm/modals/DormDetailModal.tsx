@@ -69,8 +69,8 @@ export default function DormDetailModal({
         <Descriptions bordered size="small" column={2}>
           <Descriptions.Item label="校区">{dorm.campus || '-'}</Descriptions.Item>
           <Descriptions.Item label="楼栋">{dorm.building || '-'}</Descriptions.Item>
-          <Descriptions.Item label="楼层">{dorm.floor ? `${dorm.floor}层` : '-'}</Descriptions.Item>
-          <Descriptions.Item label="房间号">{dorm.roomNo || '-'}</Descriptions.Item>
+          <Descriptions.Item label="楼层">{dorm.floor ? `${dorm.floor} 层` : '-'}</Descriptions.Item>
+          <Descriptions.Item label="房号">{dorm.roomNo || '-'}</Descriptions.Item>
           <Descriptions.Item label="可住人数">{dorm.capacity || '-'}</Descriptions.Item>
           <Descriptions.Item label="已入住">{dorm.occupiedCount || 0}</Descriptions.Item>
           <Descriptions.Item label="性别">{dorm.gender || '-'}</Descriptions.Item>

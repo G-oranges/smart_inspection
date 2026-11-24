@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
-import { DeleteOutlined } from '@ant-design/icons';
-import { Modal, message } from 'antd';
+import { message } from 'antd';
 
 import {
   batchDeleteBuildings,
@@ -71,14 +70,14 @@ export function useBuildingActions({
     async (record: BuildingRecord): Promise<void> => {
       const name = record?.name;
       if (!name || typeof name !== 'string' || !name.trim()) {
-        message.error('楼栋信息缺失，无法删除，请刷新后重试');
+        message.error('缺少楼栋信息，请刷新页面后重试');
         return;
       }
 
       const finalConfirmed = await confirmDangerCountdown({
-        title: '是否确认 - 删除楼栋',
-        content: `即将永久删除楼栋「${name}」，该操作不可撤销。`,
-        okText: '确认删除',
+        title: `确定删除楼栋「${name}」吗？`,
+        content: '删除后无法恢复，有关联宿舍的楼栋无法删除。',
+        okText: '删除楼栋',
       });
       if (!finalConfirmed) {
         return;
@@ -86,10 +85,10 @@ export function useBuildingActions({
 
       try {
         if (record.id === undefined || record.id === null) {
-          throw new Error('楼栋 ID 缺失');
+          throw new Error('缺少楼栋信息，请刷新页面后重试');
         }
         await deleteBuilding(record.id);
-        message.success('删除成功');
+        message.success('已删除楼栋');
         setReloadFlag((prev) => prev + 1);
       } catch (error) {
         message.error(readErrorMessage(error, '删除失败'));
@@ -103,35 +102,10 @@ export function useBuildingActions({
       return;
     }
 
-    const firstConfirmed = await new Promise<boolean>((resolve) => {
-      Modal.confirm({
-        title: '确认批量删除楼栋',
-        icon: <DeleteOutlined style={{ color: 'var(--co-error)' }} />,
-        content: (
-          <div>
-            <p>您确定要删除选中的 {selectedIds.length} 个楼栋吗？</p>
-            <p style={{ color: 'var(--co-error)', fontSize: '12px' }}>
-              警告：此操作不可撤销。如果楼栋内有关联的宿舍，删除将失败。
-            </p>
-          </div>
-        ),
-        okText: '确认删除',
-        okType: 'danger',
-        cancelText: '取消',
-        maskClosable: false,
-        keyboard: false,
-        onOk: () => resolve(true),
-        onCancel: () => resolve(false),
-      });
-    });
-    if (!firstConfirmed) {
-      return;
-    }
-
     const finalConfirmed = await confirmDangerCountdown({
-      title: '是否确认 - 批量删除楼栋',
-      content: `即将永久删除选中的 ${selectedIds.length} 个楼栋，确认继续？`,
-      okText: '确认删除',
+      title: `确定删除选中的 ${selectedIds.length} 栋楼吗？`,
+      content: '删除后无法恢复，有关联宿舍的楼栋无法删除。',
+      okText: '删除楼栋',
     });
     if (!finalConfirmed) {
       return;
@@ -140,7 +114,7 @@ export function useBuildingActions({
     setBatchLoading(true);
     try {
       await batchDeleteBuildings(selectedIds);
-      message.success(`成功删除 ${selectedIds.length} 个楼栋`);
+      message.success(`已删除 ${selectedIds.length} 栋楼`);
       setSelectedIds([]);
       setReloadFlag((prev) => prev + 1);
     } catch (error) {
@@ -165,40 +139,20 @@ export function useBuildingActions({
       link.remove();
       URL.revokeObjectURL(url);
     } catch {
-      message.error('导出失败，请重试');
+      message.error('导出失败，可重新点击导出');
     }
   }, [appliedFilters, appliedSearchText]);
 
   const handleModalOk = useCallback(async (): Promise<void> => {
     try {
       const values = (await form.validateFields()) as BuildingFormPayload;
-      const isEdit = Boolean(editingId);
-      const confirmTitle = isEdit ? '确认更新楼栋信息' : '确认新增楼栋';
-      const confirmContent = isEdit
-        ? `即将更新楼栋「${values.name || '未命名'}」的基础信息，确认继续？`
-        : `即将新增楼栋「${values.name || '未命名'}」，确认继续？`;
-      const confirmed = await new Promise<boolean>((resolve) => {
-        Modal.confirm({
-          title: confirmTitle,
-          content: confirmContent,
-          okText: isEdit ? '确认更新' : '确认新增',
-          cancelText: '取消',
-          maskClosable: false,
-          keyboard: false,
-          onOk: () => resolve(true),
-          onCancel: () => resolve(false),
-        });
-      });
-      if (!confirmed) {
-        return;
-      }
 
       if (editingId !== null && editingId !== undefined) {
         await updateBuilding(editingId, values);
-        message.success('更新成功');
+        message.success('已保存修改');
       } else {
         await createBuilding(values);
-        message.success('创建成功');
+        message.success('已新增楼栋');
       }
 
       setIsModalVisible(false);

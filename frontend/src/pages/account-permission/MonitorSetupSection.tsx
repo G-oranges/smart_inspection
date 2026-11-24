@@ -4,7 +4,7 @@
  */
 
 import type { Dispatch, SetStateAction } from 'react';
-import { Button, Card, Input, Modal, Popconfirm, Space, Tag, Typography } from 'antd';
+import { Button, Card, Input, Modal, Space, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 
@@ -182,7 +182,9 @@ export default function MonitorSetupSection({
             onClick={onBatchSetMonitorCheck}
             className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
           >
-            批量设为寝室长 ({selectedStudentIds.length})
+            {selectedStudentIds.length > 0
+              ? `设为寝室长 (${selectedStudentIds.length})`
+              : '设为寝室长'}
           </Button>
         </div>
       </div>
@@ -271,6 +273,79 @@ export default function MonitorSetupSection({
     </>
   );
 
+  const closeConflictModal = () =>
+    setConflictModal({
+      visible: false,
+      conflicts: [],
+      nonConflicts: [],
+    });
+
+  const conflictModalElement = (
+    <Modal
+      open={conflictModal.visible}
+      title="寝室长冲突确认"
+      onCancel={closeConflictModal}
+      footer={
+        <Space>
+          <Button onClick={closeConflictModal}>取消</Button>
+          <Button
+            disabled={conflictModal.nonConflicts.length === 0}
+            onClick={() => {
+              void onContinueNonConflicts();
+            }}
+          >
+            {`仅设无冲突（${conflictModal.nonConflicts.length} 人）`}
+          </Button>
+          <Button
+            type="primary"
+            onClick={() => {
+              void onBatchSetMonitorExecute(true);
+            }}
+          >
+            全部更换
+          </Button>
+        </Space>
+      }
+      centered
+      width={MODAL_WIDTH.md}
+      className="co-modal"
+    >
+      <p style={{ marginBottom: 16 }}>以下宿舍已有寝室长，是否撤销并更换？</p>
+      <div style={{ maxHeight: 300, overflow: 'auto' }}>
+        {conflictModal.conflicts.map((conflict, index) => (
+          <div
+            key={index}
+            style={{
+              padding: '8px 12px',
+              background: 'rgba(255, 193, 7, 0.1)',
+              borderRadius: 6,
+              marginBottom: 8,
+              border: '1px solid rgba(255, 193, 7, 0.3)',
+            }}
+          >
+            <Text>
+              宿舍 <Text strong>{conflict.dormName}</Text>：撤销{' '}
+              <Text type="danger">{conflict.existingMonitorName}</Text> 的寝室长，设置{' '}
+              <Text type="success">{conflict.studentName}</Text> 为寝室长
+            </Text>
+          </div>
+        ))}
+      </div>
+      {conflictModal.nonConflicts.length > 0 ? (
+        <div
+          style={{
+            marginTop: 16,
+            padding: '8px 12px',
+            background: 'rgba(82, 196, 26, 0.1)',
+            borderRadius: 6,
+          }}
+        >
+          <Text type="secondary">另有 {conflictModal.nonConflicts.length} 名学生的宿舍无冲突，将一并设置</Text>
+        </div>
+      ) : null}
+    </Modal>
+  );
+
   if (!isMobile) {
     return (
       <>
@@ -283,6 +358,7 @@ export default function MonitorSetupSection({
           </div>
           {studentTable}
         </div>
+        {conflictModalElement}
       </>
     );
   }
@@ -295,77 +371,7 @@ export default function MonitorSetupSection({
         </div>
       </div>
       {studentTable}
-      <Modal
-        open={conflictModal.visible}
-        title="寝室长冲突确认"
-        onCancel={() =>
-          setConflictModal({
-            visible: false,
-            conflicts: [],
-            nonConflicts: [],
-          })
-        }
-        footer={
-          <Space>
-            <Popconfirm
-              title="继续设置无冲突的宿舍？"
-              description={`以下 ${conflictModal.nonConflicts.length} 名学生的宿舍暂无寝室长，是否继续设置？`}
-              onConfirm={onContinueNonConflicts}
-              onCancel={() =>
-                setConflictModal({
-                  visible: false,
-                  conflicts: [],
-                  nonConflicts: [],
-                })
-              }
-              okText="继续设置"
-              cancelText="取消全部"
-            >
-              <Button>取消</Button>
-            </Popconfirm>
-            <Button type="primary" onClick={() => onBatchSetMonitorExecute(true)}>
-              确认更换
-            </Button>
-          </Space>
-        }
-        centered
-        width={MODAL_WIDTH.md}
-        className="co-modal"
-      >
-        <p style={{ marginBottom: 16 }}>以下宿舍已有寝室长，是否撤销并更换？</p>
-        <div style={{ maxHeight: 300, overflow: 'auto' }}>
-          {conflictModal.conflicts.map((conflict, index) => (
-            <div
-              key={index}
-              style={{
-                padding: '8px 12px',
-                background: 'rgba(255, 193, 7, 0.1)',
-                borderRadius: 6,
-                marginBottom: 8,
-                border: '1px solid rgba(255, 193, 7, 0.3)',
-              }}
-            >
-              <Text>
-                宿舍 <Text strong>{conflict.dormName}</Text>：撤销{' '}
-                <Text type="danger">{conflict.existingMonitorName}</Text> 的寝室长，设置{' '}
-                <Text type="success">{conflict.studentName}</Text> 为寝室长
-              </Text>
-            </div>
-          ))}
-        </div>
-        {conflictModal.nonConflicts.length > 0 ? (
-          <div
-            style={{
-              marginTop: 16,
-              padding: '8px 12px',
-              background: 'rgba(82, 196, 26, 0.1)',
-              borderRadius: 6,
-            }}
-          >
-            <Text type="secondary">另有 {conflictModal.nonConflicts.length} 名学生的宿舍无冲突，将一并设置</Text>
-          </div>
-        ) : null}
-      </Modal>
+      {conflictModalElement}
     </Card>
   );
 }

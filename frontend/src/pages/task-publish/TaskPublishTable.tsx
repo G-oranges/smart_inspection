@@ -1,4 +1,4 @@
-import { Tooltip, Tag, Space, Button, Popconfirm } from "antd";
+import { Tooltip, Tag, Space, Button } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import GlassTable from "../../components/GlassTable";
@@ -18,7 +18,7 @@ export const TaskPublishTable = ({
 }: TaskPublishTableProps) => {
   const columns: TableProps<TaskPublishTask>["columns"] = [
     {
-      title: "任务主题",
+      title: "任务名称",
       key: "metadata",
       render: (_value: unknown, r: TaskPublishTask) => (
         <div className="flex flex-col gap-1">
@@ -26,7 +26,7 @@ export const TaskPublishTable = ({
             {r.title || "未命名任务"}
           </div>
           <Tooltip
-            title={`执行时段 ${dayjs(r.date).format(
+            title={`执行时间 ${dayjs(r.date).format(
               "YYYY.MM.DD HH:mm"
             )} ~ ${dayjs(r.deadline).format(
               "YYYY.MM.DD HH:mm"
@@ -89,7 +89,7 @@ export const TaskPublishTable = ({
       },
     },
     {
-      title: "检查员",
+      title: "检查人",
       key: "executors",
       align: "center",
       render: (_value: unknown, r: TaskPublishTask) => {
@@ -102,7 +102,7 @@ export const TaskPublishTable = ({
         const getLabel = (executor: TaskExecutor & { id?: EntityId }) =>
           executor.fullName ||
           executor.username ||
-          (executor.id ? `用户(${String(executor.id).slice(0, 4)})` : "未命名");
+          "未知用户";
 
         const executorNames = executorList.map((executor) => getLabel(executor));
         if (!executorList.length) {
@@ -154,24 +154,19 @@ export const TaskPublishTable = ({
                 </Tooltip>
                 ) : null}
                 {canDeleteTasks ? (
-                <Popconfirm
-                  title="确定删除该任务吗？"
-                  description="删除后无法恢复"
-                  onConfirm={() => handleDeleteTask(r)}
-                  okText="确定"
-                  cancelText="取消"
-                >
-                  <Tooltip title="删除任务">
-                    <Button
-                      type="text"
-                      size="small"
-                      danger
-                      icon={<DeleteOutlined />}
-                      className="dorm-table-action-btn is-danger"
-                      aria-label="删除任务"
-                    />
-                  </Tooltip>
-                </Popconfirm>
+                <Tooltip title="删除任务">
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    className="dorm-table-action-btn is-danger"
+                    onClick={() => {
+                      void handleDeleteTask(r);
+                    }}
+                    aria-label="删除任务"
+                  />
+                </Tooltip>
                 ) : null}
               </Space>
             ),

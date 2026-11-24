@@ -97,6 +97,7 @@ export default function DashboardPage() {
     />
   );
 
+  const showQuickActions = quickActions.length > 0;
   const showAlertsSection =
     viewMode === 'manager' ||
     pendingAppealList.length > 0 ||
@@ -173,21 +174,23 @@ export default function DashboardPage() {
           ) : null}
 
           <Row gutter={[20, 20]} className="items-stretch">
-            <Col xs={24} lg={15} xl={16}>
+            <Col xs={24} lg={showQuickActions ? 15 : 24} xl={showQuickActions ? 16 : 24}>
               <TrendChartPanel
                 trendData={trendData}
                 range={range}
                 onRangeChange={setRange}
               />
             </Col>
-            <Col xs={24} lg={9} xl={8}>
-              <DesktopQuickActionsPanel
-                actions={quickActions}
-                stats={stats}
-                viewMode={viewMode}
-                hasPermission={hasPermission}
-              />
-            </Col>
+            {showQuickActions ? (
+              <Col xs={24} lg={9} xl={8}>
+                <DesktopQuickActionsPanel
+                  actions={quickActions}
+                  stats={stats}
+                  viewMode={viewMode}
+                  hasPermission={hasPermission}
+                />
+              </Col>
+            ) : null}
           </Row>
 
           <Row gutter={[20, 20]} className="items-stretch">

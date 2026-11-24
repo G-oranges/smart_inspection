@@ -262,7 +262,7 @@ const CollegeMajorClassCascader = ({
     <div className="flex flex-col gap-3 min-w-[700px] h-[450px]">
       {/* 路径显示区 */}
       <div className="flex items-center gap-2 px-1">
-        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">当前选中:</span>
+        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">当前选中：</span>
         <div className="flex flex-wrap gap-2">
           {selectedColleges.length > 0 && selectedColleges.map(c => (
             <Tag 
@@ -301,7 +301,7 @@ const CollegeMajorClassCascader = ({
       <div className="grid grid-cols-3 gap-3 flex-1 min-h-0">
         {/* 第一列: 学院 */}
         <div className="h-full min-h-0 overflow-hidden">
-            {renderList(colleges, value.college, handleCollegeClick, "筛选学院...")}
+            {renderList(colleges, value.college, handleCollegeClick, "搜索学院…")}
         </div>
 
         {/* 第二列: 专业 */}
@@ -312,7 +312,7 @@ const CollegeMajorClassCascader = ({
                <span className="text-sm">请先选择学院</span>
             </div>
           ) : (
-            renderList(majors, value.major, handleMajorClick, "筛选专业...")
+            renderList(majors, value.major, handleMajorClick, "搜索专业…")
           )}
         </div>
 
@@ -324,7 +324,7 @@ const CollegeMajorClassCascader = ({
                 <span className="text-sm">请先选择专业</span>
              </div>
           ) : (
-            renderList(classes, value.className, handleClassClick, "筛选班级...")
+            renderList(classes, value.className, handleClassClick, "搜索班级…")
           )}
         </div>
       </div>
@@ -334,9 +334,9 @@ const CollegeMajorClassCascader = ({
   // 移动端分步布局
   const renderMobile = () => {
     const steps = [
-      { key: 'college', label: '选择学院', items: colleges, active: selectedColleges, onSelect: handleCollegeClick, placeholder: '搜索学院...' },
-      { key: 'major', label: '选择专业', items: majors, active: selectedMajors, onSelect: handleMajorClick, placeholder: '搜索专业...' },
-      { key: 'className', label: '选择班级', items: classes, active: selectedClasses, onSelect: handleClassClick, placeholder: '搜索班级...' },
+      { key: 'college', label: '选择学院', items: colleges, active: selectedColleges, onSelect: handleCollegeClick, placeholder: '搜索学院…' },
+      { key: 'major', label: '选择专业', items: majors, active: selectedMajors, onSelect: handleMajorClick, placeholder: '搜索专业…' },
+      { key: 'className', label: '选择班级', items: classes, active: selectedClasses, onSelect: handleClassClick, placeholder: '搜索班级…' },
     ];
 
     const current = steps[currentStep];

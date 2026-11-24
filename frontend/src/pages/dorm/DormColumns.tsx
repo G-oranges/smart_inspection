@@ -140,6 +140,11 @@ export const renderDormCell = (dorm: DormRecord, column: DormColumnConfig): Reac
     }
     return <span style={{ color: 'var(--co-text-muted)' }}>未设置</span>;
   }
+  if (column.fieldKey === "floor") {
+    return dorm.floor !== null && dorm.floor !== undefined && dorm.floor !== ""
+      ? `${dorm.floor} 层`
+      : "-";
+  }
   const value = dorm[column.fieldKey];
   if (value === null || value === undefined || value === "") return "-";
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {

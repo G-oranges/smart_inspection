@@ -68,7 +68,7 @@ async function refreshAccessToken(): Promise<string> {
   const refreshToken = tokenManager.getRefreshToken();
 
   if (!refreshToken) {
-    throw new Error('无刷新令牌');
+    throw new Error('登录状态已失效，请重新登录');
   }
 
   if (refreshPromise) {
@@ -87,7 +87,7 @@ async function refreshAccessToken(): Promise<string> {
 
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
-        throw new Error(readMessageField(errorBody) || '刷新令牌失败');
+        throw new Error(readMessageField(errorBody) || '登录状态已失效，请重新登录');
       }
 
       const data = (await response.json()) as Record<string, unknown>;
@@ -103,7 +103,7 @@ async function refreshAccessToken(): Promise<string> {
       tokenManager.setTokens(nextAccessToken, nextRefreshToken);
 
       if (!nextAccessToken) {
-        throw new Error('刷新令牌响应缺少访问令牌');
+        throw new Error('登录状态已失效，请重新登录');
       }
 
       return nextAccessToken;
@@ -245,7 +245,7 @@ const parseResponseBody = async <T>(
 
   const { data, text } = await readBodyAsJsonOrText(response);
   if (data === null && text !== '') {
-    throw new ApiError('Invalid JSON response', {
+    throw new ApiError('服务器返回数据异常，请稍后再试', {
       status: response.status,
       data: text,
     });

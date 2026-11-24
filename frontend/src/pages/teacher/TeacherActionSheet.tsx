@@ -56,7 +56,7 @@ export default function TeacherActionSheet({
   const actions: IOSActionSheetAction[] = [
     {
       key: "edit",
-      label: "编辑资料",
+      label: "编辑教职工",
       icon: <EditOutlined />,
       type: "primary",
       hidden: selectedIds.length !== 1 || !canEdit,
@@ -83,11 +83,7 @@ export default function TeacherActionSheet({
       open={open}
       onClose={onClose}
       title={`已选择 ${selectedIds.length} 名教职工`}
-      subtitle={
-        selectedTeacher
-          ? selectedTeacher.fullName
-          : "支持批量修改与安全删除"
-      }
+      subtitle={selectedTeacher ? selectedTeacher.fullName : undefined}
       actions={actions}
     />
   );

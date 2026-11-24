@@ -52,7 +52,7 @@ export default function UserMobileCard({
           <Tag
             className={`rounded-full border-none px-3 m-0 text-[11px] font-bold uppercase tracking-wider ${user.isDisabled ? "bg-red-50 text-red-500" : "bg-green-50 text-green-500"}`}
           >
-            {user.isDisabled ? "已停用" : "活跃"}
+            {user.isDisabled ? "已停用" : "已启用"}
           </Tag>
         </div>
         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-black/5 dark:border-white/5">
@@ -66,7 +66,7 @@ export default function UserMobileCard({
           </div>
           <div>
             <span className="block text-[11px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">
-              联系方式
+              联系电话
             </span>
             <span className="text-[13px] text-gray-600 dark:text-gray-300 font-mono">
               {user.phone || "-"}

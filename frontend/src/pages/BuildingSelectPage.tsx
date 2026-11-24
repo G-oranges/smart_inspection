@@ -249,7 +249,7 @@ export default function BuildingSelectPage() {
           <div className="flex items-center gap-2 px-2">
             <div className="w-1 h-4 bg-blue-500 rounded-full" />
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">
-              指派范围内的楼栋
+              楼栋
             </h3>
           </div>
 
@@ -267,14 +267,11 @@ export default function BuildingSelectPage() {
               <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center border border-dashed border-gray-300">
                 <BankOutlined className="text-3xl text-gray-300" />
               </div>
-              <div className="space-y-1">
-                <p className="text-gray-500 font-bold">待机中</p>
-                <p className="text-xs text-gray-400">请上方选择任务以拉取楼栋列表</p>
-              </div>
+              <p className="text-gray-500 font-bold">先选择一个查寝任务</p>
             </div>
           ) : filteredBuildings.length === 0 ? (
             <div className="glass-panel p-20 text-center">
-              <Empty description="未发现任何有效的指派楼栋" />
+              <Empty description="该任务下暂无指派楼栋" />
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -292,10 +289,12 @@ export default function BuildingSelectPage() {
                       <div className="font-bold text-xl text-gray-800 dark:text-white group-hover:text-blue-600 transition-colors">
                         {item.building}
                       </div>
-                      <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1 uppercase tracking-tighter">
-                        <EnvironmentOutlined />
-                        {item.campus || 'Main'}
-                      </div>
+                      {item.campus ? (
+                        <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-1 uppercase tracking-tighter">
+                          <EnvironmentOutlined />
+                          {item.campus}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                   <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

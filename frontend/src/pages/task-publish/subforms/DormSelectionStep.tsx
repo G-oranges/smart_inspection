@@ -157,7 +157,7 @@ function buildDormFilterConfig(
     createMultiSelectFilter(
       'floor',
       '楼层',
-      floors.map((floor) => ({ label: `${floor}F`, value: String(floor) })),
+      floors.map((floor) => ({ label: `${floor} 层`, value: String(floor) })),
     ),
     createMultiSelectFilter(
       'grade',
@@ -224,7 +224,7 @@ function buildDormTableColumns(isMobile: boolean) {
         </div>
       ),
     },
-    { title: '房间号', dataIndex: 'roomNo', key: 'roomNo' },
+    { title: '房号', dataIndex: 'roomNo', key: 'roomNo' },
     {
       title: '年级',
       key: 'grade',
@@ -417,8 +417,8 @@ function DormSelectionSummary({
       className={`flex items-center justify-between mb-2 bg-gray-50 dark:bg-white/5 ${isMobile ? 'p-2 rounded-xl text-[11px]' : 'p-3 rounded-2xl text-sm'} border border-black/5 dark:border-white/5`}
     >
       <div className="text-gray-600 dark:text-gray-400">
-        匹配 <span className="font-bold text-blue-600 dark:text-blue-400">{dormOptions.length}</span>
-        ，选 <span className="font-bold text-orange-600 dark:text-orange-500">{selectedDormIds.length}</span>
+        共 <span className="font-bold text-blue-600 dark:text-blue-400">{dormOptions.length}</span> 间，已选{' '}
+        <span className="font-bold text-orange-600 dark:text-orange-500">{selectedDormIds.length}</span> 间
       </div>
       {isMobile ? (
         <Space size={4}>
@@ -564,7 +564,7 @@ export default function DormSelectionStep({
         .map((id) => ({
           id,
           building: HISTORICAL_DORM_LABEL,
-          roomNo: `ID ${String(id)}`,
+          roomNo: '未知房号',
           campus: '',
           _readonly: true,
           _readonlyReason: READONLY_DORM_REASON,
@@ -581,10 +581,6 @@ export default function DormSelectionStep({
   const dormListWithHistorical = useMemo(
     () => [...lockedSelectedDorms, ...dormList],
     [dormList, lockedSelectedDorms],
-  );
-  const selectedWritableCount = useMemo(
-    () => selectedDormIds.filter((id) => accessibleDormMap.has(String(id))).length,
-    [accessibleDormMap, selectedDormIds],
   );
   const hasWritableDorms = dormList.length > 0;
   const isDormDirty = useMemo(() => {
@@ -771,7 +767,7 @@ export default function DormSelectionStep({
           showIcon
           className="mb-4"
           message="当前任务包含历史宿舍"
-          description={`已保留 ${lockedSelectedDorms.length} 间历史宿舍的展示，但这些宿舍已超出当前数据范围，当前页面不可操作，提交时以后端校验为准。`}
+          description={`其中 ${lockedSelectedDorms.length} 间宿舍不在你的管理范围内，这里无法取消勾选。`}
         />
       ) : null}
       {!hasWritableDorms ? (
@@ -779,8 +775,8 @@ export default function DormSelectionStep({
           type="info"
           showIcon
           className="mb-4"
-          message="当前没有可写宿舍"
-          description="当前角色数据范围下暂无可分配宿舍。若需继续操作，请联系管理员调整角色数据范围。"
+          message="暂无可选宿舍"
+          description="你的账号下没有可分配的宿舍，请联系管理员配置权限。"
         />
       ) : null}
       <DormSelectionControls
@@ -808,11 +804,6 @@ export default function DormSelectionStep({
         selectedDormIds={selectedDormIds}
         setSelectedDormIds={setSelectedDormIds}
       />
-      {lockedSelectedDorms.length > 0 ? (
-        <div className={`mb-4 text-xs ${isMobile ? '' : 'px-1'} text-amber-700`}>
-          当前已选 {selectedWritableCount} 间可操作宿舍，另有 {lockedSelectedDorms.length} 间历史宿舍仅保留展示。
-        </div>
-      ) : null}
 
       <DormSelectionResults
         handleScroll={handleScroll}

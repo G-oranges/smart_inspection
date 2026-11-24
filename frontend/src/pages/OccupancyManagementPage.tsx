@@ -403,7 +403,7 @@ function OccupancyFloatingActions({
           <FloatButton
             icon={isBatchMode ? <UserOutlined /> : <CheckSquareOutlined />}
             onClick={handleToggleBatchMode}
-            tooltip={isBatchMode ? '切换为单选模式' : '切换为多选模式'}
+            tooltip={isBatchMode ? '退出多选' : '批量选择'}
           />
           <FloatButton
             icon={<ImportOutlined />}
@@ -489,7 +489,6 @@ function OccupancyManagementContent({
           setHistoryDraftFilters,
         })
   ) as OccupancyFilterConfig[];
-  const activeTableTitle = activeTab === 'overview' ? '实时列表' : '异动记录';
   const activeStatsContent =
     activeTab === 'overview' ? (
       <OverviewStats stats={stats} />
@@ -557,13 +556,6 @@ function OccupancyManagementContent({
           )
         }
       >
-        <div className="table-head dorm-table-head mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="dorm-table-head-accent" />
-            <h3 className="dorm-table-head-title">{activeTableTitle}</h3>
-          </div>
-        </div>
-
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}

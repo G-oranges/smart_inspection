@@ -195,7 +195,7 @@ export function DesktopToolbar({
             onFocus={prefetchImportWizardModal}
             onTouchStart={prefetchImportWizardModal}
           >
-            入住导入
+            导入
           </Button>
         </div>
       )}

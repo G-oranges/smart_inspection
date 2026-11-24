@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal, message } from 'antd';
-import { UserDeleteOutlined } from '@ant-design/icons';
 
 import { dormService } from '../../services/dormService';
 import { confirmDangerCountdown } from '../../utils/confirm';
@@ -112,36 +111,25 @@ function confirmWithModal(config: Parameters<typeof Modal.confirm>[0]): Promise<
   });
 }
 
-function confirmBatchCheckout(count: number): Promise<boolean> {
-  return confirmWithModal({
-    title: '确认批量退宿',
-    icon: <UserDeleteOutlined style={{ color: 'var(--co-error)' }} />,
-    content: `您确定要为选中的 ${count} 名学生办理退宿手续吗？`,
-    okText: '确认退宿',
-    cancelText: '取消',
-    okType: 'danger',
-  });
-}
-
 function confirmBatchCheckIn(totalSelected: number, assignedCount: number): Promise<boolean> {
   const confirmContent =
     assignedCount < totalSelected
-      ? `您选中了 ${totalSelected} 名学生，但仅为 ${assignedCount} 人分配了床位。是否继续提交已分配项？`
-      : `即将为 ${totalSelected} 名学生办理入住手续。`;
+      ? `已选中 ${totalSelected} 名学生，其中 ${assignedCount} 人已分配床位。确定为这 ${assignedCount} 名学生办理入住吗？`
+      : `确定为这 ${totalSelected} 名学生办理入住吗？`;
 
   return confirmWithModal({
     title: '确认批量入住',
     content: confirmContent,
-    okText: '确认办理',
+    okText: '确认入住',
     cancelText: '取消',
-    okType: 'danger',
+    okType: 'primary',
   });
 }
 
 function confirmSingleCheckout(): Promise<boolean> {
   return confirmWithModal({
-    title: '确认退宿',
-    content: '即将为该学生办理退宿手续，床位将被释放。确认继续？',
+    title: '确定为该学生办理退宿吗？',
+    content: '退宿后将释放对应床位，该操作不可撤销。',
     okText: '确认退宿',
     cancelText: '取消',
     okType: 'danger',
@@ -343,17 +331,12 @@ export function useOccupancyActions({
     }
 
     const studentsToCheckout = selectedStudentsData.filter((student) => student.dormId);
-    const firstConfirmed = await confirmBatchCheckout(studentsToCheckout.length);
-    if (!firstConfirmed) {
-      return;
-    }
-
-    const finalConfirmed = await confirmDangerCountdown({
-      title: '是否确认 — 批量退宿',
-      content: `即将为 ${studentsToCheckout.length} 名学生办理退宿，床位将被释放。确认继续？`,
-      okText: '最终退宿',
+    const confirmed = await confirmDangerCountdown({
+      title: `确定为这 ${studentsToCheckout.length} 名学生办理退宿吗？`,
+      content: '退宿后将释放对应床位，该操作不可撤销。',
+      okText: '确认退宿',
     });
-    if (!finalConfirmed) {
+    if (!confirmed) {
       return;
     }
 
@@ -445,11 +428,11 @@ export function useOccupancyActions({
 
       try {
         await actions.checkoutStudent(studentId);
-        message.success('退宿手续办理成功');
+        message.success('已办理退宿');
         setReloadFlag((prev) => prev + 1);
         await loadStats();
       } catch (error) {
-        message.error(readErrorMessage(error, '退宿失败'));
+        message.error(readErrorMessage(error, '退宿失败，请检查网络后重试'));
       }
     },
     [actions, loadStats, setReloadFlag],

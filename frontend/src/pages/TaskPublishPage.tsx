@@ -111,21 +111,17 @@ function useTaskPublishLifecycle(params: {
   isMobile: boolean;
   selectedTaskIds: EntityId[];
   setActionSheetOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setLastRefreshedAt: React.Dispatch<React.SetStateAction<string>>;
   setSelection: ReturnType<typeof useAppContext>['setSelection'];
   setSelectedTaskIds: React.Dispatch<React.SetStateAction<EntityId[]>>;
   taskActions: TaskPublishActions;
-  tasks: TaskPublishTask[];
 }) {
   const {
     isMobile,
     selectedTaskIds,
     setActionSheetOpen,
-    setLastRefreshedAt,
     setSelection,
     setSelectedTaskIds,
     taskActions,
-    tasks,
   } = params;
 
   useEffect(() => {
@@ -133,10 +129,6 @@ function useTaskPublishLifecycle(params: {
     void taskActions.loadDorms?.();
     void taskActions.loadUsers?.();
   }, [taskActions]);
-
-  useEffect(() => {
-    setLastRefreshedAt(new Date().toLocaleTimeString());
-  }, [setLastRefreshedAt, tasks]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -172,7 +164,6 @@ interface TaskListSectionProps {
   handleDeleteTask: (task: TaskPublishTask) => Promise<void>;
   handleOpenEditModal: (task: TaskPublishTask) => void;
   isMobile: boolean;
-  lastRefreshedAt: string;
   selectedTaskIds: EntityId[];
   setSelectedTaskIds: React.Dispatch<React.SetStateAction<EntityId[]>>;
   taskFilterConfig: ReturnType<typeof createTaskFilterConfig>;
@@ -200,7 +191,6 @@ function TaskListSection({
   handleTaskSearch,
   isMobile,
   isTaskDirty,
-  lastRefreshedAt,
   selectedTaskIds,
   setDraftTaskSearch,
   setSelectedTaskIds,
@@ -240,7 +230,6 @@ function TaskListSection({
         <div className="flex items-center gap-2">
           <div className="dorm-table-head-accent" />
           <h3 className="dorm-table-head-title">任务列表</h3>
-          <span className="dorm-table-head-time">最后更新: {lastRefreshedAt}</span>
         </div>
       </div>
 
@@ -250,7 +239,7 @@ function TaskListSection({
             isMobile
             dataSource={filteredTasks}
             rowKey="id"
-            emptyText="目前尚无发布的任务计划"
+            emptyText="还没有查寝任务"
             selectedKeys={selectedTaskIds}
             onSelectChange={canEditTasks || canDeleteTasks ? (keys) => setSelectedTaskIds(keys as EntityId[]) : undefined}
             renderCard={(
@@ -432,7 +421,6 @@ export default function TaskPublishPage() {
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [taskFilterOpen, setTaskFilterOpen] = useState(false);
-  const [lastRefreshedAt, setLastRefreshedAt] = useState(() => new Date().toLocaleTimeString());
 
   // 发布、编辑、删除任务分别对应 TASK_PUBLISH / TASK_EDIT / TASK_DELETE，拥有任一项即可进入本页
   const canCreateTasks = hasPermission('TASK_PUBLISH');
@@ -444,11 +432,9 @@ export default function TaskPublishPage() {
     isMobile,
     selectedTaskIds,
     setActionSheetOpen,
-    setLastRefreshedAt,
     setSelection,
     setSelectedTaskIds,
     taskActions,
-    tasks: taskPublishData.tasks,
   });
 
   const loadExecutors = useCallback(async (): Promise<void> => {
@@ -595,15 +581,15 @@ export default function TaskPublishPage() {
   }, [canCreateTasks, handleOpenCreateModal, permissionsReady, searchParams, setSearchParams]);
 
   const steps = [
-    { title: '任务信息', description: isMobile ? undefined : '名称与时段' },
-    { title: '宿舍范围', description: isMobile ? `${selectedDormIds.length}个` : `${selectedDormIds.length} 个宿舍` },
-    { title: '检查人员', description: isMobile ? `${selectedExecutors.length}人` : `${selectedExecutors.length} 位检查人` },
+    { title: '任务信息' },
+    { title: '宿舍范围', description: isMobile ? `${selectedDormIds.length} 间` : `${selectedDormIds.length} 间宿舍` },
+    { title: '检查人', description: isMobile ? `${selectedExecutors.length} 人` : `${selectedExecutors.length} 位检查人` },
   ];
 
   if (!permissionsReady) {
     return (
       <div className="flex items-center justify-center min-h-screen text-gray-400">
-        正在核验访问凭证...
+        加载中…
       </div>
     );
   }
@@ -631,7 +617,6 @@ export default function TaskPublishPage() {
         handleTaskSearch={handleTaskSearch}
         isMobile={isMobile}
         isTaskDirty={isTaskDirty}
-        lastRefreshedAt={lastRefreshedAt}
         selectedTaskIds={selectedTaskIds}
         setDraftTaskSearch={setDraftTaskSearch}
         setSelectedTaskIds={setSelectedTaskIds}

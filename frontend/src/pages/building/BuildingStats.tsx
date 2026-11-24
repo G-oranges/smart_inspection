@@ -37,6 +37,7 @@ export function BuildingStats({ stats }: BuildingStatsProps) {
         <AppleStatCard
           icon={<BankOutlined />}
           value={stats.total}
+          unit="栋"
           label="楼栋总数"
           dotColor="blue"
         />
@@ -45,6 +46,7 @@ export function BuildingStats({ stats }: BuildingStatsProps) {
         <AppleStatCard
           icon={<HomeOutlined />}
           value={stats.totalDorms}
+          unit="间"
           label="关联宿舍"
           dotColor="green"
         />
@@ -54,6 +56,7 @@ export function BuildingStats({ stats }: BuildingStatsProps) {
           icon={<TeamOutlined />}
           value={stats.maleBuildings}
           subValue={stats.femaleBuildings}
+          unit="栋"
           label="男/女楼栋"
           dotColor="purple"
         />
@@ -62,6 +65,7 @@ export function BuildingStats({ stats }: BuildingStatsProps) {
         <AppleStatCard
           icon={<RiseOutlined />}
           value={stats.withElevator}
+          unit="栋"
           label="配备电梯"
           dotColor="orange"
         />
@@ -78,6 +82,7 @@ export function mapBuildingStatsToSegments(
       id: "building-total",
       icon: <BankOutlined />,
       value: stats.total,
+      unit: "栋",
       label: "楼栋",
       tone: "blue",
     },
@@ -85,6 +90,7 @@ export function mapBuildingStatsToSegments(
       id: "building-dorms",
       icon: <HomeOutlined />,
       value: stats.totalDorms,
+      unit: "间",
       label: "宿舍",
       tone: "green",
     },
@@ -93,6 +99,7 @@ export function mapBuildingStatsToSegments(
       icon: <TeamOutlined />,
       value: stats.maleBuildings,
       secondary: stats.femaleBuildings,
+      unit: "栋",
       label: "男/女",
       tone: "purple",
     },
@@ -100,6 +107,7 @@ export function mapBuildingStatsToSegments(
       id: "building-elevator",
       icon: <RiseOutlined />,
       value: stats.withElevator,
+      unit: "栋",
       label: "电梯",
       tone: "orange",
     },

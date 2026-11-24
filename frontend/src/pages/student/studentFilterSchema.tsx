@@ -129,7 +129,7 @@ export const STUDENT_DEFAULT_COLUMNS: StudentColumnConfig[] = [
   },
   {
     fieldKey: "roomNo",
-    label: "宿舍号",
+    label: "房号",
     visible: true,
     sortable: true,
     order: 10,
@@ -148,7 +148,7 @@ export const STUDENT_DEFAULT_COLUMNS: StudentColumnConfig[] = [
     sortable: false,
     order: 12,
   },
-  { fieldKey: "qq", label: "QQ号", visible: true, sortable: false, order: 13 },
+  { fieldKey: "qq", label: "QQ 号", visible: true, sortable: false, order: 13 },
   {
     fieldKey: "isMonitor",
     label: "是否寝室长",

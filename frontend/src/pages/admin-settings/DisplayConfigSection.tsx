@@ -1,9 +1,9 @@
-import { Row, Col, Typography, Space, Slider, Badge, Button } from "antd";
+import { Row, Col, Typography, Slider, Button } from "antd";
 import { FontSizeOutlined } from "@ant-design/icons";
 
 import type { Dispatch, SetStateAction } from 'react';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface DisplayConfigSectionProps {
   fontSizeScale: number;
@@ -63,7 +63,7 @@ export const DisplayConfigSection = ({
       
       <div>
         <Text type="secondary" className="text-[11px] leading-relaxed">
-          该修改即时生效并同步到本地存储。如果界面出现排版错乱，请尝试点击“重置”按钮恢复标准 100% 缩放系数。
+          即时生效，仅保存在当前浏览器。
         </Text>
       </div>
     </div>

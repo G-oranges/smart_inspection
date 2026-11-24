@@ -67,9 +67,9 @@ export const TaskPublishActionSheet = ({
   };
 
   const title = selectedTaskIds.length === 1 ? "任务操作" : `批量操作 (${selectedTaskIds.length} 项)`;
-  const subtitle = selectedTaskIds.length === 1 
-    ? sortedTasks.find((t) => t.id === selectedTaskIds[0])?.title 
-    : "支持编辑和删除操作";
+  const subtitle = selectedTaskIds.length === 1
+    ? sortedTasks.find((t) => t.id === selectedTaskIds[0])?.title
+    : undefined;
 
   return (
     <IOSActionSheet

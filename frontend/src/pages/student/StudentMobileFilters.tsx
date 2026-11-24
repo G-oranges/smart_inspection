@@ -170,7 +170,7 @@ export function StudentMobileAdvancedFilter({
           key: "floor",
           label: "宿舍楼层",
           options: dynamicFloors.map((f) => ({
-            label: `${f}层`,
+            label: `${f} 层`,
             value: String(f),
           })),
           value: draftFilters.floor,
@@ -183,7 +183,7 @@ export function StudentMobileAdvancedFilter({
         },
         {
           key: "roomNo",
-          label: "宿舍号",
+          label: "房号",
           options: dynamicRooms.map((r) => ({ label: r, value: r })),
           value: draftFilters.roomNo,
           onChange: (val) =>

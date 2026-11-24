@@ -11,11 +11,11 @@ export default function ScoreEditModal({
   return (
     <Modal
       open={open}
-      title="基础分"
+      title="修改基础分"
       onCancel={onClose}
       footer={[
         <Button key="ok" type="primary" className="apple-btn-primary" onClick={onClose}>
-          确定
+          保存
         </Button>,
       ]}
       centered
@@ -31,6 +31,9 @@ export default function ScoreEditModal({
           className="text-center text-4xl font-bold bg-ios-gray/40 border-none rounded-2xl py-4 !text-black dark:!text-white"
           autoFocus
         />
+        <p className="mt-2 mb-0 text-center text-xs text-gray-400">
+          输入 0–100 的整数
+        </p>
       </div>
     </Modal>
   );

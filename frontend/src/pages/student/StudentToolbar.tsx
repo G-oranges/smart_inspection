@@ -128,7 +128,7 @@ export default function StudentToolbar({
             icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
             onClick={onOpenSettings}
           >
-            字段管理
+            字段设置
           </Button>
           {/* 批量删除按钮 */}
           {canEdit && selectedCount > 0 && (
@@ -232,7 +232,7 @@ export default function StudentToolbar({
           <div className="flex items-center gap-3">
             <span className="text-blue-600 font-medium text-sm">
               已选择 {selectedCount} 名学生
-              {selectAcrossPages && " (跨全页)"}
+              {selectAcrossPages && "（全部筛选结果）"}
             </span>
             {paginationCurrent > 1 || tableTotal > tableItemsLength
               ? !selectAcrossPages && (
@@ -242,7 +242,7 @@ export default function StudentToolbar({
                     className="text-blue-600 font-semibold p-0 h-auto"
                     onClick={onSelectAllResults}
                   >
-                    选择所有筛选结果 ({tableTotal})
+                    全选筛选结果 ({tableTotal})
                   </Button>
                 )
               : null}
@@ -253,7 +253,7 @@ export default function StudentToolbar({
             className="text-gray-500 p-0 h-auto"
             onClick={onClearSelection}
           >
-            清空
+            取消选择
           </Button>
         </div>
       )}

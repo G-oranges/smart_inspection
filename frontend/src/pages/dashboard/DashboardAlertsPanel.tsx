@@ -70,7 +70,7 @@ export default function DashboardAlertsPanel({
           onChange={(val) => setTab(val as 'appeals' | 'lowScore')}
           options={[
             {
-              label: `待审申诉 (${pendingAppeals.length})`,
+              label: `待处理申诉 (${pendingAppeals.length})`,
               value: 'appeals',
             },
             {
@@ -92,7 +92,7 @@ export default function DashboardAlertsPanel({
             }
             className="dashboard-link-btn"
           >
-            处理
+            {tab === 'appeals' ? '去处理' : '查看全部'}
             <ArrowRightOutlined />
           </Button>
         ) : null}
@@ -102,7 +102,7 @@ export default function DashboardAlertsPanel({
         pendingAppeals.length === 0 ? (
           <div className="dashboard-empty-state dashboard-empty-state--sm">
             <AlertOutlined className="dashboard-empty-icon" />
-            <span>暂无待处理申诉</span>
+            <span>没有待处理申诉</span>
           </div>
         ) : (
           <div className={isMobile ? 'mobile-card-list' : 'dashboard-alert-list'}>
@@ -170,7 +170,7 @@ export default function DashboardAlertsPanel({
       ) : lowScoreDorms.length === 0 ? (
         <div className="dashboard-empty-state dashboard-empty-state--sm">
           <WarningOutlined className="dashboard-empty-icon" />
-          <span>当前周期无不及格宿舍</span>
+          <span>当前时间段没有低于 60 分的宿舍</span>
         </div>
       ) : (
         <div className={isMobile ? 'mobile-card-list' : 'dashboard-alert-list'}>
@@ -193,7 +193,6 @@ export default function DashboardAlertsPanel({
                   </span>
                 </div>
                 <div className="dashboard-mobile-recent-meta">
-                  <span>低于 60 分预警</span>
                   <span>{formatInspectionTime(item.createdAt)}</span>
                 </div>
               </div>

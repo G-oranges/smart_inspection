@@ -93,7 +93,7 @@ export default function ForgotPasswordForm({
     try {
       await authService.forgotPassword(username, values.email);
       setEmail(values.email);
-      antMessage.success("验证码已发送到您的邮箱");
+      antMessage.success("验证码已发送到你的邮箱");
       setCurrentStep(2);
       startCountdown();
     } catch (err) {
@@ -121,7 +121,6 @@ export default function ForgotPasswordForm({
     setLoading(true);
     try {
       await authService.resetPassword(email, values.code, values.newPassword);
-      antMessage.success("密码重置成功！");
       setCurrentStep(3);
     } catch (err) {
       antMessage.error((err as ServiceError).message || "密码重置失败");
@@ -132,10 +131,10 @@ export default function ForgotPasswordForm({
 
   const passwordRules: FormRule[] = [
     { required: true, message: "请输入新密码" },
-    { min: 8, message: "密码长度不少于8位" },
+    { min: 8, message: "密码不少于 8 位" },
     {
       pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
-      message: "需包含大小写、数字及符号",
+      message: "需包含大小写字母、数字和符号",
     },
   ];
 
@@ -193,16 +192,13 @@ export default function ForgotPasswordForm({
       {/* 步骤0: 输入用户名 */}
       {currentStep === 0 && (
         <Form form={usernameForm} layout="vertical" onFinish={handleCheckUsername} className="apple-form">
-          <p className="text-center text-ios-gray-label text-sm mb-6 font-medium">
-            请输入您的用户名，我们将验证绑定邮箱
-          </p>
           <Form.Item
             name="username"
-            rules={[{ required: true, message: "请输入用户名" }]}
+            rules={[{ required: true, message: "请输入登录用户名" }]}
           >
             <Input
               prefix={<UserOutlined className="text-ios-gray-label" />}
-              placeholder="您的系统账号"
+              placeholder="输入登录用户名"
               className="apple-input h-14"
             />
           </Form.Item>
@@ -238,8 +234,8 @@ export default function ForgotPasswordForm({
           <Form.Item
             name="email"
             rules={[
-              { required: true, message: "请输入邮箱" },
-              { type: "email", message: "格式错误" },
+              { required: true, message: "请输入邮箱地址" },
+              { type: "email", message: "请输入正确的邮箱地址" },
             ]}
           >
             <Input
@@ -273,21 +269,21 @@ export default function ForgotPasswordForm({
         >
           <p className="text-center text-ios-gray-label text-sm mb-6 font-medium leading-relaxed">
             验证码已发送至 <span className="text-ios-blue font-bold">{email}</span><br/>
-            <span className="text-xs opacity-70">请在5分钟内完成验证</span>
+            <span className="text-xs opacity-70">请在 5 分钟内完成验证</span>
           </p>
 
           <Form.Item
             name="code"
             rules={[
               { required: true, message: "请输入验证码" },
-              { len: 6, message: "请输入6位数字验证码" },
-              { pattern: /^\d{6}$/, message: "验证码必须是6位数字" },
+              { len: 6, message: "请输入 6 位数字验证码" },
+              { pattern: /^\d{6}$/, message: "验证码必须是 6 位数字" },
             ]}
           >
             <div className="flex gap-3 items-stretch">
               <Input
                 prefix={<SafetyCertificateOutlined className="text-ios-gray-label" />}
-                placeholder="请输入6位验证码"
+                placeholder="输入 6 位验证码"
                 className="apple-input h-14 flex-1 font-mono tracking-[0.3em] text-lg font-bold text-center"
                 maxLength={6}
                 inputMode="numeric"
@@ -313,11 +309,12 @@ export default function ForgotPasswordForm({
           <Form.Item
             name="newPassword"
             rules={passwordRules}
+            extra="至少 8 位，需包含大小写字母、数字和符号"
             hasFeedback
           >
             <Input.Password
               prefix={<LockOutlined className="text-ios-gray-label" />}
-              placeholder="新密码（8位以上，含大小写、数字、符号）"
+              placeholder="输入新密码"
               className="apple-input h-14"
               autoComplete="new-password"
             />
@@ -334,14 +331,14 @@ export default function ForgotPasswordForm({
                   if (!value || getFieldValue("newPassword") === value) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error("密码不一致"));
+                  return Promise.reject(new Error("两次输入的密码不一致"));
                 },
               }),
             ]}
           >
             <Input.Password
               prefix={<LockOutlined className="text-ios-gray-label" />}
-              placeholder="再次输入以确认"
+              placeholder="再次输入新密码"
               className="apple-input h-14"
               autoComplete="new-password"
             />
@@ -367,9 +364,9 @@ export default function ForgotPasswordForm({
           <div className="w-20 h-20 bg-ios-green/10 text-ios-green rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
             <CheckCircleOutlined />
           </div>
-          <h2 className="text-xl font-black mb-2 dark:text-white">密码重置成功</h2>
+          <h2 className="text-xl font-black mb-2 dark:text-white">密码已重置</h2>
           <p className="text-ios-gray-label font-medium text-sm mb-10">
-            您的密码已更新，现在可以使用新密码登录系统
+            密码已更新，现在可以使用新密码登录。
           </p>
           <Button 
             type="primary" 
@@ -377,17 +374,10 @@ export default function ForgotPasswordForm({
             className="h-14 rounded-2xl text-[17px] font-black bg-ios-blue border-none shadow-lg shadow-ios-blue/30 active-press" 
             onClick={onBack}
           >
-            马上登录
+            返回登录
           </Button>
         </div>
       )}
-
-      <div className="mt-8 pt-6 border-t border-black/5 dark:border-white/5">
-        <p className="text-[11px] font-bold text-ios-gray-label uppercase tracking-widest opacity-60 flex items-center gap-2">
-          <InfoCircleOutlined className="text-ios-blue" />
-          密码必须复杂且安全
-        </p>
-      </div>
     </div>
   );
 }

@@ -98,7 +98,7 @@ function RoomSelectHeader({
             {decodedBuilding}
           </Link>
           <RightOutlined className="text-[11px]" />
-          <span className="text-blue-600">{decodedFloor} 楼</span>
+          <span className="text-blue-600">{decodedFloor} 层</span>
         </Space>
         <Button
           onClick={handleBack}
@@ -150,7 +150,7 @@ function RoomSelectBody({
             className={`w-1 h-4 rounded-full ${status === 'pending' ? 'bg-orange-500' : 'bg-green-500'}`}
           />
           <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">
-            {status === 'pending' ? '待执行巡查' : '历史核查闭环'}
+            {status === 'pending' ? '待检查' : '已完成'}
           </h3>
         </div>
         <Tag className="rounded-full border-none bg-blue-50 text-blue-600 px-3 font-bold">
@@ -173,7 +173,7 @@ function RoomSelectBody({
           <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center border border-dashed border-gray-300">
             <CarryOutOutlined className="text-3xl text-gray-300" />
           </div>
-          <Empty description={`当前路径下暂无${status === 'pending' ? '待处理' : '已完成'}的房间数据`} />
+          <Empty description={`本楼层暂无${status === 'pending' ? '待检查' : '已完成'}宿舍`} />
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
@@ -427,7 +427,7 @@ export default function RoomSelectPage() {
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="输入房号快速检索..."
+              placeholder="搜索房号"
               prefix={<SearchOutlined className="text-gray-400" />}
               allowClear
               size="large"

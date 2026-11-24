@@ -11,7 +11,6 @@ import PanelSelect from '../../components/common/PanelSelect';
 
 import type { RoleDataScope, ScopeOptionsResponse } from '../../types/service';
 import {
-  ACADEMIC_RULE_HINT,
   INHERIT_OPTION,
   PRESET_HINTS,
   PRESET_OPTIONS,
@@ -79,14 +78,12 @@ export default function DataScopeEditor({
         type={mode === 'ALL' ? 'warning' : 'info'}
         showIcon
         message={PRESET_HINTS[mode] || PRESET_HINTS.OWN_COLLEGE}
-        description={optionsError || `${SCOPE_DEFAULTS_HINT}多个角色时各角色的范围合并生效；账号单独设置的范围优先于角色。`}
+        description={optionsError || `${SCOPE_DEFAULTS_HINT}多角色合并生效，用户单独设置优先。`}
       />
 
       {mode === 'ACADEMIC' || mode === 'CUSTOM' ? (
         <div className="role-scope-block">
-          <div className="role-scope-block__title" title={ACADEMIC_RULE_HINT}>
-            学院范围<span className="muted">（{ACADEMIC_RULE_HINT}）</span>
-          </div>
+          <div className="role-scope-block__title">学院范围</div>
           <div className="role-scope-grid">
             <PanelSelect
               mode="multiple"

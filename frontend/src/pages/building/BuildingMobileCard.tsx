@@ -51,14 +51,14 @@ export function BuildingMobileCard(
             className="rounded-full border-none px-2.5"
             color={getTypeColor(record.type)}
           >
-            {record.type || "混合"}
+            {record.type || "-"}
           </Tag>
         </div>
       </div>
       <div className="compact-card-grid mt-3">
         <div className="compact-info-item">
           <span className="compact-label text-gray-400">楼层</span>
-          <span className="compact-value font-medium">{record.floors}层</span>
+          <span className="compact-value font-medium">{record.floors} 层</span>
         </div>
         <div className="compact-info-item">
           <span className="compact-label text-gray-400">电梯</span>
@@ -68,7 +68,7 @@ export function BuildingMobileCard(
         </div>
         <div className="compact-info-item" style={{ gridColumn: "span 2" }}>
           <span className="compact-label text-gray-400">关联宿舍</span>
-          <span className="compact-value font-medium">{record.dormCount} 个房间</span>
+          <span className="compact-value font-medium">{record.dormCount || 0} 间</span>
         </div>
       </div>
     </div>

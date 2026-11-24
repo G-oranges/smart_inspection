@@ -15,7 +15,6 @@ import {
 import type { UploadProps } from "antd";
 import { useAppContext } from "../../context/AppContext";
 import { commonService } from "../../services/commonService";
-import type { ThemeCustomizationState } from "../../types/app";
 
 interface ThemeSettingsDrawerProps {
   open: boolean;
@@ -76,11 +75,11 @@ export default function ThemeSettingsDrawer({
         onSuccess?.(res);
         messageApi.success("背景已更新");
       } else {
-        throw new Error("上传成功但未返回 URL");
+        throw new Error("背景上传失败，请稍后再试");
       }
     } catch (err) {
       onError?.(err as Error);
-      messageApi.error("上传失败：" + ((err as ServiceError).message || "未知错误"));
+      messageApi.error((err as ServiceError).message || "背景上传失败，请稍后再试");
     }
   };
 
@@ -112,12 +111,9 @@ export default function ThemeSettingsDrawer({
         </div>
 
         {/* 标题 */}
-        <h3 className="text-[17px] font-bold text-black dark:text-white mb-1">
+        <h3 className="text-[17px] font-bold text-black dark:text-white mb-4">
           外观设置
         </h3>
-        <p className="text-[13px] text-gray-500 dark:text-gray-400 mb-5">
-          选择一款背景主题，打造专属界面
-        </p>
 
         {/* 预设网格 */}
         <div className="grid grid-cols-3 gap-3 mb-5">
@@ -129,7 +125,7 @@ export default function ThemeSettingsDrawer({
                 type="button"
                 onClick={() => selectPreset(preset.key)}
                 className={`
-                  relative rounded-2xl p-3 text-center transition-all duration-200
+                  relative h-16 rounded-2xl p-3 flex items-end justify-center transition-all duration-200
                   active:scale-95 border-2 cursor-pointer
                   ${
                     isActive
@@ -152,8 +148,6 @@ export default function ThemeSettingsDrawer({
                     <CheckCircleFilled className="text-ios-blue text-[16px]" />
                   </div>
                 )}
-                {/* emoji + 标签 */}
-                <div className="text-2xl mb-1">{preset.emoji}</div>
                 <div
                   className={`text-[12px] font-semibold ${
                     isActive
@@ -175,7 +169,7 @@ export default function ThemeSettingsDrawer({
                 type="button"
                 onClick={() => selectPreset("custom")}
                 className={`
-                  w-full rounded-2xl p-3 text-center transition-all duration-200
+                  w-full h-16 rounded-2xl p-3 flex items-end justify-center transition-all duration-200
                   active:scale-95 border-2 cursor-pointer relative overflow-hidden
                   ${
                     activeKey === "custom"
@@ -194,8 +188,7 @@ export default function ThemeSettingsDrawer({
                     <CheckCircleFilled className="text-ios-blue text-[16px]" />
                   </div>
                 )}
-                <div className="text-2xl mb-1">🎨</div>
-                <div className="text-[12px] font-semibold text-gray-600 dark:text-gray-300 bg-white/60 dark:bg-black/40 rounded-lg px-1">
+                <div className="text-[12px] font-semibold text-gray-600 dark:text-gray-300 bg-white/70 dark:bg-black/50 rounded-lg px-2 py-0.5">
                   自定义
                 </div>
               </button>
@@ -208,11 +201,11 @@ export default function ThemeSettingsDrawer({
               >
                 <button
                   type="button"
-                  className="w-full rounded-2xl p-3 text-center transition-all duration-200
+                  className="w-full h-16 rounded-2xl p-3 flex flex-col items-center justify-center transition-all duration-200
                     active:scale-95 border-2 border-dashed border-black/10 dark:border-white/15
                     hover:border-ios-blue/40 cursor-pointer bg-black/[0.02] dark:bg-white/[0.03]"
                 >
-                  <div className="text-xl mb-1 text-gray-400 dark:text-gray-500">
+                  <div className="text-base mb-0.5 text-gray-400 dark:text-gray-500">
                     <PlusOutlined />
                   </div>
                   <div className="text-[12px] font-semibold text-gray-400 dark:text-gray-500">

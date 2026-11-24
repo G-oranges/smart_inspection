@@ -36,7 +36,7 @@ export default function ResultDetailModal({
   const photoUrls = Array.isArray(inspection?.photoUrls) ? inspection.photoUrls : [];
   const detailColumns: ColumnsType<ResultInspectionDetailRecord> = [
     {
-      title: "违规代码/名称",
+      title: "扣分项",
       dataIndex: "code",
       render: (code: ResultInspectionDetailRecord['code']) => {
         const item = (settings?.deductionItems || []).find(
@@ -53,13 +53,13 @@ export default function ResultDetailModal({
       render: (value: ResultInspectionDetailRecord['count']) => value || 1,
     },
     {
-      title: "点位",
+      title: "位置",
       dataIndex: "locations",
       render: (locations: ResultInspectionDetailRecord['locations']) =>
         Array.isArray(locations) && locations.length > 0 ? locations.join("、") : "-",
     },
     {
-      title: "单项扣分数",
+      title: "扣分",
       width: isMobile ? undefined : 120,
       align: "center",
       render: (_, record) => {
@@ -84,7 +84,7 @@ export default function ResultDetailModal({
         "-",
     },
     {
-      title: "床位编号",
+      title: "床位",
       dataIndex: "bedNo",
       align: "center",
       render: (value: unknown) => value || "-",
@@ -110,7 +110,7 @@ export default function ResultDetailModal({
               }
             }}
           >
-            编辑修改
+            修改记录
           </Button>
         ) : null
       }
@@ -122,7 +122,7 @@ export default function ResultDetailModal({
       {detail.loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500" />
-          <span className="text-gray-400">正在调取云端数据...</span>
+          <span className="text-gray-400">加载中…</span>
         </div>
       ) : (
         <div className="space-y-4">
@@ -226,7 +226,7 @@ export default function ResultDetailModal({
 
           <div>
             <div className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-              图片与备注
+              照片与备注
             </div>
             {photoUrls.length > 0 && (
               <Image.PreviewGroup>

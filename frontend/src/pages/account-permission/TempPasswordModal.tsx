@@ -39,7 +39,7 @@ export default function TempPasswordModal({
           onClick={async () => {
             try {
               await navigator.clipboard.writeText(password);
-              void message.success('密码已复制到剪贴板');
+              void message.success('已复制');
             } catch {
               void message.error('复制失败，请手动复制');
             }
@@ -75,7 +75,7 @@ export default function TempPasswordModal({
           {password}
         </div>
         <p style={{ color: "var(--co-error)" }}>
-          该密码有效期为 12 小时，仅可使用一次，请尽快告知用户。
+          12 小时内有效，仅可使用一次，请及时转交。
         </p>
       </div>
     </Modal>

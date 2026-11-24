@@ -306,29 +306,29 @@ export default function ResidencyAdjustModal({
       const roomLabel = targetRoom?.roomNo || values.room;
 
       if (!student.fullName || !student.studentNo || !values.bed || !roomLabel) {
-        message.error('关键信息缺失，无法继续办理，请刷新后重试');
+        message.error('缺少学生或床位信息，请重新选择后再试');
         return;
       }
 
       const confirmConfig =
         mode === 'assign'
           ? {
-              title: '确认入住分配',
-              content: `即将为「${student.fullName}」(${student.studentNo}) 分配至 ${roomLabel} 房 ${values.bed} 号床。确认办理？`,
-              okText: '确认分配',
+              title: '确认入住',
+              content: `即将为「${student.fullName}」（${student.studentNo}）安排入住 ${roomLabel} 房 ${values.bed} 号床，确认办理？`,
+              okText: '确认入住',
               cancelText: '取消',
             }
           : isSwapping
             ? {
-                title: '确认床位互换',
-                content: `「${student.fullName}」将与目标床位的在住学生互换位置，双方住宿信息将同时变更。确认互换？`,
-                okText: '确认互换',
+                title: '确认互换床位',
+                content: `「${student.fullName}」将与目标床位的在住学生互换床位，双方住宿信息将同时变更，确认互换？`,
+                okText: '互换床位',
                 cancelText: '取消',
                 okType: 'danger' as const,
               }
             : {
                 title: '确认调宿',
-                content: `「${student.fullName}」将从当前位置迁移至 ${roomLabel} 房 ${values.bed} 号床，原床位将释放。确认调宿？`,
+                content: `「${student.fullName}」将调宿至 ${roomLabel} 房 ${values.bed} 号床，原床位将释放，确认调宿？`,
                 okText: '确认调宿',
                 cancelText: '取消',
               };
@@ -361,16 +361,16 @@ export default function ResidencyAdjustModal({
           bedNo: values.bed,
           studentId: student.id,
         });
-        message.success('入住手续已完成');
+        message.success('已完成入住');
       } else if (isSwapping && selectedBed?.studentId) {
         await occupancyActions.swapBedOccupancy({
           studentId1: student.id,
           studentId2: selectedBed.studentId,
         });
-        message.success('床位互换成功');
+        message.success('已完成互换床位');
       } else {
         await occupancyActions.moveBed(payload);
-        message.success('迁宿手续已完成');
+        message.success('已完成调宿');
       }
 
       onRefresh?.();
@@ -398,7 +398,7 @@ export default function ResidencyAdjustModal({
   const selectedFloor = form.getFieldValue('floor');
   const noWritableBuildings = buildings.length === 0;
   const roomEmptyMessage = noWritableBuildings
-    ? '当前数据范围下暂无可操作宿舍'
+    ? '暂无可操作的宿舍'
     : !selectedBuilding
       ? '请先选择楼栋'
       : !selectedFloor
@@ -407,7 +407,7 @@ export default function ResidencyAdjustModal({
 
   return (
     <Modal
-      title={mode === 'assign' ? '入住分配' : '宿位异动'}
+      title="调整床位"
       open={open}
       onCancel={onClose}
       onOk={() => {
@@ -428,11 +428,11 @@ export default function ResidencyAdjustModal({
           message={
             <Space direction="vertical" size={2}>
               <Text strong>
-                {student?.fullName} ({student?.studentNo})
+                {student?.fullName}（{student?.studentNo}）
               </Text>
               {student?.dormId ? (
                 <Text type="secondary">
-                  当前位置：{student.building} - {student.roomNo} - {student.bedNo}号床
+                  当前位置：{student.building} - {student.roomNo} - {student.bedNo} 号床
                 </Text>
               ) : (
                 <Text type="secondary">当前状态：未入住</Text>
@@ -449,8 +449,8 @@ export default function ResidencyAdjustModal({
           <Alert
             type="warning"
             showIcon
-            message="当前没有可写宿舍"
-            description="当前角色数据范围下暂无可办理的宿舍和床位，请联系管理员调整角色数据范围。"
+            message="暂无可操作的宿舍"
+            description="当前角色没有可管理的宿舍，请联系管理员开通范围权限。"
           />
         </div>
       ) : null}
@@ -481,7 +481,7 @@ export default function ResidencyAdjustModal({
               >
                 {floors.map((floor) => (
                   <Select.Option key={String(floor)} value={floor}>
-                    {floor}层
+                    {floor} 层
                   </Select.Option>
                 ))}
               </PanelSelect>
@@ -502,7 +502,7 @@ export default function ResidencyAdjustModal({
               <>
                 <div style={{ marginBottom: 12 }}>
                   <Input.Search
-                    placeholder="输入房号快速筛选 (如 205)"
+                    placeholder="搜房号，如 205"
                     value={roomSearch}
                     onChange={(event) => setRoomSearch(event.target.value)}
                     allowClear
@@ -530,24 +530,19 @@ export default function ResidencyAdjustModal({
           </div>
         </Form.Item>
 
-        <Form.Item name="bed" hidden rules={[{ required: true, message: '请在上方卡片中点击选择床位' }]}>
+        <Form.Item name="bed" hidden rules={[{ required: true, message: '请在上方房间中选择目标床位' }]}>
           <Input />
         </Form.Item>
 
         <Form.Item label="目标床位" required>
           <Input
             readOnly
-            placeholder={mode === 'assign' ? '请点击上方绿色空床位' : '请在上方房间列表中点击绿色/红色床位标签进行选择'}
-            value={selectedBed ? `${selectedBed.bedNo}号床  —  ${selectedBed.studentName || '空闲'}` : ''}
+            placeholder="在上方房间中选择目标床位"
+            value={selectedBed ? `${selectedBed.bedNo} 号床 — ${selectedBed.studentName || '空闲'}` : ''}
             className={`dark-mode-readonly-input ${selectedBed ? 'has-selection ant-input-affix-wrapper-focused' : ''}`}
             style={{ cursor: 'default', fontWeight: selectedBed ? 500 : 400 }}
             suffix={selectedBed ? <CheckCircleFilled style={{ color: '#52c41a' }} /> : null}
           />
-          {selectedBed?.studentId && isSwapping ? (
-            <div style={{ fontSize: '12px', color: '#faad14', marginTop: 4 }}>
-              <SwapOutlined /> 将与该学生互换床位
-            </div>
-          ) : null}
         </Form.Item>
 
         {isSwapping ? (
@@ -556,8 +551,8 @@ export default function ResidencyAdjustModal({
               type="warning"
               showIcon
               icon={<SwapOutlined />}
-              message="自动检测到互换模式"
-              description={`系统检测到目标床位已有学生。点击确认后，${student?.fullName} 将与该床位的学生进行互换。`}
+              message="互换床位"
+              description={`目标床位已有在住学生，确认后 ${student?.fullName} 将与其互换床位。`}
             />
           </div>
         ) : null}
@@ -568,8 +563,8 @@ export default function ResidencyAdjustModal({
               type="success"
               showIcon
               icon={<EnvironmentOutlined />}
-              message="自动检测到迁宿模式"
-              description="目标床位为空。点击确认后，该生将完成调宿，原床位将释放。"
+              message="调宿"
+              description="目标床位为空，确认后将调宿至该床位并释放原床位。"
             />
           </div>
         ) : null}

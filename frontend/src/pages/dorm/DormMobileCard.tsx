@@ -66,7 +66,7 @@ export default function DormMobileCard({
         </div>
         <div className="compact-info-item">
           <span className="compact-label text-gray-400">楼层</span>
-          <span className="compact-value font-medium">{dorm.floor}层</span>
+          <span className="compact-value font-medium">{dorm.floor} 层</span>
         </div>
         <div className="compact-info-item">
           <span className="compact-label text-gray-400">年级</span>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Modal } from 'antd';
+import { Modal, message } from 'antd';
 
 import {
   INITIAL_APPEAL_FORM,
@@ -33,10 +33,6 @@ function readErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-function formatTimeLabel(): string {
-  return new Date().toLocaleTimeString();
-}
-
 export function useResultActions({
   actions,
   canAdjust,
@@ -46,7 +42,6 @@ export function useResultActions({
   filteredInspections,
   clearSelection,
   navigate,
-  setLastRefreshedAt,
   myProfile,
 }: UseResultActionsProps): UseResultActionsResult {
   const [appealForm, setAppealForm] = useState<AppealFormState>(
@@ -147,7 +142,7 @@ export function useResultActions({
       return;
     }
 
-    setContactStatus('保存中..');
+    setContactStatus('保存中…');
     try {
       await actions.updateMyContact(contactForm);
       setContactStatus('联系方式已更新');
@@ -180,15 +175,11 @@ export function useResultActions({
 
       await actions.createAppeal(appealForm);
       setAppealForm(INITIAL_APPEAL_FORM as AppealFormState);
-      Modal.success({
-        title: '提交成功',
-        content: '申诉提交成功，请耐心等待老师处理。',
-        className: 'apple-modal',
-      });
+      message.success('已提交申诉');
     } catch (error) {
       Modal.error({
         title: '提交失败',
-        content: readErrorMessage(error, '由于网络原因，申诉提交失败，请重试。'),
+        content: readErrorMessage(error, '提交申诉失败，请稍后再试'),
         className: 'apple-modal',
       });
     }
@@ -218,11 +209,7 @@ export function useResultActions({
 
       await actions.handleAppeal(handleForm);
       setHandleForm(INITIAL_HANDLE_FORM as AppealHandleFormState);
-      Modal.success({
-        title: '处理结果',
-        content: '申诉已成功处理。',
-        className: 'apple-modal',
-      });
+      message.success('已处理该申诉');
     } catch (error) {
       Modal.error({
         title: '处理失败',
@@ -279,19 +266,15 @@ export function useResultActions({
       return;
     }
 
-    try {
-      if (activeRoleCode === 'STUDENT') {
-        await actions.loadMyInspections?.();
-        await actions.loadMyAppeals?.();
-      } else {
-        await actions.loadInspections?.();
-        await actions.loadAppeals?.();
-      }
-      await actions.loadTasks?.();
-      await actions.loadDorms?.();
-    } finally {
-      setLastRefreshedAt(formatTimeLabel());
+    if (activeRoleCode === 'STUDENT') {
+      await actions.loadMyInspections?.();
+      await actions.loadMyAppeals?.();
+    } else {
+      await actions.loadInspections?.();
+      await actions.loadAppeals?.();
     }
+    await actions.loadTasks?.();
+    await actions.loadDorms?.();
   }
 
   async function handleDeleteResults(ids: EntityId[]): Promise<void> {
@@ -300,32 +283,14 @@ export function useResultActions({
     }
 
     const isBatch = ids.length > 1;
-    if (isBatch) {
-      const firstConfirmed = await new Promise<boolean>((resolve) => {
-        Modal.confirm({
-          title: '确认批量删除',
-          content: `即将删除 ${ids.length} 条查寝记录，删除后无法恢复。`,
-          okType: 'danger',
-          okText: '确认删除',
-          cancelText: '取消',
-          className: 'apple-modal',
-          maskClosable: false,
-          keyboard: false,
-          onOk: () => resolve(true),
-          onCancel: () => resolve(false),
-        });
-      });
-      if (!firstConfirmed) {
-        return;
-      }
-    }
-
     const finalConfirmed = await confirmDangerCountdown({
-      title: isBatch ? '是否确认 - 批量删除' : '是否确认 - 删除记录',
+      title: isBatch
+        ? `确定删除这 ${ids.length} 条记录吗？`
+        : '确定删除这条查寝记录吗？',
       content: isBatch
-        ? `即将永久删除 ${ids.length} 条查寝记录，确认继续？`
-        : '即将永久删除该查寝记录，确认继续？',
-      okText: '确认删除',
+        ? `即将删除这 ${ids.length} 条查寝记录，删除后无法恢复。`
+        : '删除后无法恢复。',
+      okText: '删除记录',
     });
     if (!finalConfirmed) {
       return;
@@ -341,7 +306,7 @@ export function useResultActions({
       if (detail.open && detail.inspection?.id !== undefined && ids.includes(detail.inspection.id)) {
         handleCloseDetail();
       }
-      Modal.success({ title: '删除成功', className: 'apple-modal' });
+      message.success('已删除');
     } catch (error) {
       Modal.error({
         title: '删除失败',

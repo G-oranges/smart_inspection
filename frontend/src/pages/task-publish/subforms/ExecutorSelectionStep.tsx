@@ -107,7 +107,7 @@ export default function ExecutorSelectionStep({
               ),
             },
             {
-              title: "身份",
+              title: "角色",
               dataIndex: "role",
               key: "role",
               render: (role: string | undefined) => (

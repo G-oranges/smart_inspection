@@ -51,7 +51,7 @@ export const AuditLogFilters = ({
       <>
         <div style={{ display: 'flex', gap: 8, width: '100%' }}>
           <Input
-            placeholder="搜索关键词"
+            placeholder="搜索操作者、目标或描述"
             prefix={<SearchOutlined />}
             style={{ flex: 1 }}
             value={filters.keyword}
@@ -139,7 +139,7 @@ export const AuditLogFilters = ({
             <Button type="primary" block onClick={() => {
               handleSearch();
               setFilterDrawerOpen(false);
-            }} className="apple-btn-primary">确认搜索</Button>
+            }} className="apple-btn-primary">搜索</Button>
           </div>
         </Drawer>
       </>
@@ -199,7 +199,7 @@ export const AuditLogFilters = ({
       <div className="dorm-toolbar-shell">
         <div className="dorm-toolbar-row dorm-toolbar-row-main">
           <Input
-            placeholder="搜索关键词"
+            placeholder="搜索操作者、目标或描述"
             prefix={<SearchOutlined className="text-gray-400" />}
             value={filters.keyword}
             onChange={(e) => setFilters((prev) => ({ ...prev, keyword: e.target.value }))}
@@ -221,13 +221,6 @@ export const AuditLogFilters = ({
             className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
           >
             重置
-          </Button>
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={handleSearch}
-            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
-          >
-            刷新
           </Button>
         </div>
       </div>

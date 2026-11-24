@@ -165,7 +165,7 @@ export function createTaskFilterConfig({
     },
     {
       key: 'timeRange',
-      label: '时间轴',
+      label: '时间范围',
       options: TASK_TIME_RANGE_OPTIONS,
       value: draftTaskFilters.timeRange ? [draftTaskFilters.timeRange] : [],
       onChange: (values) => {
@@ -182,7 +182,7 @@ export function createTaskFilterConfig({
     },
     {
       key: 'executor',
-      label: '责任人',
+      label: '检查人',
       options: executorOptions,
       value: draftTaskFilters.executorId ? [draftTaskFilters.executorId] : [],
       onChange: (values) =>

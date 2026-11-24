@@ -10,7 +10,7 @@ export default function LeaveConfirmModal({
   return (
     <Modal
       open={open}
-      title="确认离开"
+      title="放弃未保存的修改吗？"
       centered
       closable={false}
       maskClosable={false}
@@ -26,7 +26,7 @@ export default function LeaveConfirmModal({
       ]}
     >
       <p className="m-0">
-        您有未保存的扣分录入，离开后将丢失这些更改。
+        离开后，你刚填写的评分、照片和备注都会丢失。
       </p>
     </Modal>
   );

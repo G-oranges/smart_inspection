@@ -68,7 +68,7 @@ export default function DormActionSheet({
   const actions: IOSActionSheetAction[] = [
     {
       key: 'selectAll',
-      label: `全选所有筛选结果 (${totalCount})`,
+      label: `全选筛选结果 (${totalCount})`,
       icon: <CheckCircleOutlined />,
       type: 'default',
       hidden: selectAcrossPages || totalCount <= tableItems.length,
@@ -119,16 +119,16 @@ export default function DormActionSheet({
     },
   ];
 
+  const singleTitle = singleDorm
+    ? `${singleDorm.building || ''} ${singleDorm.roomNo || ''}`.trim()
+    : '宿舍操作';
+
   return (
     <IOSActionSheet
       open={open}
       onClose={onClose}
-      title={selectedCount > 1 ? `批量操作 (${selectedCount} 间)` : "宿舍管理"}
-      subtitle={
-        selectedCount === 1 
-          ? (selectAcrossPages ? "已选中所有查询结果" : (singleDorm ? `${singleDorm.building} ${singleDorm.roomNo}` : "")) 
-          : "支持对多间宿舍进行批量导出、删除等快捷操作"
-      }
+      title={selectedCount > 1 ? `批量操作 (${selectedCount} 间)` : singleTitle}
+      subtitle={selectAcrossPages && selectedCount === 1 ? '已选全部筛选结果' : undefined}
       actions={actions}
       cancelText="关闭"
     />

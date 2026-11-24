@@ -255,7 +255,7 @@ const MobileAdvancedFilter = ({
               </div>
             ) : filteredOptions?.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-32 text-gray-400">
-                <span className="text-[14px]">无匹配数据！</span>
+                <span className="text-[14px]">无匹配数据</span>
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">

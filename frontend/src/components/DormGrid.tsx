@@ -139,8 +139,8 @@ export default function DormGrid<TBed extends DormGridBedRecord = DormGridBedRec
             onClick={() => clickable && onBedClick(bed)}
             title={
               bed.status === "OCCUPIED"
-                ? `${bed.bedNo}号床: ${bed.studentName || "未知"}`
-                : `${bed.bedNo}号床 (空)`
+                ? `${bed.bedNo} 号床：${bed.studentName || "未知"}`
+                : `${bed.bedNo} 号床（空）`
             }
           >
             {renderCell ? renderCell(bed) : defaultRenderCell(bed)}

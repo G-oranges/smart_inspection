@@ -33,7 +33,7 @@ export default function ResultMobileCard({
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1 min-w-0">
           <div className="font-bold text-base truncate">
-            {record.task?.title || "未知任务"}
+            {record.task?.title || "未命名任务"}
           </div>
           <div className="text-xs text-gray-500 mt-0.5">
             {record.dorm?.building}-{record.dorm?.roomNo} · {record.dorm?.campus}
@@ -47,7 +47,7 @@ export default function ResultMobileCard({
         </Tag>
       </div>
       <div className="grid grid-cols-2 gap-y-2 text-sm border-t border-black/5 pt-3 mt-1">
-        <div className="text-gray-400">评分成绩</div>
+        <div className="text-gray-400">得分</div>
         <div className="text-right font-bold text-blue-600">
           {record.totalScore ?? "-"} 分
         </div>
@@ -58,7 +58,7 @@ export default function ResultMobileCard({
             record.recordedByName ||
             "-"}
         </div>
-        <div className="text-gray-400">检查日期</div>
+        <div className="text-gray-400">检查时间</div>
         <div className="text-right text-xs opacity-60">
           {record.createdAt ? dayjs(record.createdAt).format("MM-DD HH:mm") : "-"}
         </div>

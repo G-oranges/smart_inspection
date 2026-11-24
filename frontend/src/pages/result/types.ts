@@ -149,7 +149,6 @@ export interface UseResultActionsProps {
   filteredInspections: ResultInspectionRecord[];
   clearSelection: () => void;
   navigate: NavigateFunction;
-  setLastRefreshedAt: Dispatch<SetStateAction<string>>;
   myProfile: Record<string, unknown> | null;
 }
 

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Modal, message } from 'antd';
+import { message } from 'antd';
 
 import { createBuildTableParams } from '../../utils/tableParamsBuilder';
 import { confirmDangerCountdown } from '../../utils/confirm';
@@ -89,14 +89,14 @@ export function useDormActions({
   const handleDeleteSingle = useCallback(
     async (id: EntityId): Promise<void> => {
       if (!actions.deleteDorms) {
-        message.error('删除能力不可用');
+        message.error('当前无法删除宿舍，请联系管理员');
         return;
       }
 
       const finalConfirmed = await confirmDangerCountdown({
-        title: '是否确认 - 删除宿舍',
-        content: '删除后无法恢复，且该宿舍的入住记录将被清除。',
-        okText: '确认删除',
+        title: '确定删除该宿舍吗？',
+        content: '删除后无法恢复，该宿舍的入住记录也会被清除。',
+        okText: '删除宿舍',
       });
       if (!finalConfirmed) {
         return;
@@ -104,7 +104,7 @@ export function useDormActions({
 
       try {
         await actions.deleteDorms([id]);
-        message.success('删除成功');
+        message.success('已删除宿舍');
         setReloadFlag((prev) => prev + 1);
       } catch (error) {
         message.error(readErrorMessage(error, '删除失败'));
@@ -115,7 +115,7 @@ export function useDormActions({
 
   const handleBulkDelete = useCallback(async (): Promise<void> => {
     if (!actions.deleteDorms) {
-      message.error('批量删除能力不可用');
+      message.error('当前无法删除宿舍，请联系管理员');
       return;
     }
 
@@ -124,27 +124,10 @@ export function useDormActions({
       return;
     }
 
-    const firstConfirmed = await new Promise<boolean>((resolve) => {
-      Modal.confirm({
-        title: '确认批量删除宿舍',
-        content: '删除后无法恢复，且该宿舍的入住记录将被清除。',
-        okText: '确认删除',
-        okType: 'danger',
-        cancelText: '取消',
-        maskClosable: false,
-        keyboard: false,
-        onOk: () => resolve(true),
-        onCancel: () => resolve(false),
-      });
-    });
-    if (!firstConfirmed) {
-      return;
-    }
-
     const finalConfirmed = await confirmDangerCountdown({
-      title: '是否确认 - 批量删除宿舍',
-      content: `即将永久删除 ${selectionCount} 个宿舍及其入住记录，确认继续？`,
-      okText: '确认删除',
+      title: `确定删除选中的 ${selectionCount} 间宿舍吗？`,
+      content: `删除后无法恢复，选中的 ${selectionCount} 间宿舍及其入住记录都会被清除。`,
+      okText: '删除宿舍',
     });
     if (!finalConfirmed) {
       return;
@@ -165,13 +148,10 @@ export function useDormActions({
         : selectedIds;
       await actions.deleteDorms(payload);
       clearSelection();
-      Modal.success({ title: '删除成功' });
+      message.success(`已删除 ${selectionCount} 间宿舍`);
       setReloadFlag((prev) => prev + 1);
     } catch (error) {
-      Modal.error({
-        title: '删除失败',
-        content: readErrorMessage(error, '操作失败，请稍后重试。'),
-      });
+      message.error(readErrorMessage(error, '删除失败，请稍后重试'));
     } finally {
       setBatchLoading(false);
     }
@@ -192,7 +172,7 @@ export function useDormActions({
 
   const handleDownloadTemplate = useCallback(async (): Promise<void> => {
     if (!actions.downloadTemplate) {
-      Modal.error({ title: '下载模板失败', content: '模板下载能力不可用' });
+      message.error('当前无法下载模板，请联系管理员');
       return;
     }
 
@@ -207,10 +187,7 @@ export function useDormActions({
       link.remove();
       URL.revokeObjectURL(url);
     } catch (error) {
-      Modal.error({
-        title: '下载模板失败',
-        content: readErrorMessage(error, '模板下载失败'),
-      });
+      message.error(readErrorMessage(error, '模板下载失败'));
     }
   }, [actions]);
 

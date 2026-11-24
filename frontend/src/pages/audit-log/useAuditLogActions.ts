@@ -50,6 +50,7 @@ export function useAuditLogActions({
 }: UseAuditLogActionsProps): AuditLogActionsResult {
   const [logs, setLogs] = useState<AuditLogRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [options, setOptions] = useState<AuditLogOptions>({
     actions: [],
     modules: [],
@@ -100,6 +101,7 @@ export function useAuditLogActions({
         return;
       }
       setLoading(true);
+      setError('');
       try {
         const queryString = buildAuditLogQuery({ filters, page, pageSize });
         const data = await request<AuditLogListResponse>(
@@ -111,8 +113,14 @@ export function useAuditLogActions({
           pageSize: Number(data?.pageSize) || pageSize,
           total: Number(data?.total) || 0,
         });
-      } catch (error) {
-        console.error('加载审计日志失败:', error);
+      } catch (err) {
+        console.error('加载审计日志失败:', err);
+        setLogs([]);
+        setError(
+          err instanceof Error && err.message.trim()
+            ? err.message
+            : '加载审计日志失败，请重试',
+        );
       } finally {
         setLoading(false);
       }
@@ -138,6 +146,7 @@ export function useAuditLogActions({
   return {
     logs,
     loading,
+    error,
     options,
     stats,
     loadLogs,

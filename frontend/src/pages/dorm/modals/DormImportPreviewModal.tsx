@@ -55,7 +55,7 @@ export default function DormImportPreviewModal({
 }: DormImportPreviewModalProps) {
   return (
     <Modal
-      title="宿舍导入预检"
+      title="导入宿舍预览"
       open={open}
       onCancel={onClose}
       footer={[
@@ -64,7 +64,7 @@ export default function DormImportPreviewModal({
           className="apple-btn-secondary"
           onClick={onClose}
         >
-          取消导入
+          取消
         </Button>,
         <Button 
           key="submit" 
@@ -93,28 +93,28 @@ export default function DormImportPreviewModal({
                     <div style={{ fontSize: "20px", fontWeight: 600 }}>
                       {previewData.total}
                     </div>
-                    <div style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
-                      总共记录
+                    <div style={{ color: "var(--co-text-secondary)", fontSize: "12px" }}>
+                      总记录
                     </div>
                   </div>
                 </Col>
                 <Col span={8}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "20px", fontWeight: 600, color: "var(--color-success)" }}>
+                    <div style={{ fontSize: "20px", fontWeight: 600, color: "var(--co-success)" }}>
                       {previewData.newCount}
                     </div>
-                    <div style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
-                      新宿舍
+                    <div style={{ color: "var(--co-text-secondary)", fontSize: "12px" }}>
+                      新增
                     </div>
                   </div>
                 </Col>
                 <Col span={8}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "20px", fontWeight: 600, color: "var(--color-warning)" }}>
+                    <div style={{ fontSize: "20px", fontWeight: 600, color: "var(--co-warning)" }}>
                       {previewData.conflictCount}
                     </div>
-                    <div style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
-                      冲突项
+                    <div style={{ color: "var(--co-text-secondary)", fontSize: "12px" }}>
+                      已存在
                     </div>
                   </div>
                 </Col>
@@ -124,17 +124,17 @@ export default function DormImportPreviewModal({
           />
 
           {(previewData.conflictCount || 0) > 0 && (
-            <Card size="small" title="冲突处理策略" style={{ marginBottom: 20 }}>
+            <Card size="small" title="重复处理" style={{ marginBottom: 20 }}>
               <Select
                 value={resolution}
                 onChange={onResolutionChange}
                 style={{ width: "100%" }}
               >
-                <Option value="overwrite">覆盖现有数据 (推荐)</Option>
+                <Option value="overwrite">覆盖现有数据（推荐）</Option>
                 <Option value="skip">跳过重复项</Option>
               </Select>
-              <div style={{ marginTop: 8, fontSize: "12px", color: "var(--color-text-secondary)" }}>
-                检测到 {previewData.conflictCount} 条记录的楼栋和房间号已在系统中存在。
+              <div style={{ marginTop: 8, fontSize: "12px", color: "var(--co-text-secondary)" }}>
+                有 {previewData.conflictCount} 间宿舍已存在
               </div>
             </Card>
           )}
@@ -143,14 +143,18 @@ export default function DormImportPreviewModal({
             <Alert
               type="error"
               showIcon
-              message={`${previewData.invalidCount} 条数据存在问题（无法导入）`}
+              message={`异常记录（${previewData.invalidCount} 条无法导入）`}
               description={
-                <div style={{ maxHeight: "180px", overflowY: "auto", marginTop: 8, background: 'var(--error-bg)', padding: '8px 12px', borderRadius: 4 }}>
+                <div style={{ maxHeight: "180px", overflowY: "auto", marginTop: 8, background: 'var(--co-error-bg)', padding: '8px 12px', borderRadius: 4 }}>
                   {(previewData.invalidItems || []).map((item, idx) => (
-                    <div key={idx} style={{ fontSize: "12px", marginBottom: 6, paddingBottom: 6, borderBottom: '1px solid #ffccc7' }}>
-                      <span style={{ fontWeight: 600, color: '#cf1322' }}>第 {item.row} 行</span>
-                      {item.field && <span style={{ marginLeft: 8, color: 'var(--co-text-secondary)' }}>[{item.field}]</span>}
-                      <span style={{ marginLeft: 8 }}>{item.reason}</span>
+                    <div key={idx} style={{ fontSize: "12px", marginBottom: 6, paddingBottom: 6, borderBottom: '1px solid var(--co-glass-border)' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--co-error)' }}>第 {item.row} 行</span>
+                      {item.field ? (
+                        <span style={{ color: 'var(--co-text-secondary)' }}> · {item.field}：</span>
+                      ) : (
+                        <span>：</span>
+                      )}
+                      <span>{item.reason}</span>
                       {item.content && <span style={{ marginLeft: 8, color: 'var(--co-text-muted)' }}>（{item.content}）</span>}
                     </div>
                   ))}

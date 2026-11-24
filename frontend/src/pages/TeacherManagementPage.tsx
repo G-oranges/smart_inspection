@@ -11,7 +11,6 @@ import {
   Input,
 } from 'antd';
 import {
-  CheckCircleOutlined,
   DeleteOutlined,
   ExportOutlined,
   FilterOutlined,
@@ -101,7 +100,6 @@ interface TeacherFilterOption {
 
 interface TeacherStatsProps {
   total: number;
-  pageCount: number;
 }
 
 interface TeacherFiltersPanelProps {
@@ -136,6 +134,7 @@ interface TeacherTableSectionProps {
   fetchError: string | null;
   onRetryLoad: () => void;
   isMobile: boolean;
+  hasActiveFilter: boolean;
   tableData: TableResponse<TeacherRecord>;
   loading: boolean;
   resizableColumns: ServiceRecord[];
@@ -175,33 +174,20 @@ function hasEntityId(value: EntityId | undefined | null): value is EntityId {
   return value !== undefined && value !== null;
 }
 
-function TeacherStats({ total, pageCount }: TeacherStatsProps) {
+function TeacherStats({ total }: TeacherStatsProps) {
   return (
-    <>
-      <Col xs={12} sm={12} md={6}>
-        <AppleStatCard
-          icon={<TeamOutlined />}
-          value={total}
-          label="教职工总数"
-          dotColor="blue"
-        />
-      </Col>
-      <Col xs={12} sm={12} md={6}>
-        <AppleStatCard
-          icon={<CheckCircleOutlined />}
-          value={pageCount}
-          label="本页显示教职工"
-          dotColor="green"
-        />
-      </Col>
-    </>
+    <Col xs={12} sm={12} md={6}>
+      <AppleStatCard
+        icon={<TeamOutlined />}
+        value={total}
+        label="教职工总数"
+        dotColor="blue"
+      />
+    </Col>
   );
 }
 
-function mapTeacherStatsToSegments(
-  total: number,
-  pageCount: number,
-): StatSegment[] {
+function mapTeacherStatsToSegments(total: number): StatSegment[] {
   return [
     {
       id: 'teacher-total',
@@ -209,13 +195,6 @@ function mapTeacherStatsToSegments(
       value: total,
       label: '教职工',
       tone: 'blue',
-    },
-    {
-      id: 'teacher-page-count',
-      icon: <CheckCircleOutlined />,
-      value: pageCount,
-      label: '本页',
-      tone: 'green',
     },
   ];
 }
@@ -363,7 +342,7 @@ function TeacherFiltersPanel({
               icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
               onClick={openSettings}
             >
-              字段管理
+              字段设置
             </Button>
             {canManage && selectedCount > 0 ? (
               <Button
@@ -390,8 +369,8 @@ function TeacherFiltersPanel({
         <div className="mt-2 flex items-center justify-between p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20">
           <div className="flex items-center gap-3">
             <span className="text-blue-600 font-medium text-sm">
-              已选择 {selectedCount} 项
-              {selectAcrossPages ? ' (跨筛选结果)' : ''}
+              已选择 {selectedCount} 名教职工
+              {selectAcrossPages ? '（全部筛选结果）' : ''}
             </span>
             {pagination.current > 1 || total > currentPageCount ? (
               !selectAcrossPages ? (
@@ -401,7 +380,7 @@ function TeacherFiltersPanel({
                   className="text-blue-600 font-semibold p-0 h-auto"
                   onClick={onSelectAllResults}
                 >
-                  选择所有筛选结果 ({total})
+                  全选筛选结果 ({total})
                 </Button>
               ) : null
             ) : null}
@@ -412,7 +391,7 @@ function TeacherFiltersPanel({
             className="text-gray-500 p-0 h-auto"
             onClick={onClearSelection}
           >
-            清空
+            取消选择
           </Button>
         </div>
       ) : null}
@@ -424,6 +403,7 @@ function TeacherTableSection({
   fetchError,
   onRetryLoad,
   isMobile,
+  hasActiveFilter,
   tableData,
   loading,
   resizableColumns,
@@ -494,7 +474,9 @@ function TeacherTableSection({
           emptyText={
             <div className="py-20 text-center">
               <TeamOutlined className="text-5xl text-gray-200 mb-3" />
-              <p className="text-gray-400 text-sm font-medium tracking-wide">暂无教职工记录</p>
+              <p className="text-gray-400 text-sm font-medium tracking-wide">
+                {hasActiveFilter ? '没有匹配的教职工' : '还没有教职工'}
+              </p>
             </div>
           }
           pagination={{
@@ -565,7 +547,7 @@ function TeacherFloatingActions({
           closeIcon={<PlusOutlined rotate={45} />}
         >
           {canManage ? (
-            <FloatButton icon={<PlusOutlined />} tooltip="新增" onClick={openCreateModal} />
+            <FloatButton icon={<PlusOutlined />} tooltip="新增教职工" onClick={openCreateModal} />
           ) : null}
           {canImport ? (
             <FloatButton
@@ -597,9 +579,9 @@ interface TeacherManagementContentProps {
   handleRetryLoad: () => void;
   handleSearch: () => void;
   handleTableChange: UseTableStateResult['handleTableChange'];
+  hasActiveFilter: boolean;
   isDirty: boolean;
   isMobile: boolean;
-  lastRefreshedAt: string;
   loading: boolean;
   openCreateModal: () => void;
   pagination: PaginationState;
@@ -638,9 +620,9 @@ function TeacherManagementContent({
   handleRetryLoad,
   handleSearch,
   handleTableChange,
+  hasActiveFilter,
   isDirty,
   isMobile,
-  lastRefreshedAt,
   loading,
   openCreateModal,
   pagination,
@@ -664,16 +646,8 @@ function TeacherManagementContent({
         statsLayout="custom"
         stats={
           <CollapsibleStatsBoard
-            expandedContent={
-              <TeacherStats
-                total={tableData.total || 0}
-                pageCount={tableData.items.length}
-              />
-            }
-            segments={mapTeacherStatsToSegments(
-              tableData.total || 0,
-              tableData.items.length,
-            )}
+            expandedContent={<TeacherStats total={tableData.total || 0} />}
+            segments={mapTeacherStatsToSegments(tableData.total || 0)}
           />
         }
         filters={
@@ -706,18 +680,11 @@ function TeacherManagementContent({
           />
         }
       >
-        <div className="table-head dorm-table-head mb-4">
-          <div className="flex items-center gap-2">
-            <div className="dorm-table-head-accent" />
-            <h3 className="dorm-table-head-title">实时列表</h3>
-            <span className="dorm-table-head-time">最后更新: {lastRefreshedAt}</span>
-          </div>
-        </div>
-
         <TeacherTableSection
           fetchError={fetchError}
           onRetryLoad={handleRetryLoad}
           isMobile={isMobile}
+          hasActiveFilter={hasActiveFilter}
           tableData={tableData}
           loading={loading}
           resizableColumns={resizableColumns}
@@ -871,23 +838,15 @@ function TeacherManagementOverlays({
 
 function useTeacherManagementUi() {
   const [reloadFlag, setReloadFlag] = useState(0);
-  const [lastRefreshedAt, setLastRefreshedAt] = useState(() =>
-    new Date().toLocaleTimeString(),
-  );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
   const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
   const [importWizardOpen, setImportWizardOpen] = useState(false);
 
-  useEffect(() => {
-    setLastRefreshedAt(new Date().toLocaleTimeString());
-  }, [reloadFlag]);
-
   return {
     actionSheetOpen,
     advancedFilterOpen,
     importWizardOpen,
-    lastRefreshedAt,
     reloadFlag,
     setActionSheetOpen,
     setAdvancedFilterOpen,
@@ -1194,9 +1153,12 @@ export default function TeacherManagementPage() {
         handleRetryLoad={handleRetryLoad}
         handleSearch={handleSearch}
         handleTableChange={handleTableChange}
+        hasActiveFilter={
+          Boolean(appliedSearchTerm.trim()) ||
+          Boolean(appliedFilters.department?.length)
+        }
         isDirty={isDirty}
         isMobile={isMobile}
-        lastRefreshedAt={uiState.lastRefreshedAt}
         loading={loading}
         openCreateModal={openCreateModal}
         pagination={pagination}

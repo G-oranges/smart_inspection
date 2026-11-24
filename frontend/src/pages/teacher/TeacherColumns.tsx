@@ -4,7 +4,7 @@
  */
 
 import { useMemo } from "react";
-import { Button, Space, Popconfirm, Tooltip } from "antd";
+import { Button, Space, Tooltip } from "antd";
 import type { ColumnsType } from 'antd/es/table';
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { TEACHER_COLUMN_WIDTHS, renderTeacherCell } from "./teacherSchema";
@@ -86,23 +86,20 @@ export const createActionColumn = ({
             aria-label="编辑教职工"
           />
         </Tooltip>
-        <Popconfirm
-          title="确定删除吗？"
-          description="删除后无法恢复"
-          onConfirm={() => onDelete(record)}
-        >
-          <Tooltip title="删除教职工">
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              disabled={batchLoading}
-              className="dorm-table-action-btn is-danger"
-              aria-label="删除教职工"
-            />
-          </Tooltip>
-        </Popconfirm>
+        <Tooltip title="删除教职工">
+          <Button
+            type="text"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            disabled={batchLoading}
+            onClick={() => {
+              void onDelete(record);
+            }}
+            className="dorm-table-action-btn is-danger"
+            aria-label="删除教职工"
+          />
+        </Tooltip>
       </Space>
     ) : null
   ),

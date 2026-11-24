@@ -90,9 +90,7 @@ export default function StudentActionSheet({
       onClose={onClose}
       title={`已选择 ${selectedIds.length} 名学生`}
       subtitle={
-        selectedIds.length === 1
-          ? selectedStudent?.fullName
-          : `可进行批量操作`
+        selectedIds.length === 1 ? selectedStudent?.fullName : undefined
       }
       actions={actions}
     />

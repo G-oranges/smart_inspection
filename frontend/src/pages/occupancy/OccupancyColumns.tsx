@@ -64,7 +64,7 @@ export function createBaseColumns(): OccupancyColumn[] {
         record.dormId ? (
           <Space>
             <BankOutlined />
-            <span>{record.building} - {record.roomNo} <Tag color="blue">{record.bedNo}号床</Tag></span>
+            <span>{record.building} - {record.roomNo} <Tag color="blue">{record.bedNo} 号床</Tag></span>
           </Space>
         ) : (
           <span style={{ color: 'var(--co-text-muted)' }}>无</span>

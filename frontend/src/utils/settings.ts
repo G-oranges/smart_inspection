@@ -2,7 +2,7 @@ import type { GradingRule } from '../types/app';
 
 export const DEFAULT_GRADING_RULES = [
   { label: '不合格', min: null, max: 60 },
-  { label: '一般', min: 60, max: 75 },
+  { label: '合格', min: 60, max: 75 },
   { label: '良好', min: 75, max: 90 },
   { label: '优秀', min: 90, max: null },
 ] satisfies GradingRule[];

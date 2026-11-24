@@ -4,7 +4,7 @@
  * @module pages/student/StudentColumns
  */
 
-import { Space, Tag, Button, Popconfirm, Tooltip } from "antd";
+import { Space, Tag, Button, Tooltip } from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -193,23 +193,20 @@ export function createActionColumn({
                 aria-label="编辑学生"
               />
             </Tooltip>
-            <Popconfirm
-              title="确定删除吗？"
-              description="删除后无法恢复"
-              onConfirm={() => onDelete(record)}
-            >
-              <Tooltip title="删除学生">
-                <Button
-                  type="text"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  disabled={batchLoading}
-                  className="dorm-table-action-btn is-danger"
-                  aria-label="删除学生"
-                />
-              </Tooltip>
-            </Popconfirm>
+            <Tooltip title="删除学生">
+              <Button
+                type="text"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                disabled={batchLoading}
+                onClick={() => {
+                  void onDelete(record);
+                }}
+                className="dorm-table-action-btn is-danger"
+                aria-label="删除学生"
+              />
+            </Tooltip>
           </>
         )}
       </Space>

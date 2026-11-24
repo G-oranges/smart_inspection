@@ -1,8 +1,9 @@
-import { Button, Image, Input, Progress, Skeleton, Tag } from 'antd';
+import { Button, Image, Input, Progress, Skeleton, Tag, Tooltip } from 'antd';
 import {
   CameraOutlined,
   CloseOutlined,
   DeleteOutlined,
+  EditOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
 
@@ -39,6 +40,7 @@ function PermissionBlockedState({
    参照 Stitch: 深色卡片 + SVG 甜甜圈 + 微光
    ──────────────────────────────────────── */
 function ScoreSection({
+  canSubmit,
   currentRating,
   handleScoreClick,
   inspectionRecord,
@@ -47,10 +49,10 @@ function ScoreSection({
   selectedTask,
 }: Pick<
   ResultEntryLayoutProps,
-  'currentRating' | 'handleScoreClick' | 'inspectionRecord' | 'numericScore' | 'scoreColor' | 'selectedTask'
+  'canSubmit' | 'currentRating' | 'handleScoreClick' | 'inspectionRecord' | 'numericScore' | 'scoreColor' | 'selectedTask'
 >) {
   return (
-    <div className="re-dark-card re-score-dashboard p-8" onClick={handleScoreClick} style={{ cursor: 'pointer' }}>
+    <div className="re-dark-card re-score-dashboard p-8">
       {/* 模糊光晕 */}
       <div
         className="absolute inset-0 opacity-15 pointer-events-none"
@@ -61,7 +63,7 @@ function ScoreSection({
       />
 
       {/* AntD Progress 仪表盘 */}
-      <div className="relative group active:scale-95 transition-transform">
+      <div className="relative">
         <Progress
           type="dashboard"
           size={200}
@@ -71,9 +73,23 @@ function ScoreSection({
           gapDegree={80}
           format={() => (
             <div className="flex flex-col items-center justify-center">
-              <span className="re-score-value" style={{ color: 'var(--co-text)' }}>
-                {numericScore}
-              </span>
+              <div className="inline-flex items-center gap-1">
+                <span className="re-score-value" style={{ color: 'var(--co-text)' }}>
+                  {numericScore}
+                </span>
+                {canSubmit && (
+                  <Tooltip title="修改基础分">
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<EditOutlined />}
+                      onClick={handleScoreClick}
+                      aria-label="修改基础分"
+                      style={{ color: 'var(--co-text-muted)' }}
+                    />
+                  </Tooltip>
+                )}
+              </div>
               <div
                 className="re-rating-capsule mt-2"
                 style={{ background: `${scoreColor}15`, color: scoreColor }}
@@ -96,7 +112,7 @@ function ScoreSection({
             bordered={false}
             className="rounded-full px-3 py-1 text-[11px] font-bold uppercase"
           >
-            已存在记录
+            已录入
           </Tag>
         )}
       </div>
@@ -201,14 +217,13 @@ function DeductionsSection({
       {/* 标题 */}
       <div className="p-5 pb-3">
         <h4 className="re-section-title">扣分项目</h4>
-        <p className="re-section-desc">点击下方按钮添加宿舍内发现的违规项</p>
       </div>
 
       {/* 列表 */}
       <div style={{ borderTop: '1px solid var(--co-glass-border)' }}>
         {appliedDeductions.length === 0 ? (
           <div className="py-10 flex flex-col items-center" style={{ color: 'var(--co-text-muted)' }}>
-            <span className="text-sm italic">暂无扣分记录</span>
+            <span className="text-sm italic">无扣分</span>
           </div>
         ) : (
           <div>
@@ -238,7 +253,7 @@ function DeductionsSection({
                       {row.locations.length > 0 ? (
                         row.locations.map((loc) => <span key={loc}>{loc}</span>)
                       ) : (
-                        <span className="italic">通用</span>
+                        <span className="italic">公共区域</span>
                       )}
                     </div>
                   </div>
@@ -336,7 +351,7 @@ function PhotosSection({
           className={`re-upload-tile ${!canSubmit ? 'opacity-30 cursor-not-allowed' : ''}`}
         >
           <CameraOutlined className="text-2xl" />
-          <span className="text-[11px] font-bold uppercase tracking-widest">拍摄</span>
+          <span className="text-[11px] font-bold uppercase tracking-widest">添加照片</span>
         </div>
       </div>
 
@@ -465,6 +480,7 @@ function ResultEntryForm(props: ResultEntryLayoutProps) {
           {/* 左列：分数仪表盘 + 宿舍成员 */}
           <div className="re-left-col space-y-5 co-animate-in">
             <ScoreSection
+              canSubmit={canSubmit}
               currentRating={currentRating}
               handleScoreClick={handleScoreClick}
               inspectionRecord={inspectionRecord}
@@ -501,7 +517,7 @@ function ResultEntryForm(props: ResultEntryLayoutProps) {
                 disabled={!canSubmit}
                 className="re-submit-btn"
               >
-                提交结果
+                保存结果
               </button>
             </div>
           </div>

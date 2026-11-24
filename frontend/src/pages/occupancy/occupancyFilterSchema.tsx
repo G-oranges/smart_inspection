@@ -85,7 +85,7 @@ export function createOverviewFilterSchema({
       key: 'floor',
       label: '楼层',
       options: uniqueFloors.map((floor) => ({
-        label: `${floor}层`,
+        label: `${floor} 层`,
         value: String(floor),
       })),
       value: draftFilters.floor || [],
@@ -109,11 +109,12 @@ export function createHistoryFilterSchema({
   return [
     {
       key: 'action',
-      label: '动作类型',
+      label: '异动类型',
       multiple: false,
       options: [
-        { label: '分配', value: 'CREATE' },
-        { label: '变动', value: 'UPDATE' },
+        { label: '入住', value: 'CREATE' },
+        { label: '调宿', value: 'UPDATE' },
+        { label: '互换床位', value: 'SWAP' },
         { label: '退宿', value: 'DELETE' },
       ],
       value: historyDraftFilters.action

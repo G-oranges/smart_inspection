@@ -56,7 +56,7 @@ export function useAdminSettingsActions({
       }
 
       event.preventDefault();
-      event.returnValue = '您有未保存的修改，确定要离开吗？';
+      event.returnValue = '有未保存的修改，确定要离开吗？';
       return event.returnValue;
     };
 
@@ -76,7 +76,7 @@ export function useAdminSettingsActions({
       return;
     }
     if (currentPath !== lastPathRef.current) {
-      const confirmLeave = window.confirm('您有未保存的修改，确认离开并丢弃更改吗？');
+      const confirmLeave = window.confirm('有未保存的修改，确定离开并丢弃更改吗？');
       if (!confirmLeave) {
         suppressNavigationRef.current = true;
         navigate(lastPathRef.current, { replace: true });
@@ -88,10 +88,9 @@ export function useAdminSettingsActions({
 
   const handleSave = (): void => {
     Modal.confirm({
-      title: '确认保存系统设置',
-      content:
-        '系统设置的修改将立即影响全校的评分规则、录入习惯及扣分项。确定要应用这些更改吗？',
-      okText: '确认保存',
+      title: '保存系统设置？',
+      content: '保存后将立即影响全校的评分规则、扣分项与录入配置。',
+      okText: '保存',
       cancelText: '取消',
       onOk: async () => {
         setSaving(true);
@@ -202,8 +201,8 @@ export function useAdminSettingsActions({
       deductionItems: [
         ...prev.deductionItems,
         {
-          name: '新增扣分项',
-          code: `CODE_${Date.now()}`,
+          name: '',
+          code: '',
           points: 1,
           enabled: true,
         },

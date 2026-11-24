@@ -63,12 +63,12 @@ export function BuildingImportPreviewModal({
 
   return (
     <Modal
-      title="楼栋导入预检"
+      title="导入楼栋预览"
       open={open}
       onCancel={onClose}
       footer={[
         <Button key="cancel" onClick={onClose}>
-          取消导入
+          取消
         </Button>,
         <Button key="submit" type="primary" loading={isImporting} onClick={onConfirm}>
           确认导入
@@ -91,8 +91,8 @@ export function BuildingImportPreviewModal({
                     <div style={{ fontSize: "20px", fontWeight: 600 }}>
                       {previewData.total}
                     </div>
-                    <div style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
-                      总共记录
+                    <div style={{ color: "var(--co-text-secondary)", fontSize: "12px" }}>
+                      总记录
                     </div>
                   </div>
                 </Col>
@@ -102,13 +102,13 @@ export function BuildingImportPreviewModal({
                       style={{
                         fontSize: "20px",
                         fontWeight: 600,
-                        color: "var(--color-success)",
+                        color: "var(--co-success)",
                       }}
                     >
                       {previewData.newCount}
                     </div>
-                    <div style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
-                      新楼栋
+                    <div style={{ color: "var(--co-text-secondary)", fontSize: "12px" }}>
+                      新增
                     </div>
                   </div>
                 </Col>
@@ -118,13 +118,13 @@ export function BuildingImportPreviewModal({
                       style={{
                         fontSize: "20px",
                         fontWeight: 600,
-                        color: "var(--color-warning)",
+                        color: "var(--co-warning)",
                       }}
                     >
                       {previewData.conflictCount}
                     </div>
-                    <div style={{ color: "var(--color-text-secondary)", fontSize: "12px" }}>
-                      冲突项
+                    <div style={{ color: "var(--co-text-secondary)", fontSize: "12px" }}>
+                      已存在
                     </div>
                   </div>
                 </Col>
@@ -134,7 +134,7 @@ export function BuildingImportPreviewModal({
           />
 
           {conflictCount > 0 && (
-            <Card size="small" title="冲突处理策略" style={{ marginBottom: 20 }}>
+            <Card size="small" title="重复处理" style={{ marginBottom: 20 }}>
               <Select value={resolution} onChange={setResolution} style={{ width: "100%" }}>
                 {IMPORT_RESOLUTION_OPTIONS.map((opt) => (
                   <Option key={opt.value} value={opt.value}>
@@ -142,8 +142,8 @@ export function BuildingImportPreviewModal({
                   </Option>
                 ))}
               </Select>
-              <div style={{ marginTop: 8, fontSize: "12px", color: "var(--color-text-secondary)" }}>
-                检测到 {conflictCount} 条记录的楼栋名称已在系统中存在。
+              <div style={{ marginTop: 8, fontSize: "12px", color: "var(--co-text-secondary)" }}>
+                有 {conflictCount} 栋楼已存在
               </div>
             </Card>
           )}
@@ -152,14 +152,14 @@ export function BuildingImportPreviewModal({
             <Alert
               type="error"
               showIcon
-              message={`${invalidCount} 条数据存在问题（无法导入）`}
+              message={`异常记录（${invalidCount} 条无法导入）`}
               description={
                 <div
                   style={{
                     maxHeight: "180px",
                     overflowY: "auto",
                     marginTop: 8,
-                    background: "var(--error-bg)",
+                    background: "var(--co-error-bg)",
                     padding: "8px 12px",
                     borderRadius: 4,
                   }}
@@ -171,16 +171,20 @@ export function BuildingImportPreviewModal({
                         fontSize: "12px",
                         marginBottom: 6,
                         paddingBottom: 6,
-                        borderBottom: "1px solid #ffccc7",
+                        borderBottom: "1px solid var(--co-glass-border)",
                       }}
                     >
-                      <span style={{ fontWeight: 600, color: "#cf1322" }}>
+                      <span style={{ fontWeight: 600, color: "var(--co-error)" }}>
                         第 {item.row} 行
                       </span>
-                      {item.field && (
-                        <span style={{ marginLeft: 8, color: "var(--co-text-secondary)" }}>[{item.field}]</span>
+                      {item.field ? (
+                        <span style={{ color: "var(--co-text-secondary)" }}>
+                          {" "}· {item.field}：
+                        </span>
+                      ) : (
+                        <span>：</span>
                       )}
-                      <span style={{ marginLeft: 8 }}>{item.reason}</span>
+                      <span>{item.reason}</span>
                       {item.content && (
                         <span style={{ marginLeft: 8, color: "var(--co-text-muted)" }}>（{item.content}）</span>
                       )}

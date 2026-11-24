@@ -224,7 +224,7 @@ function ResultFilterActionBar({
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <Input
-            placeholder="搜索任务、宿舍、记录人..."
+            placeholder="搜索任务、宿舍或检查人"
             prefix={<SearchOutlined className="text-gray-400" />}
             className="apple-search-input !rounded-xl !bg-gray-100/60 dark:!bg-white/5 border-none h-10 flex-1"
             value={draftFilters.keyword}
@@ -292,7 +292,7 @@ function ResultFilterActionBar({
               disabled={totalCount === 0}
               className="apple-btn-primary flex-1 h-10 rounded-xl px-6 active:scale-95 transition-all border-none"
             >
-              导出
+              导出结果
             </Button>
           ) : null}
         </div>
@@ -304,7 +304,7 @@ function ResultFilterActionBar({
     <div className="dorm-toolbar-shell">
       <div className="dorm-toolbar-row dorm-toolbar-row-main">
         <Input
-          placeholder="搜索任务、宿舍、记录人..."
+          placeholder="搜索任务、宿舍或检查人"
           prefix={<SearchOutlined className="text-gray-400" />}
           className="apple-search-input dorm-toolbar-search !bg-gray-100/50 dark:!bg-white/5 border-none flex-1 min-w-[220px]"
           value={draftFilters.keyword}
@@ -351,7 +351,7 @@ function ResultFilterActionBar({
             disabled={totalCount === 0}
             className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all"
           >
-            导出数据
+            导出结果
           </Button>
         ) : null}
         {canAdjust && selectedResultIds.length > 0 ? (

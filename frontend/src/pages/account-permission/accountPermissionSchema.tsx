@@ -151,7 +151,7 @@ export const USER_RENDERERS: UserRendererMap = {
     <Tag
       className={`rounded-full border-none px-3 m-0 text-xs font-bold ${!user.isDisabled ? "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400" : "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400"}`}
     >
-      {!user.isDisabled ? "活跃" : "已停用"}
+      {!user.isDisabled ? "已启用" : "已停用"}
     </Tag>
   ),
 };
@@ -159,12 +159,12 @@ export const USER_RENDERERS: UserRendererMap = {
 // 用户类型选项
 export const USER_TYPE_OPTIONS: UserOption[] = [
   { value: "ADMIN", label: "管理员" },
-  { value: "TEACHER", label: "教师" },
+  { value: "TEACHER", label: "教职工" },
   { value: "STUDENT", label: "学生" },
 ];
 
 // 用户状态选项
 export const USER_STATUS_OPTIONS: UserOption[] = [
-  { value: "false", label: "启用" },
-  { value: "true", label: "停用" },
+  { value: "false", label: "已启用" },
+  { value: "true", label: "已停用" },
 ];

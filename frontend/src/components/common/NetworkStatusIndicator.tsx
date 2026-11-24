@@ -74,7 +74,7 @@ export function NetworkStatusIndicator() {
       ) : (
         <>
           <DisconnectOutlined />
-          <span>您当前处于离线状态，部分功能可能受限</span>
+          <span>网络已断开，部分功能暂时不可用</span>
         </>
       )}
       

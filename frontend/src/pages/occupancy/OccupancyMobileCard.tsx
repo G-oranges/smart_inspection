@@ -67,7 +67,7 @@ export default function OccupancyMobileCard({
         </div>
         <div className="compact-info-item">
           <span className="compact-label">床位</span>
-          <span className="compact-value">{record.bedNo ? `${record.bedNo}号床` : '-'}</span>
+          <span className="compact-value">{record.bedNo ? `${record.bedNo} 号床` : '-'}</span>
         </div>
       </div>
     </div>

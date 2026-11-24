@@ -1,5 +1,4 @@
 import {
-  AlertOutlined,
   AuditOutlined,
   CheckSquareOutlined,
   FormOutlined,
@@ -47,25 +46,6 @@ function ActionFocusBanner({
   hasPermission: (code: string) => boolean;
   onNavigate: (path: string) => void;
 }) {
-  if (stats.pendingAppeals > 0 && hasPermission('RESULT_VIEW')) {
-    return (
-      <button
-        type="button"
-        onClick={() => onNavigate('/results')}
-        className="dashboard-focus-strip co-press"
-        data-tone="error"
-      >
-        <span className="dashboard-focus-strip__icon">
-          <AlertOutlined />
-        </span>
-        <span className="dashboard-focus-strip__text">
-          {stats.pendingAppeals} 条申诉待处理
-        </span>
-        <RightOutlined className="dashboard-focus-strip__arrow" />
-      </button>
-    );
-  }
-
   if (stats.activeTasks > 0 && hasPermission('RESULT_RECORD')) {
     return (
       <button
@@ -95,42 +75,40 @@ export function DesktopQuickActionsPanel({
 }: QuickActionsProps) {
   const navigate = useNavigate();
 
+  if (actions.length === 0) {
+    return null;
+  }
+
   return (
     <section className="co-glass-panel dashboard-panel h-full flex flex-col justify-between gap-4">
       <div>
         <header className="dashboard-panel-header">
-          <h3 className="dashboard-panel-title">快捷通道</h3>
+          <h3 className="dashboard-panel-title">快捷入口</h3>
         </header>
 
-        {actions.length > 0 ? (
-          <div className="dashboard-actions-grid">
-            {actions.map((action) => (
-              <button
-                key={action.key}
-                type="button"
-                onClick={() => navigate(action.path)}
-                className="dashboard-action-tile co-press"
-                data-tone={action.tone}
-              >
-                <span className="dashboard-action-tile__icon">
-                  {ACTION_ICONS[action.key] || <ScheduleOutlined />}
+        <div className="dashboard-actions-grid">
+          {actions.map((action) => (
+            <button
+              key={action.key}
+              type="button"
+              onClick={() => navigate(action.path)}
+              className="dashboard-action-tile co-press"
+              data-tone={action.tone}
+            >
+              <span className="dashboard-action-tile__icon">
+                {ACTION_ICONS[action.key] || <ScheduleOutlined />}
+              </span>
+              <span className="dashboard-action-tile__label">
+                {action.label}
+              </span>
+              {action.badge ? (
+                <span className="dashboard-action-tile__badge">
+                  {action.badge > 99 ? '99+' : action.badge}
                 </span>
-                <span className="dashboard-action-tile__label">
-                  {action.label}
-                </span>
-                {action.badge ? (
-                  <span className="dashboard-action-tile__badge">
-                    {action.badge > 99 ? '99+' : action.badge}
-                  </span>
-                ) : null}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="dashboard-empty-state dashboard-empty-state--sm">
-            <span>暂无可用快捷操作</span>
-          </div>
-        )}
+              ) : null}
+            </button>
+          ))}
+        </div>
       </div>
 
       <ActionFocusBanner
@@ -168,7 +146,7 @@ export function MobileTopActions({
           className="apple-btn-primary dashboard-hero-action__btn co-press"
         >
           <FormOutlined />
-          <span>{stats.activeTasks > 0 ? '继续录入' : '进入录入'}</span>
+          <span>{stats.activeTasks > 0 ? '继续录入' : '查看任务'}</span>
         </button>
       </section>
     );

@@ -59,13 +59,13 @@ export function BuildingDetailModal({
             {building.name}
           </Descriptions.Item>
           <Descriptions.Item label="校区">{building.campus}</Descriptions.Item>
-          <Descriptions.Item label="类型">{building.type || "混合"}</Descriptions.Item>
+          <Descriptions.Item label="类型">{building.type || "-"}</Descriptions.Item>
           <Descriptions.Item label="楼层数">{building.floors} 层</Descriptions.Item>
           <Descriptions.Item label="电梯">
             {building.hasElevator ? "有" : "无"}
           </Descriptions.Item>
           <Descriptions.Item label="关联宿舍" span={2}>
-            {building.dormCount || 0} 个
+            {building.dormCount || 0} 间
           </Descriptions.Item>
           <Descriptions.Item label="联系方式" span={2}>
             {building.contactInfo || "-"}

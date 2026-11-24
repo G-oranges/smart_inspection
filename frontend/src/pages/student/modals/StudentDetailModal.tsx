@@ -82,7 +82,7 @@ export default function StudentDetailModal({
           <Descriptions.Item label="宿舍楼栋">
             {student.building || "-"}
           </Descriptions.Item>
-          <Descriptions.Item label="房间号">
+          <Descriptions.Item label="房号">
             {student.roomNo || "-"}
           </Descriptions.Item>
           <Descriptions.Item label="床位号">
@@ -94,7 +94,7 @@ export default function StudentDetailModal({
           <Descriptions.Item label="手机号">
             {student.mobile || "-"}
           </Descriptions.Item>
-          <Descriptions.Item label="QQ号">
+          <Descriptions.Item label="QQ 号">
             {student.qq || "-"}
           </Descriptions.Item>
           <Descriptions.Item label="民族">

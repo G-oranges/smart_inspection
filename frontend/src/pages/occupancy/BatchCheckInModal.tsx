@@ -103,7 +103,7 @@ export default function BatchCheckInModal({
               <>
                 <div className="font-bold truncate text-xs">{student.fullName}</div>
                 <div className="text-[11px] opacity-60 truncate">
-                  {assignment ? `${assignment.roomNo}-${assignment.bedNo}号` : '点击开始分配'}
+                  {assignment ? `${assignment.roomNo} - ${assignment.bedNo} 号床` : '待分配'}
                 </div>
               </>
             ) : (
@@ -116,10 +116,10 @@ export default function BatchCheckInModal({
                   {assignment ? (
                     <div className="flex flex-col items-end gap-1">
                       <Tag color="success" className="m-0 text-[11px] rounded-full px-2 border-none bg-green-100 text-green-700 font-bold">
-                        {assignment.building} / {assignment.floor}F
+                        {assignment.building} / {assignment.floor} 层
                       </Tag>
                       <div className="text-[11px] font-bold text-green-600">
-                        {assignment.roomNo}-{assignment.bedNo}号床
+                        {assignment.roomNo} - {assignment.bedNo} 号床
                       </div>
                     </div>
                   ) : (
@@ -139,8 +139,8 @@ export default function BatchCheckInModal({
     loadingDorms ? (
       <div className={isMobile ? "py-12 text-center" : "py-24 text-center"}>
         <Spin size={isMobile ? "small" : "large"} />
-        <div className={`mt-${isMobile ? '2' : '4'} text-${isMobile ? '[10px]' : 'xs'} opacity-40 tracking-widest font-sf uppercase`}>
-          {isMobile ? 'Syncing Inventory...' : 'Syncing Real-time Inventory...'}
+        <div className={`mt-${isMobile ? '2' : '4'} text-${isMobile ? '[10px]' : 'xs'} opacity-60`}>
+          正在加载床位…
         </div>
       </div>
     ) : (
@@ -172,8 +172,8 @@ export default function BatchCheckInModal({
         <Alert
           type="warning"
           showIcon
-          message="当前没有可写宿舍"
-          description="当前筛选条件或角色数据范围下暂无可分配床位，请调整筛选条件或联系管理员处理。"
+          message="没有可分配的宿舍"
+          description="当前筛选条件下没有空床位，请清空筛选或联系管理员开通楼栋权限。"
         />
       )
     )
@@ -183,7 +183,7 @@ export default function BatchCheckInModal({
   const renderFilters = (isCompact = false) => (
     <div className={`flex ${isCompact ? 'items-center gap-2' : 'gap-3'}`}>
       <PanelSelect
-        placeholder={isCompact ? "选择楼栋" : "楼栋过滤"}
+        placeholder="选择楼栋"
         className={`apple-select-ios ${isCompact ? 'flex-1' : 'w-[160px]'}`}
         classNames={{ popup: { root: "apple-dropdown" } }}
         allowClear
@@ -198,7 +198,7 @@ export default function BatchCheckInModal({
         className={`apple-select-ios ${isCompact ? 'w-24' : 'w-[110px]'}`}
         classNames={{ popup: { root: "apple-dropdown" } }}
         allowClear
-        options={modalFloors.map((floor) => ({ label: `${floor}F`, value: floor }))}
+        options={modalFloors.map((floor) => ({ label: `${floor} 层`, value: floor }))}
         value={modalFilters.floor}
         onChange={(value) =>
           setModalFilters((prev) => ({ ...prev, floor: value ?? null }))
@@ -237,7 +237,7 @@ export default function BatchCheckInModal({
             loading={loading}
             disabled={!hasWritableDormTargets}
           >
-            提交
+            确认入住
           </Button>
         }
       >
@@ -295,7 +295,7 @@ export default function BatchCheckInModal({
             onClick={onSubmit}
             disabled={!hasWritableDormTargets}
           >
-            确认并提交
+            确认入住
           </Button>
         </div>
       }
@@ -306,7 +306,7 @@ export default function BatchCheckInModal({
           <div className="mb-6 px-1">
             <div className="flex justify-between mb-2">
               <span className="font-bold text-sm">待分配学生 ({totalCount})</span>
-              <span className="text-xs text-blue-500 font-bold">已选: {assignmentCount}</span>
+              <span className="text-xs text-blue-500 font-bold">已分配 {assignmentCount}</span>
             </div>
             <Progress 
               percent={progressPercent} 

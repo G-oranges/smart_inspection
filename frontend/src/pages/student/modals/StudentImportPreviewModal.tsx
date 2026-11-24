@@ -32,12 +32,12 @@ export default function StudentImportPreviewModal({
 }: StudentImportPreviewModalProps) {
   return (
     <Modal
-      title="导入数据预检"
+      title="导入预览"
       open={open}
       onCancel={onCancel}
       footer={[
         <Button key="cancel" onClick={onCancel}>
-          取消导入
+          取消
         </Button>,
         <Button
           key="submit"
@@ -71,7 +71,7 @@ export default function StudentImportPreviewModal({
                         fontSize: "12px",
                       }}
                     >
-                      总共记录
+                      总记录
                     </div>
                   </div>
                 </Col>
@@ -92,7 +92,7 @@ export default function StudentImportPreviewModal({
                         fontSize: "12px",
                       }}
                     >
-                      新增学生
+                      新增
                     </div>
                   </div>
                 </Col>
@@ -113,7 +113,7 @@ export default function StudentImportPreviewModal({
                         fontSize: "12px",
                       }}
                     >
-                      学号冲突
+                      重复
                     </div>
                   </div>
                 </Col>
@@ -125,7 +125,7 @@ export default function StudentImportPreviewModal({
           {previewData.conflictCount > 0 && (
             <Card
               size="small"
-              title="冲突处理策略"
+              title="重复处理"
               style={{ marginBottom: 20 }}
             >
               <Select
@@ -133,7 +133,7 @@ export default function StudentImportPreviewModal({
                 onChange={setResolution}
                 style={{ width: "100%" }}
               >
-                <Option value="overwrite">覆盖现有数据 (推荐)</Option>
+                <Option value="overwrite">覆盖现有数据（推荐）</Option>
                 <Option value="skip">跳过重复项</Option>
               </Select>
               <div
@@ -143,8 +143,7 @@ export default function StudentImportPreviewModal({
                   color: "var(--color-text-secondary)",
                 }}
               >
-                检测到 {previewData.conflictCount}{" "}
-                条记录的学号已在系统中存在。请选择如何处理这些记录。
+                有 {previewData.conflictCount} 条学号已存在，覆盖将更新原记录。
               </div>
             </Card>
           )}
@@ -153,7 +152,7 @@ export default function StudentImportPreviewModal({
             <Alert
               type="error"
               showIcon
-              message={`${previewData.invalidCount} 条数据存在问题（无法导入）`}
+              message={`异常记录（${previewData.invalidCount} 条，无法导入）`}
               description={
                 <div
                   style={{

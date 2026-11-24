@@ -50,7 +50,7 @@ export default function OccupancyActionSheet({
         },
         {
           key: 'batch-checkout',
-          label: `确认退宿 (${checkOutCount} 人)`,
+          label: `退宿 (${checkOutCount} 人)`,
           icon: <LogoutOutlined />,
           type: 'danger',
           hidden: !canEdit || checkOutCount === 0,
@@ -117,27 +117,24 @@ export default function OccupancyActionSheet({
     handleCheckout,
   ]);
 
-  // 计算标题和副标题
-  const title = isBatchMode 
-    ? `批量操作 (${selectedIds.length} 人)` 
-    : `入住管理操作`;
-  
-  const subtitle = useMemo(() => {
-    if (isBatchMode) {
-      return "支持批量入住、调放与退宿快捷操作";
-    }
-    const student = studentData.items.find(
-      (item) => String(item.id) === String(selectedStudentId),
-    );
-    return student?.fullName || "";
-  }, [isBatchMode, studentData, selectedStudentId]);
+  const selectedStudent = useMemo(
+    () =>
+      studentData.items.find(
+        (item) => String(item.id) === String(selectedStudentId),
+      ),
+    [studentData, selectedStudentId],
+  );
+
+  // 计算标题
+  const title = isBatchMode
+    ? `批量操作 (${selectedIds.length} 人)`
+    : selectedStudent?.fullName || "选择操作";
 
   return (
     <IOSActionSheet
       open={open}
       onClose={onClose}
       title={title}
-      subtitle={subtitle}
       actions={actions}
     />
   );

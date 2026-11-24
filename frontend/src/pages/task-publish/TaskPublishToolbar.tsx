@@ -44,7 +44,7 @@ export const TaskPublishToolbar = ({
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <Input
-              placeholder="搜索任务标题或描述..."
+              placeholder="搜索任务名称、备注或检查人"
               prefix={<SearchOutlined className="text-gray-400" />}
               className="apple-search-input !rounded-xl !bg-gray-100/60 dark:!bg-white/5 border-none h-10 flex-1"
               value={draftTaskSearch}
@@ -101,7 +101,7 @@ export const TaskPublishToolbar = ({
         <div className="dorm-toolbar-shell">
           <div className="dorm-toolbar-row dorm-toolbar-row-main">
             <Input
-              placeholder="搜索任务标题或描述..."
+              placeholder="搜索任务名称、备注或检查人"
               prefix={<SearchOutlined className="text-gray-400" />}
               className="apple-search-input dorm-toolbar-search !bg-gray-100/50 dark:!bg-white/5 border-none flex-1 min-w-[240px]"
               value={draftTaskSearch}

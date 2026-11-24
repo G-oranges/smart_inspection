@@ -54,7 +54,7 @@ export default function TeacherImportPreviewModal({
 
   return (
     <Modal
-      title="教职工导入预检"
+      title="导入预览"
       open={open}
       onCancel={onCancel}
       footer={[
@@ -68,7 +68,7 @@ export default function TeacherImportPreviewModal({
           loading={isImporting}
           onClick={onConfirm}
         >
-          确认执行
+          确认导入
         </Button>,
       ]}
       width={MODAL_WIDTH.lg}
@@ -79,7 +79,7 @@ export default function TeacherImportPreviewModal({
         {/* 导入概览 */}
         <div className="bg-blue-50/50 dark:bg-blue-500/10 p-5 rounded-3xl border border-blue-100 dark:border-blue-500/20">
           <div className="text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider mb-4">
-            导入概览
+            数据概览
           </div>
           <Row gutter={16}>
             <Col span={8}>
@@ -88,7 +88,7 @@ export default function TeacherImportPreviewModal({
                   {previewData.total}
                 </div>
                 <div className="text-[11px] text-blue-400 font-bold">
-                  总计行数
+                  总记录
                 </div>
               </div>
             </Col>
@@ -98,7 +98,7 @@ export default function TeacherImportPreviewModal({
                   {previewData.newCount}
                 </div>
                 <div className="text-[11px] text-green-400 font-bold">
-                  拟新增项
+                  新增
                 </div>
               </div>
             </Col>
@@ -108,18 +108,18 @@ export default function TeacherImportPreviewModal({
                   {previewData.conflictCount}
                 </div>
                 <div className="text-[11px] text-orange-400 font-bold">
-                  工号冲突
+                  重复
                 </div>
               </div>
             </Col>
           </Row>
         </div>
 
-        {/* 冲突策略选择 */}
+        {/* 重复处理 */}
         {(previewData.conflictCount || 0) > 0 && (
           <div className="space-y-3">
             <div className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">
-              冲突策略
+              重复处理
             </div>
             <Select
               value={resolution}
@@ -127,17 +127,20 @@ export default function TeacherImportPreviewModal({
               className="apple-select-ios w-full"
               classNames={{ popup: { root: "apple-dropdown" } }}
             >
-              <Option value="overwrite">覆盖现有教职工数据 (推荐)</Option>
-              <Option value="skip">跳过已存在的工号</Option>
+              <Option value="overwrite">覆盖现有数据（推荐）</Option>
+              <Option value="skip">跳过重复项</Option>
             </Select>
+            <div className="text-xs text-gray-500 pl-1">
+              有 {previewData.conflictCount} 条工号已存在，覆盖将更新原记录。
+            </div>
           </div>
         )}
 
-        {/* 异常警告 */}
+        {/* 异常记录 */}
         {(previewData.invalidCount || 0) > 0 && (
           <div className="space-y-3">
             <div className="text-xs font-bold text-red-400 uppercase tracking-widest pl-1">
-              异常警告 ({previewData.invalidCount})
+              异常记录（{previewData.invalidCount} 条）
             </div>
             <div className="bg-red-50/50 dark:bg-red-500/5 rounded-2xl p-4 max-h-[160px] overflow-y-auto border border-red-100 dark:border-red-500/10">
               {(previewData.invalidItems || []).map((item: TeacherImportPreviewIssue, idx: number) => (

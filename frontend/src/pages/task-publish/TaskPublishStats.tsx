@@ -8,8 +8,8 @@ import type { TaskPublishStatsProps } from "./types";
 
 export const TaskPublishStats = ({ taskStats }: TaskPublishStatsProps) => {
   const coverageLabel = taskStats.totalDorms
-    ? `总检查完成比 ${taskStats.inspected}/${taskStats.totalDorms}`
-    : "总检查完成比";
+    ? `检查完成率 ${taskStats.inspected}/${taskStats.totalDorms}`
+    : "检查完成率";
     
   return (
     <>
@@ -32,7 +32,7 @@ export const TaskPublishStats = ({ taskStats }: TaskPublishStatsProps) => {
             )
           }
           value={taskStats.inProgress}
-          label="活跃任务"
+          label="进行中"
           dotColor="green"
         />
       </Col>
@@ -40,7 +40,7 @@ export const TaskPublishStats = ({ taskStats }: TaskPublishStatsProps) => {
         <AppleStatCard
           icon={<CalendarOutlined />}
           value={taskStats.upcoming}
-          label="计划任务"
+          label="待开启"
           dotColor="orange"
         />
       </Col>
@@ -71,21 +71,21 @@ export const mapTaskPublishStatsToSegments = (
     id: "task-progress",
     icon: taskStats.inProgress > 0 ? <SyncOutlined className="task-sync-spin" /> : <SyncOutlined />,
     value: taskStats.inProgress,
-    label: "活跃",
+    label: "进行中",
     tone: "green",
   },
   {
     id: "task-upcoming",
     icon: <CalendarOutlined />,
     value: taskStats.upcoming,
-    label: "计划",
+    label: "待开启",
     tone: "orange",
   },
   {
     id: "task-coverage",
     icon: <LineChartOutlined />,
     value: taskStats.coverageRate,
-    label: "完成比",
+    label: "完成率",
     unit: "%",
     tone: "purple",
   },

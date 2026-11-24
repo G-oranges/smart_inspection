@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from "react";
 import { createPortal } from "react-dom";
-import { DatePicker, Input, Button, Tag, Tooltip, Space, Typography, Divider, Empty, message, Alert, Drawer, FloatButton, Badge, Modal } from "antd";
+import { DatePicker, Input, Button, Tag, Tooltip, Space, Typography, Divider, Empty, message, Alert, Drawer, FloatButton, Badge } from "antd";
 import PanelSelect from './common/PanelSelect';
 import { SearchOutlined, ReloadOutlined, ClockCircleOutlined, SwapOutlined, UserOutlined, InfoCircleOutlined, HistoryOutlined, DeleteOutlined, FilterOutlined } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
@@ -93,12 +93,12 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 const ACTION_LABELS: Record<string, string> = {
-  CREATE: "创建",
-  UPDATE: "更新",
-  DELETE: "删除",
-  ASSIGN: "分配",
-  SWAP: "调宿",
-  MOVE: "换宿",
+  CREATE: "入住",
+  UPDATE: "调宿",
+  DELETE: "退宿",
+  ASSIGN: "入住",
+  SWAP: "互换床位",
+  MOVE: "调宿",
   CHECKOUT: "退宿"
 };
 
@@ -212,7 +212,7 @@ const OccupancyHistory = forwardRef<OccupancyHistoryRef, OccupancyHistoryProps>(
      const dorm = (globalData?.dorms as AppEntityLike[] | undefined)?.find((d) => d.id === id);
      if (dorm) return `${dorm.building}-${dorm.roomNo || dorm.roomNumber}`;
      const bed = (globalData?.dormBeds as AppEntityLike[] | undefined)?.find((b) => b.id === id);
-     if (bed) return `${bed.bedNo}号床`;
+     if (bed) return `${bed.bedNo} 号床`;
      return id;
   };
 
@@ -224,37 +224,22 @@ const OccupancyHistory = forwardRef<OccupancyHistoryRef, OccupancyHistoryProps>(
 
   const handleBatchDelete = async () => {
     if (!selectedRowKeys.length) return;
-    const firstConfirmed = await new Promise((resolve) => {
-      Modal.confirm({
-        title: "确认批量删除历史记录",
-        content: `即将删除选中的 ${selectedRowKeys.length} 条历史记录，删除后无法恢复。`,
-        okText: "确认删除",
-        okType: "danger",
-        cancelText: "取消",
-        maskClosable: false,
-        keyboard: false,
-        onOk: () => resolve(true),
-        onCancel: () => resolve(false),
-      });
+    const confirmed = await confirmDangerCountdown({
+      title: `确定永久删除这 ${selectedRowKeys.length} 条记录吗？`,
+      content: "删除后无法恢复。",
+      okText: "删除记录",
     });
-    if (!firstConfirmed) return;
-
-    const finalConfirmed = await confirmDangerCountdown({
-      title: "是否确认 — 删除历史记录",
-      content: `将永久删除选中的 ${selectedRowKeys.length} 条记录，确认继续？`,
-      okText: "确认删除",
-    });
-    if (!finalConfirmed) return;
+    if (!confirmed) return;
 
     setLoading(true);
     try {
       await dormService.deleteOccupancyHistory(selectedRowKeys.filter((key): key is EntityId => typeof key === "string" || typeof key === "number"));
-      message.success("历史记录已清除");
+      message.success("已删除选中的记录");
       setSelectedRowKeys([]);
       loadLogs(1, pagination.pageSize);
     } catch (error) {
       console.error(error);
-      message.error("删除失败");
+      message.error((error as ServiceError).message || "删除失败");
     } finally {
       setLoading(false);
     }
@@ -305,7 +290,7 @@ const OccupancyHistory = forwardRef<OccupancyHistoryRef, OccupancyHistoryProps>(
                    
                    return (
                        <div key={field} style={{ display: 'flex', alignItems: 'center', fontSize: '13px' }}>
-                           <span style={{ width: 80, color: '#888' }}>{FIELD_LABELS[field] || field}:</span>
+                           <span style={{ width: 80, color: '#888' }}>{FIELD_LABELS[field] || field}：</span>
                            <Space>
                                <Tag style={{ margin: 0 }} color={oldVal ? 'red' : 'default'}>{formatVal(oldVal)}</Tag>
                                <SwapOutlined style={{ color: '#ccc', fontSize: '12px' }} />
@@ -392,7 +377,7 @@ const OccupancyHistory = forwardRef<OccupancyHistoryRef, OccupancyHistoryProps>(
       >
         <div className="compact-card-header">
           <div className="compact-header-left">
-            <div className="compact-title">{actionLabel}</div>
+            <div className="compact-title">{record.targetName || '-'}</div>
             <div className="compact-subtitle">{formatDateTime(record.createdAt)}</div>
           </div>
           <div className="compact-header-right">
@@ -484,8 +469,8 @@ const OccupancyHistory = forwardRef<OccupancyHistoryRef, OccupancyHistoryProps>(
                     value={filters.action}
                     onChange={(val) => setFilters((prev) => ({ ...prev, action: val }))}
                     options={[
-                        { label: '分配', value: 'CREATE' },
-                        { label: '变动', value: 'UPDATE' },
+                        { label: '入住', value: 'CREATE' },
+                        { label: '调宿', value: 'UPDATE' },
                         { label: '退宿', value: 'DELETE' },
                     ]}
                 />
@@ -563,8 +548,8 @@ const OccupancyHistory = forwardRef<OccupancyHistoryRef, OccupancyHistoryProps>(
                           value={filters.action}
                           onChange={(val) => setFilters((prev) => ({ ...prev, action: val }))}
                           options={[
-                              { label: '分配', value: 'CREATE' },
-                              { label: '变动', value: 'UPDATE' },
+                              { label: '入住', value: 'CREATE' },
+                              { label: '调宿', value: 'UPDATE' },
                               { label: '退宿', value: 'DELETE' },
                           ]}
                       />
@@ -588,7 +573,7 @@ const OccupancyHistory = forwardRef<OccupancyHistoryRef, OccupancyHistoryProps>(
                 <Space>
                   <Button size="small" ghost onClick={() => setSelectedRowKeys([])}>取消</Button>
                   <Button size="small" danger type="primary" onClick={handleBatchDelete}>
-                    清除记录
+                    删除
                   </Button>
                 </Space>
               </div>,

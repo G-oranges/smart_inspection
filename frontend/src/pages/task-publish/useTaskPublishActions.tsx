@@ -1,5 +1,4 @@
 import { useMemo, useRef } from 'react';
-import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { Modal, message as antMessage } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 
@@ -231,7 +230,7 @@ export function useTaskPublishActions({
     setSelectedExecutors(
       executorIds.map((id) => {
         const cacheKey = String(id);
-        return userLookup[cacheKey] || { id, fullName: '加载中...', _needsUpdate: true };
+        return userLookup[cacheKey] || { id, fullName: '加载中…', _needsUpdate: true };
       }),
     );
     setPickerSelection(new Set(executorIds));
@@ -263,10 +262,11 @@ export function useTaskPublishActions({
       return;
     }
 
+    const title = record.title || '未命名任务';
     const finalConfirmed = await confirmDangerCountdown({
-      title: '是否确认 - 删除任务',
+      title: `确定删除任务「${title}」吗？`,
       content: '删除任务将同步删除该任务下所有评分记录，且无法恢复。',
-      okText: '确认删除',
+      okText: '删除任务',
     });
     if (!finalConfirmed) {
       return;
@@ -296,29 +296,10 @@ export function useTaskPublishActions({
       return;
     }
 
-    const firstConfirmed = await new Promise<boolean>((resolve) => {
-      Modal.confirm({
-        title: '确认批量删除任务',
-        icon: <ExclamationCircleOutlined style={{ color: 'var(--co-error)' }} />,
-        content: `即将删除 ${ids.length} 个任务及其评分记录，删除后无法恢复。`,
-        okText: '确认删除',
-        okType: 'danger',
-        cancelText: '取消',
-        maskClosable: false,
-        keyboard: false,
-        onOk: () => resolve(true),
-        onCancel: () => resolve(false),
-        className: 'apple-modal',
-      });
-    });
-    if (!firstConfirmed) {
-      return;
-    }
-
     const finalConfirmed = await confirmDangerCountdown({
-      title: '是否确认 - 批量删除任务',
-      content: `将永久删除选中的 ${ids.length} 个任务，确认继续？`,
-      okText: '确认删除',
+      title: `确定删除这 ${ids.length} 个任务吗？`,
+      content: `即将删除这 ${ids.length} 个任务及其下所有评分记录，删除后无法恢复。`,
+      okText: '删除任务',
     });
     if (!finalConfirmed) {
       return;
@@ -340,11 +321,11 @@ export function useTaskPublishActions({
       return;
     }
     if (!form.title.trim()) {
-      antMessage.warning('请输入任务标题');
+      antMessage.warning('请输入任务名称');
       return;
     }
     if (!form.startAt || !form.deadline) {
-      antMessage.warning('请设置时间段');
+      antMessage.warning('请选择执行时间');
       return;
     }
 
@@ -394,11 +375,11 @@ export function useTaskPublishActions({
   const handleNextStep = (): void => {
     if (currentStep === 0) {
       if (!form.title.trim()) {
-        antMessage.warning('请输入任务标题');
+        antMessage.warning('请输入任务名称');
         return;
       }
       if (!form.startAt || !form.deadline) {
-        antMessage.warning('请设置时间段');
+        antMessage.warning('请选择执行时间');
         return;
       }
     }

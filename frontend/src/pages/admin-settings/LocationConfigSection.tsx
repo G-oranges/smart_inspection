@@ -1,7 +1,7 @@
-import { Row, Col, Typography, Input, Button, Empty } from "antd";
+import { Typography, Input, Button, Empty } from "antd";
 import { PlusOutlined, EnvironmentOutlined, DeleteOutlined } from "@ant-design/icons";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface LocationConfigSectionProps {
   locationOptions: string[];
@@ -20,7 +20,7 @@ export const LocationConfigSection = ({
     <div>
       <div className="flex justify-between items-center mb-5">
         <Text type="secondary" className="text-xs opacity-70">
-          管理查寝录入页的预设扣分位置（如：地面、桌面、床铺）
+          将作为快捷标签显示在查寝录入页，建议保留 8–12 项。
         </Text>
         <Button 
           type="primary" 
@@ -56,12 +56,6 @@ export const LocationConfigSection = ({
             />
           </div>
         ))}
-      </div>
-      
-      <div>
-        <Text type="secondary" className="text-[11px] leading-relaxed">
-          提示：录入位置将作为快捷标签显示在扣分项下方。建议控制在 8-12 个核心区域以保证录入效率。修改会即时保存。
-        </Text>
       </div>
     </div>
   );
