@@ -65,6 +65,10 @@ export default function DashboardPage() {
     () => summary?.lowScoreDorms || [],
     [summary?.lowScoreDorms],
   );
+  const fullScoreDorms = useMemo(
+    () => summary?.fullScoreDorms || [],
+    [summary?.fullScoreDorms],
+  );
   const pendingAppealList = useMemo(
     () => summary?.pendingAppealList || [],
     [summary?.pendingAppealList],
@@ -141,8 +145,10 @@ export default function DashboardPage() {
           <MobileInsightsPanel
             trendData={trendData}
             distributionData={distributionData}
+            fullScoreDorms={fullScoreDorms}
             range={range}
             onRangeChange={setRange}
+            canViewResults={canViewResults}
           />
 
           {showAlertsSection &&
@@ -185,15 +191,17 @@ export default function DashboardPage() {
           </Row>
 
           <Row gutter={[20, 20]} className="items-stretch">
-            <Col xs={24} lg={showAlertsSection ? 12 : 24}>
+            <Col xs={24} lg={showAlertsSection ? 15 : 24} xl={showAlertsSection ? 16 : 24}>
               <DistributionPanel
                 distributionData={distributionData}
+                fullScoreDorms={fullScoreDorms}
                 range={range}
                 onRangeChange={setRange}
+                canViewResults={canViewResults}
               />
             </Col>
             {showAlertsSection ? (
-              <Col xs={24} lg={12}>
+              <Col xs={24} lg={9} xl={8}>
                 <DashboardAlertsPanel
                   pendingAppeals={pendingAppealList}
                   lowScoreDorms={lowScoreDorms}

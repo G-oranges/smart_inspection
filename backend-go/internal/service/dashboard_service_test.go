@@ -245,7 +245,7 @@ func TestDashboardServiceGetSummaryWithRange_ExtendedMetrics(t *testing.T) {
 	}
 
 	lowScore := 54
-	highScore := 92
+	highScore := 100
 	prevScore := 80
 	lowInsID := uuid.NewString()
 	if err := db.Create(&[]model.Inspection{
@@ -273,11 +273,14 @@ func TestDashboardServiceGetSummaryWithRange_ExtendedMetrics(t *testing.T) {
 	if stats3m.Range != "3m" || len(stats3m.TrendData) != 3 {
 		t.Fatalf("expected 3m range with 3 trend points, got range=%s len=%d", stats3m.Range, len(stats3m.TrendData))
 	}
-	if stats3m.ScoreDelta == nil || *stats3m.ScoreDelta != -7.0 {
-		t.Fatalf("expected scoreDelta=-7.0 (avg 73 - prev 80), got %v", stats3m.ScoreDelta)
+	if stats3m.ScoreDelta == nil || *stats3m.ScoreDelta != -3.0 {
+		t.Fatalf("expected scoreDelta=-3.0 (avg 77 - prev 80), got %v", stats3m.ScoreDelta)
 	}
 	if len(stats3m.LowScoreDorms) != 1 || stats3m.LowScoreDorms[0].DormName != "东1-301" || stats3m.LowScoreDorms[0].TotalScore != 54 {
 		t.Fatalf("unexpected lowScoreDorms: %+v", stats3m.LowScoreDorms)
+	}
+	if len(stats3m.FullScoreDorms) != 1 || stats3m.FullScoreDorms[0].DormName != "东1-302" || stats3m.FullScoreDorms[0].TotalScore != 100 {
+		t.Fatalf("unexpected fullScoreDorms: %+v", stats3m.FullScoreDorms)
 	}
 	if len(stats3m.ActiveTaskList) != 1 {
 		t.Fatalf("expected 1 active task, got %d", len(stats3m.ActiveTaskList))

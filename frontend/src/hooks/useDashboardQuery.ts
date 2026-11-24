@@ -68,6 +68,16 @@ export interface DashboardLowScoreDorm {
   createdAt: string;
 }
 
+export interface DashboardFullScoreDorm {
+  inspectionId: string;
+  dormId: string;
+  dormName: string;
+  totalScore: number;
+  taskId?: string;
+  taskTitle: string;
+  createdAt: string;
+}
+
 export interface DashboardPendingAppeal {
   id: string;
   inspectionId: string;
@@ -104,6 +114,7 @@ export interface DashboardSummary {
   recentInspections?: DashboardRecentInspection[];
   activeTaskList?: DashboardActiveTask[];
   lowScoreDorms?: DashboardLowScoreDorm[];
+  fullScoreDorms?: DashboardFullScoreDorm[];
   pendingAppealList?: DashboardPendingAppeal[];
   myDormSummary?: DashboardMyDormSummary | null;
   [key: string]: unknown;

@@ -2,9 +2,11 @@ import {
   BarChartOutlined,
   PieChartOutlined,
   RiseOutlined,
+  TrophyOutlined,
 } from '@ant-design/icons';
 import { Segmented } from 'antd';
 import { useEffect, useId, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Area,
   AreaChart,
@@ -19,9 +21,13 @@ import {
 } from 'recharts';
 
 import { useAppContext } from '../../context/AppContext';
-import type { DashboardRangeKey } from '../../hooks/useDashboardQuery';
+import type {
+  DashboardFullScoreDorm,
+  DashboardRangeKey,
+} from '../../hooks/useDashboardQuery';
 import {
   DASHBOARD_RANGE_OPTIONS,
+  formatInspectionTime,
   getRangeLabel,
   type DashboardTrendItem,
   type NormalizedDistributionItem,
@@ -157,7 +163,9 @@ function TrendChartCanvas({
               const count = (item?.payload as DashboardTrendItem | undefined)
                 ?.count;
               const scoreText = `${value} 分`;
-              return count ? [`${scoreText}（${count} 间）`, '均分'] : [scoreText, '均分'];
+              return count
+                ? [`${scoreText}（${count} 间）`, '均分']
+                : [scoreText, '均分'];
             }}
           />
           <Area
@@ -278,6 +286,77 @@ function DistributionChartCanvas({
   );
 }
 
+function FullScoreDormList({
+  dorms,
+  canViewResults,
+  compact = false,
+}: {
+  dorms: DashboardFullScoreDorm[];
+  canViewResults: boolean;
+  compact?: boolean;
+}) {
+  const navigate = useNavigate();
+
+  const handleOpenDorm = (item: DashboardFullScoreDorm) => {
+    if (!canViewResults) return;
+    const params = new URLSearchParams();
+    params.set('keyword', item.dormName);
+    if (item.taskId) {
+      params.append('taskId', item.taskId);
+    }
+    navigate(`/results?${params.toString()}`);
+  };
+
+  return (
+    <div
+      className={`dashboard-fullscore-pane ${compact ? 'dashboard-fullscore-pane--mobile' : ''}`}
+    >
+      <div className="dashboard-fullscore-head">
+        <span className="dashboard-fullscore-title">
+          <TrophyOutlined className="dashboard-fullscore-icon" />
+          满分宿舍
+        </span>
+        <span className="dashboard-fullscore-count">{dorms.length} 间次</span>
+      </div>
+
+      {dorms.length === 0 ? (
+        <div className="dashboard-empty-state dashboard-empty-state--sm">
+          <span>当前周期暂无满分宿舍</span>
+        </div>
+      ) : (
+        <div className="dashboard-fullscore-list">
+          {dorms.map((item) => (
+            <button
+              key={item.inspectionId}
+              type="button"
+              disabled={!canViewResults}
+              onClick={() => handleOpenDorm(item)}
+              className="dashboard-fullscore-row co-press"
+            >
+              <div className="dashboard-fullscore-row__main">
+                <span className="dashboard-fullscore-row__dorm">
+                  {item.dormName}
+                </span>
+                <span className="dashboard-fullscore-row__task">
+                  {item.taskTitle}
+                </span>
+              </div>
+              <div className="dashboard-fullscore-row__right">
+                <span className="dashboard-score-badge" data-tone="success">
+                  {item.totalScore} 分
+                </span>
+                <span className="dashboard-recent-row__time">
+                  {formatInspectionTime(item.createdAt)}
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function TrendChartPanel({
   trendData,
   range,
@@ -316,18 +395,22 @@ export function TrendChartPanel({
 
 export function DistributionPanel({
   distributionData,
+  fullScoreDorms,
   range,
   onRangeChange,
+  canViewResults,
 }: {
   distributionData: NormalizedDistributionItem[];
+  fullScoreDorms: DashboardFullScoreDorm[];
   range: DashboardRangeKey;
   onRangeChange: (next: DashboardRangeKey) => void;
+  canViewResults: boolean;
 }) {
   const palette = useChartPalette();
   const rangeLabel = getRangeLabel(range);
 
   return (
-    <section className="co-glass-panel dashboard-panel h-full flex flex-col justify-between">
+    <section className="co-glass-panel dashboard-panel h-full flex flex-col">
       <header className="dashboard-panel-header">
         <h3 className="dashboard-panel-title">
           <PieChartOutlined className="dashboard-panel-icon" />
@@ -335,13 +418,22 @@ export function DistributionPanel({
         </h3>
         <span className="dashboard-panel-meta">{rangeLabel}</span>
       </header>
-      <DistributionChartCanvas
-        distributionData={distributionData}
-        height={286}
-        range={range}
-        onRangeChange={onRangeChange}
-        palette={palette}
-      />
+
+      <div className="dashboard-dist-split">
+        <div className="dashboard-dist-split__chart">
+          <DistributionChartCanvas
+            distributionData={distributionData}
+            height={286}
+            range={range}
+            onRangeChange={onRangeChange}
+            palette={palette}
+          />
+        </div>
+        <FullScoreDormList
+          dorms={fullScoreDorms}
+          canViewResults={canViewResults}
+        />
+      </div>
     </section>
   );
 }
@@ -349,13 +441,17 @@ export function DistributionPanel({
 export function MobileInsightsPanel({
   trendData,
   distributionData,
+  fullScoreDorms,
   range,
   onRangeChange,
+  canViewResults,
 }: {
   trendData: DashboardTrendItem[];
   distributionData: NormalizedDistributionItem[];
+  fullScoreDorms: DashboardFullScoreDorm[];
   range: DashboardRangeKey;
   onRangeChange: (next: DashboardRangeKey) => void;
+  canViewResults: boolean;
 }) {
   const palette = useChartPalette();
   const [activeTab, setActiveTab] = useState<'trend' | 'distribution'>('trend');
@@ -388,14 +484,21 @@ export function MobileInsightsPanel({
           palette={palette}
         />
       ) : (
-        <DistributionChartCanvas
-          distributionData={distributionData}
-          height={200}
-          compact
-          range={range}
-          onRangeChange={onRangeChange}
-          palette={palette}
-        />
+        <div className="space-y-4">
+          <DistributionChartCanvas
+            distributionData={distributionData}
+            height={200}
+            compact
+            range={range}
+            onRangeChange={onRangeChange}
+            palette={palette}
+          />
+          <FullScoreDormList
+            dorms={fullScoreDorms}
+            canViewResults={canViewResults}
+            compact
+          />
+        </div>
       )}
     </section>
   );

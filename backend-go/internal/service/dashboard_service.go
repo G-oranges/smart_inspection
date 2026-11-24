@@ -31,6 +31,16 @@ type DashboardLowScoreDorm struct {
 	CreatedAt    time.Time `json:"createdAt"`
 }
 
+type DashboardFullScoreDorm struct {
+	InspectionID string    `json:"inspectionId"`
+	DormID       string    `json:"dormId"`
+	DormName     string    `json:"dormName"`
+	TotalScore   int       `json:"totalScore"`
+	TaskID       string    `json:"taskId,omitempty"`
+	TaskTitle    string    `json:"taskTitle"`
+	CreatedAt    time.Time `json:"createdAt"`
+}
+
 type DashboardPendingAppeal struct {
 	ID           string    `json:"id"`
 	InspectionID string    `json:"inspectionId"`
@@ -67,6 +77,7 @@ type DashboardStats struct {
 	RecentInspections []model.Inspection       `json:"recentInspections"`
 	ActiveTaskList    []DashboardActiveTask    `json:"activeTaskList"`
 	LowScoreDorms     []DashboardLowScoreDorm  `json:"lowScoreDorms"`
+	FullScoreDorms    []DashboardFullScoreDorm `json:"fullScoreDorms"`
 	PendingAppealList []DashboardPendingAppeal `json:"pendingAppealList"`
 	MyDormSummary     *DashboardMyDormSummary  `json:"myDormSummary,omitempty"`
 }
@@ -161,6 +172,7 @@ func (s *dashboardService) GetSummaryWithRange(userID string, rangeKey string) (
 		RecentInspections: []model.Inspection{},
 		ActiveTaskList:    []DashboardActiveTask{},
 		LowScoreDorms:     []DashboardLowScoreDorm{},
+		FullScoreDorms:    []DashboardFullScoreDorm{},
 		PendingAppealList: []DashboardPendingAppeal{},
 	}
 
@@ -266,6 +278,12 @@ func (s *dashboardService) GetSummaryWithRange(userID string, rangeKey string) (
 			return nil, err
 		}
 		stats.LowScoreDorms = lowScoreDorms
+
+		fullScoreDorms, err := s.buildFullScoreDorms(visibleDormIDs, windowStart)
+		if err != nil {
+			return nil, err
+		}
+		stats.FullScoreDorms = fullScoreDorms
 	} else {
 		stats.TrendData = buildEmptyTrendData(normalizedRange, now)
 	}
@@ -587,6 +605,52 @@ func (s *dashboardService) buildLowScoreDorms(visibleDormIDs *gorm.DB, since *ti
 			taskTitle = ins.Task.Title
 		}
 		list = append(list, DashboardLowScoreDorm{
+			InspectionID: ins.ID,
+			DormID:       dormID,
+			DormName:     formatDashboardDormName(ins.Dorm),
+			TotalScore:   score,
+			TaskID:       taskID,
+			TaskTitle:    taskTitle,
+			CreatedAt:    ins.CreatedAt,
+		})
+	}
+	return list, nil
+}
+
+func (s *dashboardService) buildFullScoreDorms(visibleDormIDs *gorm.DB, since *time.Time) ([]DashboardFullScoreDorm, error) {
+	query := s.db.Preload("Dorm").Preload("Task").
+		Where("dormId IN (?)", visibleDormIDs).
+		Where("totalScore IS NOT NULL AND totalScore >= ?", 100)
+	if since != nil {
+		query = query.Where("createdAt >= ?", *since)
+	}
+
+	var inspections []model.Inspection
+	if err := query.Order("createdAt DESC").
+		Limit(50).
+		Find(&inspections).Error; err != nil {
+		return nil, err
+	}
+
+	list := make([]DashboardFullScoreDorm, 0, len(inspections))
+	for _, ins := range inspections {
+		score := 100
+		if ins.TotalScore != nil {
+			score = *ins.TotalScore
+		}
+		dormID := ""
+		if ins.DormID != nil {
+			dormID = *ins.DormID
+		}
+		taskID := ""
+		if ins.TaskID != nil {
+			taskID = *ins.TaskID
+		}
+		taskTitle := "日常查寝"
+		if ins.Task != nil && strings.TrimSpace(ins.Task.Title) != "" {
+			taskTitle = ins.Task.Title
+		}
+		list = append(list, DashboardFullScoreDorm{
 			InspectionID: ins.ID,
 			DormID:       dormID,
 			DormName:     formatDashboardDormName(ins.Dorm),
