@@ -888,10 +888,17 @@ function useResultInspectionData({
       .filter((record) => {
         if (appliedFilters.keyword?.trim()) {
           const keyword = appliedFilters.keyword.trim().toLowerCase();
+          const building = record.dorm?.building?.trim();
+          const roomNo = record.dorm?.roomNo?.trim();
+          const combinedDormLabels =
+            building && roomNo
+              ? [`${building}-${roomNo}`, `${building}${roomNo}`]
+              : [];
           const keywordTargets = [
             record.task?.title,
-            record.dorm?.building,
-            record.dorm?.roomNo,
+            building,
+            roomNo,
+            ...combinedDormLabels,
             record.recordedByName,
             record.reviewedBy?.fullName,
             record.createdBy?.fullName,

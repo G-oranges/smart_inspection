@@ -1,32 +1,34 @@
-# 🏠 智慧宿舍卫生查寝管理系统
+# 智慧宿舍卫生查寝管理系统
 
 > 一款采用 **Apple Human Interface Guidelines** 设计语言的现代化宿舍管理系统，支持移动端 iOS 风格与桌面端 macOS 风格的自适应切换。
 
-本项目采用前后端分离架构，前端使用 **React 18 + Vite + Ant Design v6** 构建高保真原型系统，后端使用 **Go (Gin + GORM)** 提供 RESTful API。系统集成了 JWT 鉴权、Redis 令牌管理、RBAC 权限中心及毛玻璃 (Glassmorphism) 视觉系统。
+本项目采用前后端分离架构，前端使用 **React 18 + Vite + Ant Design v6** 构建，后端使用 **Go (Gin + GORM)** 提供 RESTful API。系统集成了 JWT 鉴权、Redis 令牌管理、RBAC 权限中心及毛玻璃 (Glassmorphism) 视觉系统。
 
 ---
 
-## 📂 项目结构
+## 项目结构
 
-```
-D:\my-project
-├── backend-go/          # Go API 服务 (Gin + GORM + Redis)
-│   ├── cmd/             # 应用入口
+```text
+智慧宿舍项目/
+├── backend-go/          # Go API 服务 (Gin + GORM + MySQL + Redis)
+│   ├── cmd/             # 应用入口 (cmd/server/main.go)
 │   ├── internal/        # 业务逻辑层
-│   │   ├── controller/  # 控制器 (16 个模块)
+│   │   ├── controller/  # 控制器
 │   │   ├── middleware/  # 中间件 (认证/权限/审计/限流)
 │   │   ├── model/       # 数据模型
 │   │   ├── repository/  # 数据访问层
 │   │   ├── router/      # 路由配置
 │   │   └── service/     # 业务服务层
-│   └── pkg/             # 公共工具包
+│   ├── pkg/             # 公共工具包
+│   └── scripts/         # 数据库与运维脚本
 ├── frontend/            # React SPA 前端
 │   ├── src/
-│   │   ├── components/  # 可复用组件 (32+)
-│   │   ├── hooks/       # 自定义 Hooks (15+)
+│   │   ├── components/  # 可复用组件
+│   │   ├── hooks/       # 自定义 Hooks
 │   │   ├── layouts/     # 响应式布局
-│   │   ├── pages/       # 功能页面 (15 个)
+│   │   ├── pages/       # 功能页面
 │   │   ├── services/    # API 服务封装
+│   │   ├── styles/      # 全局样式与设计令牌
 │   │   ├── theme/       # Ant Design 主题配置
 │   │   └── utils/       # 工具函数
 │   └── tailwind.config.js
@@ -35,16 +37,16 @@ D:\my-project
 
 ---
 
-## ✨ 核心特性
+## 核心特性
 
-### 🎨 Apple HIG 设计语言
+### Apple HIG 设计语言
 
 | 平台 | 设计风格 | 核心特性 |
 |------|----------|----------|
 | **移动端** | iOS 风格 | 大标题、毛玻璃导航栏、圆角卡片、底部悬浮药丸导航、`active:scale-95` 按压反馈 |
 | **桌面端** | macOS 风格 | 半透明侧边栏、统一工具栏、细腻分隔线、可调整列宽的表格 |
 
-### 🔐 安全与权限
+### 安全与权限
 
 - **JWT 双令牌机制**：Access Token + Refresh Token
 - **Redis 黑名单**：支持令牌即时注销
@@ -52,17 +54,17 @@ D:\my-project
 - **服务端纵深防御**：中间件校验 + 控制器二次验证
 - **审计日志**：所有敏感操作自动记录
 
-### 📱 PWA 支持
+### PWA 支持
 
-- ✅ 离线访问（Service Worker 预缓存静态资源）
-- ✅ 应用安装到主屏幕
-- ✅ 自动更新检测与提示
-- ✅ 网络状态实时指示器
-- ✅ API 请求 NetworkFirst 策略
+- 离线访问（Service Worker 预缓存静态资源）
+- 应用安装到主屏幕
+- 自动更新检测与提示
+- 网络状态实时指示器
+- API 请求 NetworkFirst 策略
 
 ---
 
-## 🛠️ 技术栈
+## 技术栈
 
 ### 前端
 
@@ -84,43 +86,83 @@ D:\my-project
 | Go | 1.24+ | 编程语言 |
 | Gin | 1.9+ | Web 框架 |
 | GORM | 1.30+ | ORM 框架 |
-| MySQL | 8.0+ | 主数据库 |
-| Redis | 3.0+ | 缓存与会话 |
+| MySQL | 5.7+ / 8.0+ | 主数据库 |
+| Redis | 3.0+ | 缓存与会话（可选，未启动时自动降级） |
 | JWT | v5 | 身份认证 |
 
 ---
 
-## 🚀 快速开始
+## 快速开始
 
 ### 1. 环境准备
 
 - **Node.js** 18+
 - **Go** 1.24+
-- **MySQL** 8.0+
-- **Redis** 3.0+
+- **MySQL** 5.7+ 或 8.0+
+- **Redis** 3.0+（可选，用于令牌黑名单与缓存）
 
-### 2. 后端启动
+### 2. 启动 MySQL 数据库
+
+根据操作系统启动本地 MySQL 服务（默认端口 `3306`）：
+
+**Windows（以管理员身份运行 PowerShell 或 CMD）：**
+
+```powershell
+# 查看本机 MySQL 服务名称（常见为 MySQL80 或 mysql）
+Get-Service *mysql*
+
+# 启动 MySQL 服务
+net start MySQL80
+# 若服务名为 mysql，则执行：
+# net start mysql
+```
+
+**macOS (Homebrew)：**
+
+```bash
+brew services start mysql
+```
+
+**Linux (systemd)：**
+
+```bash
+sudo systemctl start mysql
+```
+
+**创建数据库（首次启动时执行）：**
+
+```powershell
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS dorm_inspection DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+### 3. 启动后端服务
 
 ```powershell
 cd backend-go
 
-# 配置环境变量
-# 编辑 .env 文件，设置 DATABASE_URL、SMTP 等配置
+# 首次运行：参考 .env.example 创建并编辑 .env 文件
+Copy-Item .env.example .env
 
 # 安装依赖
 go mod download
 
-# 运行服务 (默认端口 4001)
-chcp 65001 && go run cmd/server/main.go
+# 启动服务（与前端代理对齐的默认端口为 4002；如终端中文乱码可先执行 chcp 65001）
+go run ./cmd/server
 ```
 
-**环境变量说明**：
+**环境变量说明（`backend-go/.env`）：**
 
 ```env
-PORT=4001
-DATABASE_URL=mysql://root:password@localhost:3306/dorm_inspection
+PORT=4002
+DATABASE_URL=mysql://root:password@127.0.0.1:3306/dorm_inspection
+REDIS_ADDR=127.0.0.1:6379
 
-# 新用户初始密码（需符合复杂度要求）
+# 运行环境：development / dev / local / test 视为开发环境；不设置则按生产环境处理
+APP_ENV=development
+# Access Token 签名密钥（非开发环境必填，至少 32 字节）
+JWT_SECRET=your_at_least_32_bytes_secret_key
+
+# 新用户初始密码（需符合复杂度要求：不少于 8 位，包含大小写字母、数字及标点符号）
 DEFAULT_INITIAL_PASSWORD=YourPassword123!
 
 # SMTP 配置（用于密码找回）
@@ -130,7 +172,7 @@ SMTP_USERNAME=your@email.com
 SMTP_PASSWORD=your_password
 ```
 
-### 3. 前端启动
+### 4. 启动前端服务
 
 ```powershell
 cd frontend
@@ -138,18 +180,20 @@ cd frontend
 # 安装依赖
 npm install
 
-# 运行开发服务器 (默认端口 5173)
+# 启动开发服务器（默认端口 5173，监听 0.0.0.0，代理 /api 与 /uploads 至 http://localhost:4002）
 npm run dev
 ```
 
-### 4. 默认登录
+启动后在浏览器访问 `http://localhost:5173`。
+
+### 5. 默认登录
 
 - **用户名**：`root`
 - **密码**：`123456`
 
 ---
 
-## 📄 功能模块
+## 功能模块
 
 ### 基础设施管理
 
@@ -181,7 +225,7 @@ npm run dev
 
 ---
 
-## 🎯 开发规范
+## 开发规范
 
 ### API 规范
 
@@ -190,93 +234,73 @@ npm run dev
 
 ### UI 开发规范
 
-遵循 `migration-for-antdesignv6.md` 规范：
+请遵循 [`doc/style_handbook.md`](./doc/style_handbook.md) 与 [`doc/modal_style_guide.md`](./doc/modal_style_guide.md)：
 
-1. 使用 **Design Tokens** 通过 `ConfigProvider` 实现定制化
-2. 所有表单控件高度统一为 **44px**（iOS 触控标准）
-3. 使用 `apple-` 前缀的原子类覆盖 AntD 默认样式
-4. 按钮圆角使用 **12px**（圆角矩形）而非胶囊形状
-
-### Tailwind 扩展
-
-项目已配置 iOS/macOS 专用设计令牌：
-
-```javascript
-// tailwind.config.js
-colors: {
-  ios: {
-    blue: '#007AFF',
-    gray: '#F2F2F7',
-    'gray-dark': '#1C1C1E',
-    green: '#34C759',
-    red: '#FF3B30',
-    // ...
-  },
-  macos: {
-    sidebar: 'rgba(246, 246, 246, 0.6)',
-    accent: '#007AFF',
-  }
-}
-```
+1. 统一使用 `frontend/src/styles/base/tokens.css` 中的 `--co-*` 设计令牌
+2. 唯一全局样式入口为 `frontend/src/styles/index.css`
+3. 复用 `frontend/src/components/common` 中的公共组件与 `.co-*` 样式类
+4. 桌面端弹窗统一遵循 `co-modal` 与 `MODAL_WIDTH` 规范
 
 ---
 
-## 🔧 常用命令
+## 常用命令
 
-### 后端
+### MySQL
 
 ```powershell
-# 查找占用端口的进程
-netstat -ano | findstr :4001
+# 启动 / 停止 MySQL 服务（Windows，服务名按本机实际为准）
+net start MySQL80
+net stop MySQL80
 
-# 终止进程
-taskkill /PID <进程ID> /F
-
-# 构建可执行文件
-go build -o server.exe cmd/server/main.go
+# 登录 MySQL 客户端
+mysql -u root -p
 ```
 
-### 前端
+### 后端 (`backend-go`)
 
 ```powershell
-# 开发模式
+# 启动开发服务
+go run ./cmd/server
+
+# 运行测试
+go test ./...
+
+# 构建可执行文件
+go build -o server.exe ./cmd/server
+
+# 查找占用 4002 端口的进程
+netstat -ano | findstr :4002
+
+# 终止指定进程
+taskkill /PID <进程ID> /F
+```
+
+### 前端 (`frontend`)
+
+```powershell
+# 开发模式（监听 0.0.0.0:5173）
 npm run dev
 
-# 生产构建
-npm run build
+# 类型检查
+npm run typecheck
 
-# 代码检查
+# 代码检查与样式护栏
 npm run lint
+npm run lint:styleguard
 
-# 预览生产构建
+# 单元测试
+npm run test
+
+# 完整本地 CI 校验
+npm run ci
+
+# 生产构建与预览
+npm run build
 npm run preview
 ```
 
 ---
 
-## 📊 项目进展
-
-- **当前阶段**：Phase 5 - 安全加固与稳定性优化
-- **最后更新**：2026-01-27
-
-### 已完成
-
-- ✅ Ant Design v6 全面迁移
-- ✅ Apple HIG 风格组件库
-- ✅ 移动端悬浮药丸导航
-- ✅ PWA 离线支持
-- ✅ 表格列宽调整与操作列冻结
-- ✅ WCAG 暗黑模式对比度修复
-- ✅ 服务端授权中间件加固
-
-详细进展请参阅 [`doc/project_progress.md`](./doc/project_progress.md)
-
----
-
-## 📝 许可证
+## 许可证
 
 本项目仅供学习与内部使用。
-
----
-
-_Created by Antigravity AI Assistant | Last Updated: 2026-01-27_
