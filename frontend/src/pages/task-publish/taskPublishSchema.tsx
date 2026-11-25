@@ -5,11 +5,28 @@ import type { Dayjs } from 'dayjs';
 import type { EntityId } from '../../types/service';
 import type {
   DormFiltersState,
+  TaskColumnConfig,
   TaskFilterConfigItem,
   TaskFilterOption,
   TaskFiltersState,
   TaskPublishFormState,
 } from './types';
+
+export const TASK_TABLE_KEY = 'taskList';
+
+export const TASK_COLUMN_WIDTHS: Record<string, number> = {
+  metadata: 260,
+  status: 110,
+  completion: 160,
+  executors: 220,
+};
+
+export const TASK_DEFAULT_COLUMNS: TaskColumnConfig[] = [
+  { fieldKey: 'metadata', label: '任务名称', visible: true, sortable: true, order: 0 },
+  { fieldKey: 'status', label: '状态', visible: true, sortable: true, order: 1 },
+  { fieldKey: 'completion', label: '检查进度', visible: true, sortable: true, order: 2 },
+  { fieldKey: 'executors', label: '检查人', visible: true, sortable: true, order: 3 },
+];
 
 export const INITIAL_FORM: TaskPublishFormState = {
   title: '',

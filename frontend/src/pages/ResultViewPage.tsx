@@ -1,7 +1,7 @@
 import type { Dispatch, Key, SetStateAction } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Col, FloatButton, Table } from 'antd';
+import { Col, FloatButton } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
   DashboardOutlined,
@@ -12,7 +12,9 @@ import {
 import dayjs from 'dayjs';
 
 import { useAppContext } from '../context/AppContext';
+import GlassTable from '../components/GlassTable';
 import PageLayout from '../components/PageLayout';
+import TableFieldSettings from '../components/TableFieldSettings';
 import PermissionDeniedState from '../components/common/PermissionDeniedState';
 import { resultViewPermissionPreset } from '../components/common/permissionDeniedPresets';
 import ResponsiveDataView from '../components/ResponsiveDataView';
@@ -24,12 +26,16 @@ import { useMobile } from '../hooks/useMobile';
 import { useResultTableState } from '../hooks/useResultTableState';
 import { useBulkSelection } from '../hooks/useBulkSelection';
 import { useTableFetch } from '../hooks/useTableFetch';
+import { useTableColumns } from '../hooks/useTableColumns';
+import { useResizableColumns } from '../hooks/useResizableColumns';
 import { gradeLabelFromRules } from '../utils/settings';
 import { AppealCreateModal, useAppealActions } from './appeal';
 import type { AppealCandidateInspection } from './appeal/modals/AppealCreateModal';
 import {
   createActionColumn,
   createBaseColumns,
+  RESULT_DEFAULT_COLUMNS,
+  RESULT_TABLE_KEY,
   ResultActionSheet,
   ResultDetailModal,
   ResultFilters,
@@ -42,6 +48,7 @@ import type { PaginationState } from '../types/table';
 import type {
   RatingForScore,
   ResultAppealRecord,
+  ResultColumnConfig,
   ResultDormBedRecord,
   ResultFiltersState,
   ResultInspectionRecord,
@@ -49,6 +56,18 @@ import type {
   ResultPageData,
   ResultTaskRecord,
 } from './result/types';
+
+type ResizableResultColumn = ColumnsType<ResultInspectionRecord>[number] & {
+  key?: string | number;
+  dataIndex?: string | number | readonly (string | number)[];
+  width?: number;
+  fixed?: boolean | 'left' | 'right';
+  onHeaderCell?: () => {
+    width: number;
+    onResize: (...args: unknown[]) => void;
+  };
+  [key: string]: unknown;
+};
 
 interface ResultStatsProps {
   inspections: ResultInspectionRecord[];
@@ -67,6 +86,7 @@ interface ResultListSectionProps {
   ratingForScore: RatingForScore;
   canAdjust: boolean;
   tableColumns: ColumnsType<ResultInspectionRecord>;
+  onSortChange: (field: string, order: 'asc' | 'desc' | null) => void;
 }
 
 interface ResultViewContentProps {
@@ -86,6 +106,8 @@ interface ResultViewContentProps {
   isDirty: boolean;
   isMobile: boolean;
   levelOptions: string[];
+  onOpenSettings: () => void;
+  onSortChange: (field: string, order: 'asc' | 'desc' | null) => void;
   pageTasks?: ResultTaskRecord[];
   pagination: PaginationState;
   ratingForScore: RatingForScore;
@@ -247,6 +269,7 @@ function ResultListSection({
   ratingForScore,
   canAdjust,
   tableColumns,
+  onSortChange,
 }: ResultListSectionProps) {
   return (
     <div className="space-y-4">
@@ -293,9 +316,11 @@ function ResultListSection({
             )}
           />
         ) : (
-          <Table<ResultInspectionRecord>
+          <GlassTable<ResultInspectionRecord>
             dataSource={filteredInspections}
             rowKey="id"
+            useSkeleton={false}
+            resizable={true}
             rowSelection={
               canAdjust
                 ? {
@@ -308,12 +333,25 @@ function ResultListSection({
             pagination={{
               ...pagination,
               total: totalCount,
-              onChange: (page, size) =>
-                setPagination((prev) => ({
-                  ...prev,
-                  current: page,
-                  pageSize: size || prev.pageSize,
-                })),
+            }}
+            onChange={(nextPagination, _filters, sorter) => {
+              setPagination((prev) => ({
+                ...prev,
+                current: nextPagination.current || prev.current,
+                pageSize: nextPagination.pageSize || prev.pageSize,
+              }));
+              const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+              const field =
+                activeSorter?.columnKey !== undefined && activeSorter?.columnKey !== null
+                  ? String(activeSorter.columnKey)
+                  : activeSorter?.field !== undefined && activeSorter?.field !== null
+                    ? String(activeSorter.field)
+                    : '';
+              if (!activeSorter?.order || !field) {
+                onSortChange('', null);
+              } else {
+                onSortChange(field, activeSorter.order === 'ascend' ? 'asc' : 'desc');
+              }
             }}
             className="dorm-table"
             scroll={{ x: 'max-content' }}
@@ -360,6 +398,8 @@ function ResultViewContent({
   isDirty,
   isMobile,
   levelOptions,
+  onOpenSettings,
+  onSortChange,
   pageTasks,
   pagination,
   ratingForScore,
@@ -419,6 +459,7 @@ function ResultViewContent({
             handleDeleteResults={(ids: EntityId[]) => {
               void handleDeleteResults(ids);
             }}
+            onOpenSettings={onOpenSettings}
           />
         }
       >
@@ -433,6 +474,7 @@ function ResultViewContent({
           ratingForScore={ratingForScore}
           canAdjust={canAdjust}
           tableColumns={tableColumns}
+          onSortChange={onSortChange}
         />
       </PageLayout>
     </div>
@@ -509,6 +551,8 @@ interface ResultInspectionDataParams {
   pageData: ResultPageData;
   ratingForScore: RatingForScore;
   settings: ReturnType<typeof useAppContext>['settings'];
+  tableSortField: string;
+  tableSortOrder: 'asc' | 'desc';
 }
 
 function useResultInspectionData({
@@ -517,6 +561,8 @@ function useResultInspectionData({
   pageData,
   ratingForScore,
   settings,
+  tableSortField,
+  tableSortOrder,
 }: ResultInspectionDataParams) {
   const allInspections = toArray<ResultInspectionRecord>(pageData.inspections);
   const inspections = useMemo(
@@ -722,6 +768,55 @@ function useResultInspectionData({
         return true;
       })
       .sort((left, right) => {
+        if (tableSortField) {
+          const direction = tableSortOrder === 'asc' ? 1 : -1;
+          if (tableSortField === 'taskTitle') {
+            return (
+              String(left.task?.title || '').localeCompare(
+                String(right.task?.title || ''),
+                'zh-CN',
+              ) * direction
+            );
+          }
+          if (tableSortField === 'dorm') {
+            const leftLabel = `${left.dorm?.building || ''}-${left.dorm?.roomNo || ''}`;
+            const rightLabel = `${right.dorm?.building || ''}-${right.dorm?.roomNo || ''}`;
+            return leftLabel.localeCompare(rightLabel, 'zh-CN', { numeric: true }) * direction;
+          }
+          if (tableSortField === 'college') {
+            const leftCol = resolveDormColleges(left).join(',');
+            const rightCol = resolveDormColleges(right).join(',');
+            return leftCol.localeCompare(rightCol, 'zh-CN') * direction;
+          }
+          if (tableSortField === 'gradeGroup') {
+            const leftGrade = resolveDormGrades(left).join(',');
+            const rightGrade = resolveDormGrades(right).join(',');
+            return leftGrade.localeCompare(rightGrade, 'zh-CN', { numeric: true }) * direction;
+          }
+          if (tableSortField === 'score') {
+            const scoreLeft = left.totalScore ?? -Infinity;
+            const scoreRight = right.totalScore ?? -Infinity;
+            return (scoreLeft - scoreRight) * direction;
+          }
+          if (tableSortField === 'grade') {
+            const leftLabel = ratingForScore(left.totalScore);
+            const rightLabel = ratingForScore(right.totalScore);
+            return leftLabel.localeCompare(rightLabel, 'zh-CN') * direction;
+          }
+          if (tableSortField === 'time') {
+            const timeLeft = left.createdAt ? new Date(left.createdAt).getTime() : 0;
+            const timeRight = right.createdAt ? new Date(right.createdAt).getTime() : 0;
+            return (timeLeft - timeRight) * direction;
+          }
+          if (tableSortField === 'reviewer') {
+            const leftName =
+              left.reviewedBy?.fullName || left.createdBy?.fullName || left.recordedByName || '';
+            const rightName =
+              right.reviewedBy?.fullName || right.createdBy?.fullName || right.recordedByName || '';
+            return leftName.localeCompare(rightName, 'zh-CN') * direction;
+          }
+        }
+
         if (
           appliedFilters.sort === 'time_desc' ||
           appliedFilters.sort === 'time_asc'
@@ -745,6 +840,8 @@ function useResultInspectionData({
     ratingForScore,
     resolveDormColleges,
     resolveDormGrades,
+    tableSortField,
+    tableSortOrder,
   ]);
 
   return {
@@ -801,6 +898,48 @@ export default function ResultViewPage() {
   });
 
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [tableSortField, setTableSortField] = useState<string>('');
+  const [tableSortOrder, setTableSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const {
+    columns: resultColumns,
+    visibleColumns: visibleResultColumns,
+    save: saveResultColumns,
+    resetToDefault: resetResultColumns,
+    saving: savingResultColumns,
+  } = useTableColumns<ResultColumnConfig>({
+    tableKey: RESULT_TABLE_KEY,
+    defaultColumns: RESULT_DEFAULT_COLUMNS,
+    fetchConfig: pageActions.fetchTableConfig
+      ? async (tableKey) =>
+          (await pageActions.fetchTableConfig?.(tableKey)) as
+            | { config?: ResultColumnConfig[] }
+            | null
+            | undefined
+      : undefined,
+    saveConfig: pageActions.saveTableConfig
+      ? async (tableKey, columns) =>
+          pageActions.saveTableConfig?.(tableKey, columns)
+      : undefined,
+  });
+
+  const handleSortChange = useCallback(
+    (field: string, order: 'asc' | 'desc' | null) => {
+      if (!field || !order) {
+        setTableSortField('');
+        setTableSortOrder('desc');
+        return;
+      }
+      setTableSortField(field);
+      setTableSortOrder(order);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    setTableSortField('');
+  }, [appliedFilters.sort]);
 
   const canView = hasPermission('RESULT_VIEW');
   const canAdjust = hasPermission('RESULT_RECORD');
@@ -888,6 +1027,8 @@ export default function ResultViewPage() {
     pageData,
     ratingForScore,
     settings,
+    tableSortField,
+    tableSortOrder,
   });
 
   const appealByInspectionId = useMemo(() => {
@@ -955,16 +1096,37 @@ export default function ResultViewPage() {
 
   const totalCount = filteredInspections.length;
 
+  const activeSortField =
+    tableSortField ||
+    (appliedFilters.sort === 'score_asc' || appliedFilters.sort === 'score_desc'
+      ? 'score'
+      : 'time');
+  const activeSortOrder: 'asc' | 'desc' = tableSortField
+    ? tableSortOrder
+    : appliedFilters.sort === 'score_asc' || appliedFilters.sort === 'time_asc'
+      ? 'asc'
+      : 'desc';
+
   const baseColumns = useMemo(
     () =>
       createBaseColumns({
+        visibleColumns: visibleResultColumns,
+        sortField: activeSortField,
+        sortOrder: activeSortOrder,
         resolveDormColleges,
         resolveDormGrades,
         ratingForScore,
       }),
-    [ratingForScore, resolveDormColleges, resolveDormGrades],
+    [
+      activeSortField,
+      activeSortOrder,
+      ratingForScore,
+      resolveDormColleges,
+      resolveDormGrades,
+      visibleResultColumns,
+    ],
   );
-  const tableColumns = useMemo(
+  const allTableColumns = useMemo(
     () => [
       ...baseColumns,
       createActionColumn({
@@ -989,6 +1151,39 @@ export default function ResultViewPage() {
       handleOpenDetail,
       handleViewAppeal,
     ],
+  );
+  const resizableColumnInput = useMemo<ResizableResultColumn[]>(
+    () =>
+      allTableColumns.map((column) => ({
+        ...column,
+        key:
+          column.key !== undefined && column.key !== null
+            ? String(column.key)
+            : undefined,
+        dataIndex:
+          'dataIndex' in column &&
+          (typeof column.dataIndex === 'string' ||
+            typeof column.dataIndex === 'number' ||
+            Array.isArray(column.dataIndex))
+            ? column.dataIndex
+            : undefined,
+        width: typeof column.width === 'number' ? column.width : undefined,
+        fixed:
+          column.fixed === true ||
+          column.fixed === 'left' ||
+          column.fixed === 'right'
+            ? column.fixed
+            : undefined,
+        onHeaderCell: undefined,
+      })),
+    [allTableColumns],
+  );
+  const { columns: resizableTableColumns } = useResizableColumns(
+    resizableColumnInput,
+    {
+      minWidth: 70,
+      maxWidth: 480,
+    },
   );
 
   if (!permissionsReady) {
@@ -1018,6 +1213,8 @@ export default function ResultViewPage() {
         isDirty={isDirty}
         isMobile={isMobile}
         levelOptions={levelOptions}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onSortChange={handleSortChange}
         pageTasks={pageData.tasks}
         pagination={pagination}
         ratingForScore={ratingForScore}
@@ -1025,8 +1222,27 @@ export default function ResultViewPage() {
         setDraftFilters={setDraftFilters}
         setPagination={setPagination}
         setSelectedResultIds={setSelectedResultIds}
-        tableColumns={tableColumns}
+        tableColumns={resizableTableColumns as ColumnsType<ResultInspectionRecord>}
         totalCount={totalCount}
+      />
+
+      <TableFieldSettings
+        open={settingsOpen}
+        columns={resultColumns}
+        onClose={() => setSettingsOpen(false)}
+        onSave={async (columns) => {
+          await saveResultColumns(
+            columns.map((column) => ({
+              ...column,
+              fieldKey: column.fieldKey,
+              label: column.label || column.fieldKey,
+            })) as ResultColumnConfig[],
+          );
+          setSettingsOpen(false);
+        }}
+        onReset={resetResultColumns}
+        saving={savingResultColumns}
+        title="查寝结果字段设置"
       />
 
       <ResultViewOverlays

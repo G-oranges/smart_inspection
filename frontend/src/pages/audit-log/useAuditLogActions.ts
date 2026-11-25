@@ -8,6 +8,7 @@ import type {
   AuditLogListResponse,
   AuditLogOptions,
   AuditLogRecord,
+  AuditLogSorterInput,
   AuditLogStatsState,
   UseAuditLogActionsProps,
 } from './types';
@@ -16,10 +17,14 @@ function buildAuditLogQuery({
   filters,
   page,
   pageSize,
+  sortField,
+  sortOrder,
 }: {
   filters: AuditLogFiltersState;
   page?: number;
   pageSize?: number;
+  sortField?: string;
+  sortOrder?: 'asc' | 'desc';
 }): string {
   const searchParams = new URLSearchParams();
   if (page !== undefined) {
@@ -27,6 +32,12 @@ function buildAuditLogQuery({
   }
   if (pageSize !== undefined) {
     searchParams.set('pageSize', String(pageSize));
+  }
+  if (sortField) {
+    searchParams.set('sortField', sortField);
+  }
+  if (sortOrder) {
+    searchParams.set('sortOrder', sortOrder);
   }
 
   filters.action.forEach((value) => searchParams.append('action', value));
@@ -47,6 +58,10 @@ export function useAuditLogActions({
   filters,
   pagination,
   setPagination,
+  sortField,
+  sortOrder,
+  setSortField,
+  setSortOrder,
 }: UseAuditLogActionsProps): AuditLogActionsResult {
   const [logs, setLogs] = useState<AuditLogRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -96,14 +111,25 @@ export function useAuditLogActions({
   }, [filters]);
 
   const loadLogs = useCallback(
-    async (page = 1, pageSize = 20): Promise<void> => {
+    async (
+      page = 1,
+      pageSize = 20,
+      nextSortField?: string,
+      nextSortOrder?: 'asc' | 'desc',
+    ): Promise<void> => {
       if (!tokenManager.hasTokens()) {
         return;
       }
       setLoading(true);
       setError('');
       try {
-        const queryString = buildAuditLogQuery({ filters, page, pageSize });
+        const queryString = buildAuditLogQuery({
+          filters,
+          page,
+          pageSize,
+          sortField: nextSortField ?? sortField,
+          sortOrder: nextSortOrder ?? sortOrder,
+        });
         const data = await request<AuditLogListResponse>(
           `/api/audit-logs?${queryString}`,
         );
@@ -125,18 +151,61 @@ export function useAuditLogActions({
         setLoading(false);
       }
     },
-    [filters, setPagination],
+    [filters, setPagination, sortField, sortOrder],
   );
 
   useEffect(() => {
     void loadOptions();
   }, [loadOptions]);
 
-  const handleTableChange = (paginationConfig: {
-    current?: number;
-    pageSize?: number;
-  }): void => {
-    void loadLogs(paginationConfig.current, paginationConfig.pageSize);
+  const handleTableChange = (
+    paginationConfig: {
+      current?: number;
+      pageSize?: number;
+    },
+    _filters?: unknown,
+    sorter?: AuditLogSorterInput | AuditLogSorterInput[],
+  ): void => {
+    let nextField = sortField;
+    let nextOrder = sortOrder;
+    let sortChanged = false;
+
+    if (sorter !== undefined) {
+      const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+      const rawField =
+        activeSorter?.columnKey !== undefined && activeSorter?.columnKey !== null
+          ? String(activeSorter.columnKey)
+          : activeSorter?.field !== undefined && activeSorter?.field !== null
+            ? String(activeSorter.field)
+            : '';
+
+      if (activeSorter?.order && rawField) {
+        const normalizedOrder: 'asc' | 'desc' =
+          activeSorter.order === 'ascend' ? 'asc' : 'desc';
+        if (rawField !== sortField || normalizedOrder !== sortOrder) {
+          nextField = rawField;
+          nextOrder = normalizedOrder;
+          sortChanged = true;
+        }
+      } else if (sortField !== 'createdAt' || sortOrder !== 'desc') {
+        nextField = 'createdAt';
+        nextOrder = 'desc';
+        sortChanged = true;
+      }
+    }
+
+    if (sortChanged) {
+      setSortField(nextField);
+      setSortOrder(nextOrder);
+      return;
+    }
+
+    void loadLogs(
+      paginationConfig.current,
+      paginationConfig.pageSize,
+      nextField,
+      nextOrder,
+    );
   };
 
   const handleSearch = (): void => {

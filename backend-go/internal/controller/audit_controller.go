@@ -10,8 +10,23 @@ import (
 	"github.com/my-project/backend-go/internal/model"
 	"github.com/my-project/backend-go/internal/repository"
 	"github.com/my-project/backend-go/internal/service"
+	"github.com/my-project/backend-go/pkg/utils"
 	"gorm.io/gorm"
 )
+
+var auditLogSortConfig = utils.SortConfig{
+	ValidFields: map[string]string{
+		"createdAt":    "createdAt",
+		"action":       "action",
+		"module":       "module",
+		"description":  "description",
+		"targetName":   "targetName",
+		"operatorName": "operatorName",
+		"ipAddress":    "ipAddress",
+	},
+	DefaultField: "createdAt",
+	DefaultOrder: "DESC",
+}
 
 type AuditController struct {
 	db *gorm.DB
@@ -55,7 +70,10 @@ func (ctrl *AuditController) GetLogs(c *gin.Context) {
 	}
 
 	// 排序
-	db = db.Order("createdAt DESC")
+	sortField := c.DefaultQuery("sortField", "createdAt")
+	sortOrder := c.DefaultQuery("sortOrder", "desc")
+	orderClause := utils.ValidateSortParams(sortField, sortOrder, auditLogSortConfig)
+	db = db.Order(orderClause)
 
 	// 计算总数（应用筛选后）
 	db.Count(&total)

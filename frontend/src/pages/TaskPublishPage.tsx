@@ -6,13 +6,17 @@ import dayjs from 'dayjs';
 import PageLayout from '../components/PageLayout';
 import PermissionDeniedState from '../components/common/PermissionDeniedState';
 import ResponsiveDataView from '../components/ResponsiveDataView';
+import TableFieldSettings from '../components/TableFieldSettings';
 import { taskPublishPermissionPreset } from '../components/common/permissionDeniedPresets';
 import CollapsibleStatsBoard from '../components/stats/CollapsibleStatsBoard';
 import { useAppContext } from '../context/AppContext';
 import { useMobile } from '../hooks/useMobile';
+import { useTableColumns } from '../hooks/useTableColumns';
 import MobileAdvancedFilter from '../components/common/MobileAdvancedFilter';
 import {
   EXECUTOR_PAGE_SIZE,
+  TASK_DEFAULT_COLUMNS,
+  TASK_TABLE_KEY,
   createEmptyDormFilters,
   INITIAL_FILTERS,
   INITIAL_FORM,
@@ -28,6 +32,7 @@ import {
   filterTasks,
   getTaskFilterCount,
   getTaskStats,
+  getTaskStatusKey,
   mapTaskPublishStatsToSegments,
   useTaskPublishActions,
 } from './task-publish';
@@ -38,6 +43,7 @@ import type {
   ExecutorListResponse,
 } from '../types/service';
 import type {
+  TaskColumnConfig,
   TaskExecutor,
   TaskFilterOption,
   TaskPublishActions,
@@ -82,6 +88,14 @@ function createTaskPublishActions(source: AppActions): TaskPublishActions {
     deleteTask:
       pickTaskAction<NonNullable<TaskPublishActions['deleteTask']>>(source, 'deleteTask') ||
       (async () => undefined),
+    fetchTableConfig: pickTaskAction<NonNullable<TaskPublishActions['fetchTableConfig']>>(
+      source,
+      'fetchTableConfig',
+    ),
+    saveTableConfig: pickTaskAction<NonNullable<TaskPublishActions['saveTableConfig']>>(
+      source,
+      'saveTableConfig',
+    ),
   };
 }
 
@@ -176,6 +190,11 @@ interface TaskListSectionProps {
   handleTaskReset: () => void;
   isTaskDirty: boolean;
   handleOpenCreateModal: () => void;
+  onOpenSettings: () => void;
+  visibleColumns: TaskColumnConfig[];
+  sortField: string;
+  sortOrder: 'asc' | 'desc';
+  onSortChange: (field: string, order: 'asc' | 'desc' | null) => void;
   setTaskFilterOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -191,14 +210,19 @@ function TaskListSection({
   handleTaskSearch,
   isMobile,
   isTaskDirty,
+  onOpenSettings,
+  onSortChange,
   selectedTaskIds,
   setDraftTaskSearch,
   setSelectedTaskIds,
   setTaskFilterOpen,
+  sortField,
+  sortOrder,
   taskFilterConfig,
   taskFilterCount,
   taskStats,
   userLookup,
+  visibleColumns,
   draftTaskSearch,
 }: TaskListSectionProps) {
   return (
@@ -222,6 +246,7 @@ function TaskListSection({
           taskFilterCount={taskFilterCount}
           onOpenFilter={() => setTaskFilterOpen(true)}
           onCreateTask={handleOpenCreateModal}
+          onOpenSettings={onOpenSettings}
           taskFilterConfig={taskFilterConfig}
         />
       }
@@ -256,6 +281,10 @@ function TaskListSection({
             canDeleteTasks={canDeleteTasks}
             filteredTasks={filteredTasks}
             userLookup={userLookup}
+            visibleColumns={visibleColumns}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSortChange={onSortChange}
             handleOpenEditModal={handleOpenEditModal}
             handleDeleteTask={handleDeleteTask}
           />
@@ -421,6 +450,39 @@ export default function TaskPublishPage() {
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [taskFilterOpen, setTaskFilterOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sortField, setSortField] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const {
+    columns: taskColumns,
+    visibleColumns: visibleTaskColumns,
+    save: saveTaskColumns,
+    resetToDefault: resetTaskColumns,
+    saving: savingTaskColumns,
+  } = useTableColumns<TaskColumnConfig>({
+    tableKey: TASK_TABLE_KEY,
+    defaultColumns: TASK_DEFAULT_COLUMNS,
+    fetchConfig: taskActions.fetchTableConfig
+      ? async (tableKey) => taskActions.fetchTableConfig?.(tableKey)
+      : undefined,
+    saveConfig: taskActions.saveTableConfig
+      ? async (tableKey, columns) => taskActions.saveTableConfig?.(tableKey, columns)
+      : undefined,
+  });
+
+  const handleSortChange = useCallback(
+    (field: string, order: 'asc' | 'desc' | null) => {
+      if (!field || !order) {
+        setSortField('');
+        setSortOrder('desc');
+        return;
+      }
+      setSortField(field);
+      setSortOrder(order);
+    },
+    [],
+  );
 
   // 发布、编辑、删除任务分别对应 TASK_PUBLISH / TASK_EDIT / TASK_DELETE，拥有任一项即可进入本页
   const canCreateTasks = hasPermission('TASK_PUBLISH');
@@ -503,16 +565,55 @@ export default function TaskPublishPage() {
     () => createTaskFilterConfig({ draftTaskFilters, setDraftTaskFilters, executorOptions }),
     [draftTaskFilters, executorOptions],
   );
-  const filteredTasks = useMemo(
-    () =>
-      filterTasks({
-        tasks: sortedTasks,
-        searchTerm: appliedTaskSearch,
-        filters: appliedTaskFilters,
-        userLookup,
-      }),
-    [sortedTasks, appliedTaskSearch, appliedTaskFilters, userLookup],
-  );
+  const filteredTasks = useMemo(() => {
+    const list = filterTasks({
+      tasks: sortedTasks,
+      searchTerm: appliedTaskSearch,
+      filters: appliedTaskFilters,
+      userLookup,
+    });
+    if (!sortField) {
+      return list;
+    }
+    const statusWeight: Record<string, number> = {
+      upcoming: 1,
+      inProgress: 2,
+      ended: 3,
+    };
+    const direction = sortOrder === 'asc' ? 1 : -1;
+    return [...list].sort((left, right) => {
+      if (sortField === 'metadata') {
+        return (
+          String(left.title || '').localeCompare(String(right.title || ''), 'zh-CN') *
+          direction
+        );
+      }
+      if (sortField === 'status') {
+        const leftWeight = statusWeight[getTaskStatusKey(left)] || 0;
+        const rightWeight = statusWeight[getTaskStatusKey(right)] || 0;
+        return (leftWeight - rightWeight) * direction;
+      }
+      if (sortField === 'completion') {
+        const leftTotal = left.dormIds?.length || 0;
+        const rightTotal = right.dormIds?.length || 0;
+        const leftRatio = leftTotal
+          ? Number(left.inspectionCount || left.inspectedCount || 0) / leftTotal
+          : 0;
+        const rightRatio = rightTotal
+          ? Number(right.inspectionCount || right.inspectedCount || 0) / rightTotal
+          : 0;
+        return (leftRatio - rightRatio) * direction;
+      }
+      if (sortField === 'executors') {
+        const leftCount =
+          left.executors?.length || left.executorIds?.length || 0;
+        const rightCount =
+          right.executors?.length || right.executorIds?.length || 0;
+        return (leftCount - rightCount) * direction;
+      }
+      return 0;
+    });
+  }, [sortedTasks, appliedTaskSearch, appliedTaskFilters, userLookup, sortField, sortOrder]);
   const taskFilterCount = useMemo(() => getTaskFilterCount(draftTaskFilters), [draftTaskFilters]);
   const mobileTaskFilterConfig = useMemo(
     () => createMobileTaskFilterConfig(taskFilterConfig),
@@ -617,14 +718,38 @@ export default function TaskPublishPage() {
         handleTaskSearch={handleTaskSearch}
         isMobile={isMobile}
         isTaskDirty={isTaskDirty}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onSortChange={handleSortChange}
         selectedTaskIds={selectedTaskIds}
         setDraftTaskSearch={setDraftTaskSearch}
         setSelectedTaskIds={setSelectedTaskIds}
         setTaskFilterOpen={setTaskFilterOpen}
+        sortField={sortField}
+        sortOrder={sortOrder}
         taskFilterConfig={taskFilterConfig}
         taskFilterCount={taskFilterCount}
         taskStats={taskStats}
         userLookup={userLookup}
+        visibleColumns={visibleTaskColumns}
+      />
+
+      <TableFieldSettings
+        open={settingsOpen}
+        columns={taskColumns}
+        onClose={() => setSettingsOpen(false)}
+        onSave={async (columns) => {
+          await saveTaskColumns(
+            columns.map((column) => ({
+              ...column,
+              fieldKey: column.fieldKey,
+              label: column.label || column.fieldKey,
+            })) as TaskColumnConfig[],
+          );
+          setSettingsOpen(false);
+        }}
+        onReset={resetTaskColumns}
+        saving={savingTaskColumns}
+        title="任务列表字段设置"
       />
 
       <MobileAdvancedFilter

@@ -5,6 +5,7 @@ import {
   SearchOutlined,
   ReloadOutlined,
   FilterOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import FilterDropdownPanel from "../../components/common/FilterDropdownPanel";
 
@@ -24,6 +25,7 @@ interface AuditLogFiltersProps {
   handleReset: () => void;
   filterDrawerOpen: boolean;
   setFilterDrawerOpen: Dispatch<SetStateAction<boolean>>;
+  onOpenSettings?: () => void;
 }
 
 function normalizeDateRange(
@@ -45,6 +47,7 @@ export const AuditLogFilters = ({
   handleReset,
   filterDrawerOpen,
   setFilterDrawerOpen,
+  onOpenSettings,
 }: AuditLogFiltersProps) => {
   if (isMobile) {
     return (
@@ -223,6 +226,17 @@ export const AuditLogFilters = ({
             重置
           </Button>
         </div>
+        {onOpenSettings ? (
+          <div className="dorm-toolbar-row dorm-toolbar-row-actions">
+            <Button
+              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
+              icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
+              onClick={onOpenSettings}
+            >
+              字段设置
+            </Button>
+          </div>
+        ) : null}
       </div>
       <div className="dorm-toolbar-row dorm-toolbar-row-filters">
         <div className="flex-1">

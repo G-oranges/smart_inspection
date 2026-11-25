@@ -20,6 +20,8 @@ interface UserTableParamsInput extends UserFilters {
   appliedSearchTerm?: string;
   page: number;
   pageSize: number;
+  sortField?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 /**
@@ -51,10 +53,14 @@ export function buildUserTableParams({
   appliedSearchTerm,
   page,
   pageSize,
+  sortField,
+  sortOrder,
 }: UserTableParamsInput): ServiceQueryParams {
   const params: ServiceQueryParams = { department, userType, isDisabled };
   if (appliedSearchTerm) params.search = appliedSearchTerm;
   params.page = page;
   params.pageSize = pageSize;
+  if (sortField) params.sortField = sortField;
+  if (sortOrder) params.sortOrder = sortOrder;
   return params;
 }

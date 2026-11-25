@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 import { Button, Switch, Space, Tooltip } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { DeleteOutlined, EditOutlined, KeyOutlined } from '@ant-design/icons';
-import { USER_RENDERERS } from './accountPermissionSchema';
+import { USER_COLUMN_WIDTHS, USER_RENDERERS } from './accountPermissionSchema';
 
 import type { AccountUser } from './types';
 import type { UserColumnConfig } from './accountPermissionSchema';
@@ -18,6 +18,8 @@ interface UserColumnHandlers {
   onGenerateTempPassword: (user: AccountUser) => void | Promise<void>;
   onDelete: (user: AccountUser) => void | Promise<void>;
   batchLoading?: boolean;
+  sortField?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 /**
@@ -77,6 +79,8 @@ export function buildAntTableColumns(
     onGenerateTempPassword,
     onDelete,
     batchLoading,
+    sortField,
+    sortOrder,
   } = handlers;
 
   const cols: TableColumnsType<AccountUser> = visibleUserColumns.map((column) => {
@@ -84,6 +88,15 @@ export function buildAntTableColumns(
       title: column.label,
       dataIndex: column.fieldKey,
       key: column.fieldKey as React.Key,
+      width: column.width ?? USER_COLUMN_WIDTHS[column.fieldKey] ?? 130,
+      sorter: Boolean(column.sortable),
+      sortOrder:
+        sortField === column.fieldKey
+          ? sortOrder === 'asc'
+            ? 'ascend'
+            : 'descend'
+          : null,
+      ellipsis: column.fieldKey !== 'avatarUrl' && column.fieldKey !== 'isDisabled',
     };
 
     // 特殊渲染处理
@@ -123,6 +136,7 @@ export function buildAntTableColumns(
     title: "操作",
     key: "action",
     width: 108,
+    fixed: "right",
     className: "table-action-column",
     render: (_, user) => (
       <Space size={8} className="table-action-buttons dorm-table-action-group">

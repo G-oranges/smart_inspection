@@ -131,6 +131,12 @@ func (ctrl *UserController) GetUsers(c *gin.Context) {
 			filters["isDisabled"] = isDisabledList
 		}
 	}
+	if sortField := c.Query("sortField"); sortField != "" {
+		filters["sortField"] = sortField
+	}
+	if sortOrder := c.Query("sortOrder"); sortOrder != "" {
+		filters["sortOrder"] = sortOrder
+	}
 
 	users, total, err := ctrl.service.GetUsers(page, pageSize, filters)
 	if err != nil {

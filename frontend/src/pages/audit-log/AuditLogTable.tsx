@@ -1,12 +1,21 @@
+import { useMemo } from "react";
 import { Tag, Tooltip, Typography, Divider } from "antd";
 import type { ColumnsType } from 'antd/es/table';
 import { UserOutlined, SwapOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import GlassTable from "../../components/GlassTable";
-import { formatDateTime, formatFieldValue, FIELD_LABELS } from "./auditLogSchema";
+import { useResizableColumns } from "../../hooks/useResizableColumns";
+import {
+  AUDIT_LOG_COLUMN_WIDTHS,
+  formatDateTime,
+  formatFieldValue,
+  FIELD_LABELS,
+} from "./auditLogSchema";
 
 import type {
+  AuditLogColumnConfig,
   AuditLogOptions,
   AuditLogRecord,
+  AuditLogSorterInput,
   AuditLogTablePagination,
 } from './types';
 
@@ -16,10 +25,17 @@ interface AuditLogTableProps {
   logs: AuditLogRecord[];
   loading: boolean;
   pagination: AuditLogTablePagination;
-  handleTableChange: (paginationConfig: {
-    current?: number;
-    pageSize?: number;
-  }) => void;
+  visibleColumns: AuditLogColumnConfig[];
+  sortField: string;
+  sortOrder: 'asc' | 'desc';
+  handleTableChange: (
+    paginationConfig: {
+      current?: number;
+      pageSize?: number;
+    },
+    _filters?: unknown,
+    sorter?: AuditLogSorterInput | AuditLogSorterInput[],
+  ) => void;
   options: AuditLogOptions;
 }
 
@@ -44,6 +60,9 @@ export const AuditLogTable = ({
   logs,
   loading,
   pagination,
+  visibleColumns,
+  sortField,
+  sortOrder,
   handleTableChange,
   options,
 }: AuditLogTableProps) => {
@@ -142,101 +161,135 @@ export const AuditLogTable = ({
     );
   };
 
-  const columns: ColumnsType<AuditLogRecord> = [
-    {
-      title: "时间",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      width: 180,
-      render: (value: AuditLogRecord['createdAt']) => (
-        <span className="text-gray-500 dark:text-gray-400 font-mono text-xs">
-          {formatDateTime(value)}
-        </span>
-      ),
-    },
-    {
-      title: "操作类型",
-      dataIndex: "action",
-      key: "action",
-      width: 110,
-      render: (action: AuditLogRecord['action']) => {
-        const actionValue = action || '';
-        const actionOption = options.actions.find((item) => item.value === actionValue);
-        const label = actionOption?.label || actionValue || '-';
-        let colorClass = "bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
-        
-        // 根据操作类型分配颜色类 (Tailwind)
-        if (actionValue === "CREATE") colorClass = "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400";
-        if (actionValue === "UPDATE") colorClass = "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400";
-        if (actionValue === "DELETE") colorClass = "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400";
-        if (actionValue.includes("LOGIN")) colorClass = "bg-cyan-50 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400";
-        if (actionValue.includes("FAILED")) colorClass = "bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400";
-        
-        return (
-          <Tag className={`rounded-full border-none px-3 m-0 ${colorClass}`}>
-            {label}
-          </Tag>
-        );
+  const columnMap = useMemo<Record<string, ColumnsType<AuditLogRecord>[number]>>(
+    () => ({
+      createdAt: {
+        title: "时间",
+        dataIndex: "createdAt",
+        key: "createdAt",
+        width: AUDIT_LOG_COLUMN_WIDTHS.createdAt,
+        render: (value: AuditLogRecord['createdAt']) => (
+          <span className="text-gray-500 dark:text-gray-400 font-mono text-xs">
+            {formatDateTime(value)}
+          </span>
+        ),
       },
-    },
-    {
-      title: "模块",
-      dataIndex: "module",
-      key: "module",
-      width: 100,
-      render: (module: AuditLogRecord['module']) => {
-        const moduleOption = options.modules.find((item) => item.value === module);
-        const label = moduleOption?.label || module || '-';
-        return (
-          <Tag className="rounded-full border-none px-3 m-0 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
-            {label}
-          </Tag>
-        );
+      action: {
+        title: "操作类型",
+        dataIndex: "action",
+        key: "action",
+        width: AUDIT_LOG_COLUMN_WIDTHS.action,
+        render: (action: AuditLogRecord['action']) => {
+          const actionValue = action || '';
+          const actionOption = options.actions.find((item) => item.value === actionValue);
+          const label = actionOption?.label || actionValue || '-';
+          let colorClass = "bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+
+          if (actionValue === "CREATE") colorClass = "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400";
+          if (actionValue === "UPDATE") colorClass = "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400";
+          if (actionValue === "DELETE") colorClass = "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400";
+          if (actionValue.includes("LOGIN")) colorClass = "bg-cyan-50 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400";
+          if (actionValue.includes("FAILED")) colorClass = "bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400";
+
+          return (
+            <Tag className={`rounded-full border-none px-3 m-0 ${colorClass}`}>
+              {label}
+            </Tag>
+          );
+        },
       },
-    },
-    {
-      title: "操作描述",
-      dataIndex: "description",
-      key: "description",
-      ellipsis: true,
-      render: (text: AuditLogRecord['description'], record) => (
-        <Tooltip title={text || `${record.action} ${record.targetName || ""}`}>
-          <span>{text || `${record.action} ${record.targetName || ""}`}</span>
-        </Tooltip>
-      ),
-    },
-    {
-      title: "目标",
-      dataIndex: "targetName",
-      key: "targetName",
-      width: 120,
-      ellipsis: true,
-      render: (text: AuditLogRecord['targetName']) => text || "-",
-    },
-    {
-      title: "操作者",
-      dataIndex: "operatorName",
-      key: "operatorName",
-      width: 120,
-      render: (text: AuditLogRecord['operatorName'], record) => (
-        <span className="font-medium text-gray-700 dark:text-gray-300">
-          <UserOutlined style={{ marginRight: 4, opacity: 0.6 }} />
-          {text || record.operator?.fullName || record.operator?.username || "系统"}
-        </span>
-      ),
-    },
-    {
-      title: "IP 地址",
-      dataIndex: "ipAddress",
-      key: "ipAddress",
-      width: 130,
-      render: (text: AuditLogRecord['ipAddress']) => text || "-",
-    },
-  ];
+      module: {
+        title: "模块",
+        dataIndex: "module",
+        key: "module",
+        width: AUDIT_LOG_COLUMN_WIDTHS.module,
+        render: (module: AuditLogRecord['module']) => {
+          const moduleOption = options.modules.find((item) => item.value === module);
+          const label = moduleOption?.label || module || '-';
+          return (
+            <Tag className="rounded-full border-none px-3 m-0 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+              {label}
+            </Tag>
+          );
+        },
+      },
+      description: {
+        title: "操作描述",
+        dataIndex: "description",
+        key: "description",
+        width: AUDIT_LOG_COLUMN_WIDTHS.description,
+        ellipsis: true,
+        render: (text: AuditLogRecord['description'], record) => (
+          <Tooltip title={text || `${record.action} ${record.targetName || ""}`}>
+            <span>{text || `${record.action} ${record.targetName || ""}`}</span>
+          </Tooltip>
+        ),
+      },
+      targetName: {
+        title: "目标",
+        dataIndex: "targetName",
+        key: "targetName",
+        width: AUDIT_LOG_COLUMN_WIDTHS.targetName,
+        ellipsis: true,
+        render: (text: AuditLogRecord['targetName']) => text || "-",
+      },
+      operatorName: {
+        title: "操作者",
+        dataIndex: "operatorName",
+        key: "operatorName",
+        width: AUDIT_LOG_COLUMN_WIDTHS.operatorName,
+        render: (text: AuditLogRecord['operatorName'], record) => (
+          <span className="font-medium text-gray-700 dark:text-gray-300">
+            <UserOutlined style={{ marginRight: 4, opacity: 0.6 }} />
+            {text || record.operator?.fullName || record.operator?.username || "系统"}
+          </span>
+        ),
+      },
+      ipAddress: {
+        title: "IP 地址",
+        dataIndex: "ipAddress",
+        key: "ipAddress",
+        width: AUDIT_LOG_COLUMN_WIDTHS.ipAddress,
+        render: (text: AuditLogRecord['ipAddress']) => text || "-",
+      },
+    }),
+    [options.actions, options.modules],
+  );
+
+  const baseColumns = useMemo<ColumnsType<AuditLogRecord>>(
+    () =>
+      visibleColumns
+        .map((column) => {
+          const def = columnMap[column.fieldKey];
+          if (!def) {
+            return null;
+          }
+          return {
+            ...def,
+            title: column.label || def.title,
+            key: column.fieldKey,
+            width: AUDIT_LOG_COLUMN_WIDTHS[column.fieldKey] || 130,
+            sorter: Boolean(column.sortable),
+            sortOrder:
+              sortField === column.fieldKey
+                ? sortOrder === 'asc'
+                  ? 'ascend'
+                  : 'descend'
+                : null,
+          } as ColumnsType<AuditLogRecord>[number];
+        })
+        .filter((column): column is ColumnsType<AuditLogRecord>[number] => Boolean(column)),
+    [columnMap, sortField, sortOrder, visibleColumns],
+  );
+
+  const { columns: resizableColumns } = useResizableColumns(
+    baseColumns as Array<Record<string, unknown>>,
+    { minWidth: 80, maxWidth: 500 },
+  );
 
   return (
     <GlassTable
-      columns={columns}
+      columns={resizableColumns as unknown as ColumnsType<AuditLogRecord>}
       dataSource={logs}
       rowKey="id"
       loading={loading}
@@ -247,9 +300,32 @@ export const AuditLogTable = ({
         expandRowByClick: true,
       }}
       pagination={pagination}
-      onChange={handleTableChange}
-      scroll={{ x: 1000 }}
+      onChange={(nextPagination, filtersArg, sorter) => {
+        const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+        handleTableChange(
+          {
+            current: nextPagination.current,
+            pageSize: nextPagination.pageSize,
+          },
+          filtersArg,
+          activeSorter
+            ? {
+                field:
+                  activeSorter.field !== undefined && activeSorter.field !== null
+                    ? String(activeSorter.field)
+                    : undefined,
+                columnKey:
+                  activeSorter.columnKey !== undefined && activeSorter.columnKey !== null
+                    ? String(activeSorter.columnKey)
+                    : undefined,
+                order: activeSorter.order,
+              }
+            : undefined,
+        );
+      }}
+      scroll={{ x: 'max-content' }}
       className="dorm-table"
+      resizable={true}
     />
   );
 };

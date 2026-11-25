@@ -3,6 +3,15 @@ import type { Dayjs } from 'dayjs';
 
 import type { EntityId, ServiceRecord } from '../../types/service';
 
+export interface AuditLogColumnConfig {
+  fieldKey: string;
+  label: string;
+  visible: boolean;
+  sortable: boolean;
+  order: number;
+  [key: string]: unknown;
+}
+
 export interface AuditLogOption {
   value: string;
   label: string;
@@ -65,10 +74,20 @@ export interface AuditLogListResponse {
   total?: number;
 }
 
+export interface AuditLogSorterInput {
+  field?: string;
+  columnKey?: string;
+  order?: 'ascend' | 'descend' | null;
+}
+
 export interface UseAuditLogActionsProps {
   filters: AuditLogFiltersState;
   pagination: AuditLogTablePagination;
   setPagination: Dispatch<SetStateAction<AuditLogTablePagination>>;
+  sortField: string;
+  sortOrder: 'asc' | 'desc';
+  setSortField: Dispatch<SetStateAction<string>>;
+  setSortOrder: Dispatch<SetStateAction<'asc' | 'desc'>>;
 }
 
 export interface AuditLogActionsResult {
@@ -77,11 +96,20 @@ export interface AuditLogActionsResult {
   error: string;
   options: AuditLogOptions;
   stats: AuditLogStatsState;
-  loadLogs: (page?: number, pageSize?: number) => Promise<void>;
+  loadLogs: (
+    page?: number,
+    pageSize?: number,
+    nextSortField?: string,
+    nextSortOrder?: 'asc' | 'desc',
+  ) => Promise<void>;
   loadStats: () => Promise<void>;
-  handleTableChange: (paginationConfig: {
-    current?: number;
-    pageSize?: number;
-  }) => void;
+  handleTableChange: (
+    paginationConfig: {
+      current?: number;
+      pageSize?: number;
+    },
+    _filters?: unknown,
+    sorter?: AuditLogSorterInput | AuditLogSorterInput[],
+  ) => void;
   handleSearch: () => void;
 }

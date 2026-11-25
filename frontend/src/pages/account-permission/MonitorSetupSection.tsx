@@ -3,6 +3,7 @@
  * @module pages/account-permission/MonitorSetupSection
  */
 
+import { useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { Button, Card, Input, Modal, Space, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
@@ -12,6 +13,7 @@ import FilterDropdownPanel from '../../components/common/FilterDropdownPanel';
 import { useScopeOptions } from './useScopeOptions';
 import GlassTable from '../../components/GlassTable';
 import { useMobile } from '../../hooks/useMobile';
+import { useResizableColumns } from '../../hooks/useResizableColumns';
 import type { EntityId, ServiceRecord } from '../../types/service';
 import type {
   AccountUser,
@@ -36,6 +38,9 @@ interface MonitorSetupSectionProps {
   setMonitorFilters: Dispatch<SetStateAction<MonitorFilters>>;
   studentPage: number;
   setStudentPage: Dispatch<SetStateAction<number>>;
+  sortField?: string;
+  sortOrder?: 'asc' | 'desc';
+  onSortChange?: (field: string, order: 'asc' | 'desc' | null) => void;
   studentData: TableListState<AccountUser>;
   studentLoading: boolean;
   selectedStudentIds: EntityId[];
@@ -54,44 +59,74 @@ function uniqueStringOptions(values: Array<string | undefined>): Array<{ label: 
     .map((value) => ({ label: value, value }));
 }
 
-const STUDENT_TABLE_COLUMNS: TableColumnsType<AccountUser> = [
-  { title: '姓名', dataIndex: 'fullName', key: 'fullName', width: 120 },
-  {
-    title: '楼栋',
-    dataIndex: 'building',
-    key: 'building',
-    width: 120,
-    render: (value: AccountUser['building']) => value || '-',
-  },
-  {
-    title: '宿舍',
-    dataIndex: 'roomNo',
-    key: 'roomNo',
-    width: 120,
-    render: (value: AccountUser['roomNo']) => value || '-',
-  },
-  {
-    title: '专业',
-    dataIndex: 'major',
-    key: 'major',
-    width: 180,
-    render: (value: AccountUser['major']) => value || '-',
-  },
-  {
-    title: '班级',
-    dataIndex: 'className',
-    key: 'className',
-    width: 160,
-    render: (value: AccountUser['className']) => value || '-',
-  },
-  {
-    title: '寝室长',
-    dataIndex: 'isMonitor',
-    key: 'isMonitor',
-    width: 100,
-    render: (value: AccountUser['isMonitor']) => (value ? <Tag color="green">是</Tag> : <Tag>否</Tag>),
-  },
-];
+function buildMonitorStudentColumns(
+  sortField?: string,
+  sortOrder?: 'asc' | 'desc',
+): TableColumnsType<AccountUser> {
+  const resolveOrder = (key: string) =>
+    sortField === key ? (sortOrder === 'asc' ? 'ascend' : 'descend') : null;
+
+  return [
+    {
+      title: '姓名',
+      dataIndex: 'fullName',
+      key: 'fullName',
+      width: 120,
+      sorter: true,
+      sortOrder: resolveOrder('fullName'),
+      ellipsis: true,
+    },
+    {
+      title: '楼栋',
+      dataIndex: 'building',
+      key: 'building',
+      width: 120,
+      sorter: true,
+      sortOrder: resolveOrder('building'),
+      ellipsis: true,
+      render: (value: AccountUser['building']) => value || '-',
+    },
+    {
+      title: '宿舍',
+      dataIndex: 'roomNo',
+      key: 'roomNo',
+      width: 120,
+      sorter: true,
+      sortOrder: resolveOrder('roomNo'),
+      ellipsis: true,
+      render: (value: AccountUser['roomNo']) => value || '-',
+    },
+    {
+      title: '专业',
+      dataIndex: 'major',
+      key: 'major',
+      width: 180,
+      sorter: true,
+      sortOrder: resolveOrder('major'),
+      ellipsis: true,
+      render: (value: AccountUser['major']) => value || '-',
+    },
+    {
+      title: '班级',
+      dataIndex: 'className',
+      key: 'className',
+      width: 160,
+      sorter: true,
+      sortOrder: resolveOrder('className'),
+      ellipsis: true,
+      render: (value: AccountUser['className']) => value || '-',
+    },
+    {
+      title: '寝室长',
+      dataIndex: 'isMonitor',
+      key: 'isMonitor',
+      width: 100,
+      sorter: true,
+      sortOrder: resolveOrder('isMonitor'),
+      render: (value: AccountUser['isMonitor']) => (value ? <Tag color="green">是</Tag> : <Tag>否</Tag>),
+    },
+  ];
+}
 
 /**
  * 寝室长批量设置区块组件
@@ -105,6 +140,9 @@ export default function MonitorSetupSection({
   setMonitorFilters,
   studentPage,
   setStudentPage,
+  sortField,
+  sortOrder,
+  onSortChange,
   studentData,
   studentLoading,
   selectedStudentIds,
@@ -117,6 +155,14 @@ export default function MonitorSetupSection({
   onBatchSetMonitorExecute,
 }: MonitorSetupSectionProps) {
   const isMobile = useMobile();
+  const baseStudentColumns = useMemo(
+    () => buildMonitorStudentColumns(sortField, sortOrder),
+    [sortField, sortOrder],
+  );
+  const { columns: resizableStudentColumns } = useResizableColumns(
+    baseStudentColumns as Array<Record<string, unknown>>,
+    { minWidth: 80, maxWidth: 460 },
+  );
   // 专业/班级选项取全量学籍数据，不依赖当前页学生
   const { options: scopeOptions } = useScopeOptions();
   const academicOptions = scopeOptions?.academic || [];
@@ -258,16 +304,36 @@ export default function MonitorSetupSection({
             selectedRowKeys: selectedStudentIds,
             onChange: (keys) => setSelectedStudentIds(keys as EntityId[]),
           }}
-          columns={STUDENT_TABLE_COLUMNS}
+          columns={resizableStudentColumns as unknown as TableColumnsType<AccountUser>}
           pagination={{
             current: studentPage,
             pageSize: 10,
             total: studentData.total,
-            onChange: (nextPage) => setStudentPage(nextPage),
             showSizeChanger: false,
+          }}
+          onChange={(nextPagination, _filters, sorter) => {
+            if (nextPagination.current && nextPagination.current !== studentPage) {
+              setStudentPage(nextPagination.current);
+            }
+            if (!onSortChange) {
+              return;
+            }
+            const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+            const field =
+              activeSorter?.columnKey !== undefined && activeSorter?.columnKey !== null
+                ? String(activeSorter.columnKey)
+                : activeSorter?.field !== undefined && activeSorter?.field !== null
+                  ? String(activeSorter.field)
+                  : '';
+            if (!activeSorter?.order || !field) {
+              onSortChange('', null);
+            } else {
+              onSortChange(field, activeSorter.order === 'ascend' ? 'asc' : 'desc');
+            }
           }}
           scroll={{ x: 920 }}
           useSkeleton={false}
+          resizable={true}
         />
       </div>
     </>

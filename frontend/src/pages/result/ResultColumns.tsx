@@ -12,16 +12,20 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { resolvePhotoUrl } from "../../utils/url";
-import { GRADE_COLORS } from "./resultSchema";
+import { GRADE_COLORS, RESULT_COLUMN_WIDTHS } from "./resultSchema";
 
 import type { EntityId } from '../../types/service';
 import type {
   RatingForScore,
   ResultAppealRecord,
+  ResultColumnConfig,
   ResultInspectionRecord,
 } from './types';
 
 interface CreateBaseColumnsOptions {
+  visibleColumns: ResultColumnConfig[];
+  sortField: string;
+  sortOrder: 'asc' | 'desc';
   resolveDormColleges: (record: ResultInspectionRecord) => string[];
   resolveDormGrades: (record: ResultInspectionRecord) => string[];
   ratingForScore: RatingForScore;
@@ -39,24 +43,29 @@ interface CreateActionColumnOptions {
 }
 
 export function createBaseColumns({
+  visibleColumns,
+  sortField,
+  sortOrder,
   resolveDormColleges,
   resolveDormGrades,
   ratingForScore,
 }: CreateBaseColumnsOptions): ColumnsType<ResultInspectionRecord> {
-  return [
-    {
+  const columnMap: Record<string, ColumnsType<ResultInspectionRecord>[number]> = {
+    taskTitle: {
       title: "检查任务",
       dataIndex: ["task", "title"],
       key: "taskTitle",
+      width: RESULT_COLUMN_WIDTHS.taskTitle,
       render: (text: unknown) => (
         <span className="font-bold text-gray-800 dark:text-gray-100">
           {String(text || "无任务")}
         </span>
       ),
     },
-    {
+    dorm: {
       title: "楼栋房号",
       key: "dorm",
+      width: RESULT_COLUMN_WIDTHS.dorm,
       render: (_, record) => (
         <div className="flex flex-col">
           <span className="font-medium text-gray-700 dark:text-gray-200">
@@ -68,9 +77,10 @@ export function createBaseColumns({
         </div>
       ),
     },
-    {
+    college: {
       title: "所属学院",
       key: "college",
+      width: RESULT_COLUMN_WIDTHS.college,
       render: (_, record) => {
         const colleges = resolveDormColleges(record);
         if (colleges.length === 0) {
@@ -92,9 +102,10 @@ export function createBaseColumns({
         );
       },
     },
-    {
+    gradeGroup: {
       title: "年级",
       key: "gradeGroup",
+      width: RESULT_COLUMN_WIDTHS.gradeGroup,
       render: (_, record) => {
         const grades = resolveDormGrades(record);
         if (grades.length === 0) {
@@ -115,10 +126,11 @@ export function createBaseColumns({
         );
       },
     },
-    {
+    photos: {
       title: "照片",
       key: "photos",
       align: "center",
+      width: RESULT_COLUMN_WIDTHS.photos,
       render: (_, record) => {
         const rawPhotos = Array.isArray(record.photoUrls)
           ? record.photoUrls
@@ -154,19 +166,21 @@ export function createBaseColumns({
         );
       },
     },
-    {
+    score: {
       title: "得分",
       dataIndex: "totalScore",
       key: "score",
       align: "center",
+      width: RESULT_COLUMN_WIDTHS.score,
       render: (score: ResultInspectionRecord['totalScore']) => (
         <span className="text-lg font-bold text-blue-600">{score ?? "-"}</span>
       ),
     },
-    {
+    grade: {
       title: "等级",
       key: "grade",
       align: "center",
+      width: RESULT_COLUMN_WIDTHS.grade,
       render: (_, record) => {
         const label = ratingForScore(record.totalScore);
         return (
@@ -179,19 +193,21 @@ export function createBaseColumns({
         );
       },
     },
-    {
+    time: {
       title: "检查时间",
       dataIndex: "createdAt",
       key: "time",
+      width: RESULT_COLUMN_WIDTHS.time,
       render: (value: ResultInspectionRecord['createdAt']) => (
         <span className="text-gray-500 font-mono text-xs">
           {value ? dayjs(value).format("YYYY-MM-DD HH:mm") : "-"}
         </span>
       ),
     },
-    {
+    reviewer: {
       title: "检查人",
       key: "reviewer",
+      width: RESULT_COLUMN_WIDTHS.reviewer,
       render: (_, record) => (
         <span className="font-medium">
           {record.reviewedBy?.fullName ||
@@ -201,7 +217,29 @@ export function createBaseColumns({
         </span>
       ),
     },
-  ];
+  };
+
+  return visibleColumns
+    .map((column) => {
+      const def = columnMap[column.fieldKey];
+      if (!def) {
+        return null;
+      }
+      return {
+        ...def,
+        title: column.label || def.title,
+        key: column.fieldKey,
+        width: RESULT_COLUMN_WIDTHS[column.fieldKey] || 130,
+        sorter: Boolean(column.sortable),
+        sortOrder:
+          sortField === column.fieldKey
+            ? sortOrder === "asc"
+              ? "ascend"
+              : "descend"
+            : null,
+      } as ColumnsType<ResultInspectionRecord>[number];
+    })
+    .filter((column): column is ColumnsType<ResultInspectionRecord>[number] => Boolean(column));
 }
 
 export function createActionColumn({

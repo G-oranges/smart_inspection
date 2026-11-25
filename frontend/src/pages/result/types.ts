@@ -10,6 +10,15 @@ import type {
   ServiceRecord,
 } from '../../types/service';
 
+export interface ResultColumnConfig {
+  fieldKey: string;
+  label: string;
+  visible: boolean;
+  sortable: boolean;
+  order: number;
+  [key: string]: unknown;
+}
+
 export interface ResultTaskRecord extends ServiceRecord {
   id?: EntityId;
   title?: string;
@@ -124,6 +133,8 @@ export interface ResultPageActions extends AppActions {
   exportResults?: (params: ServiceQueryParams) => Promise<Blob>;
   deleteInspection?: (inspectionId: EntityId) => Promise<unknown>;
   deleteInspections?: (ids: EntityId[]) => Promise<unknown>;
+  fetchTableConfig?: (tableKey: string) => Promise<{ config?: ResultColumnConfig[] } | null | undefined>;
+  saveTableConfig?: (tableKey: string, columns: ResultColumnConfig[]) => Promise<unknown>;
 }
 
 export interface UseResultActionsProps {

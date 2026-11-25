@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Button, FloatButton } from 'antd';
 
+import { useAppContext } from '../context/AppContext';
 import PageLayout from '../components/PageLayout';
 import ResponsiveDataView from '../components/ResponsiveDataView';
+import TableFieldSettings from '../components/TableFieldSettings';
 import CollapsibleStatsBoard from '../components/stats/CollapsibleStatsBoard';
 import { useMobile } from '../hooks/useMobile';
+import { useTableColumns } from '../hooks/useTableColumns';
 import {
+  AUDIT_LOG_DEFAULT_COLUMNS,
+  AUDIT_LOG_TABLE_KEY,
   AuditLogFilters,
   AuditLogMobileCard,
   AuditLogStats,
@@ -15,6 +20,7 @@ import {
 } from './audit-log';
 
 import type {
+  AuditLogColumnConfig,
   AuditLogFiltersState,
   AuditLogRecord,
   AuditLogTablePagination,
@@ -34,10 +40,38 @@ const INITIAL_FILTERS: AuditLogFiltersState = {
 };
 
 export default function AuditLogPage() {
+  const { actions } = useAppContext();
   const isMobile = useMobile();
   const [pagination, setPagination] = useState(INITIAL_PAGINATION);
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sortField, setSortField] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const fetchTableConfig = actions.fetchTableConfig as
+    | ((tableKey: string) => Promise<{ config?: AuditLogColumnConfig[] } | null | undefined>)
+    | undefined;
+  const saveTableConfig = actions.saveTableConfig as
+    | ((tableKey: string, columns: AuditLogColumnConfig[]) => Promise<unknown>)
+    | undefined;
+
+  const {
+    columns: auditColumns,
+    visibleColumns: visibleAuditColumns,
+    save: saveAuditColumns,
+    resetToDefault: resetAuditColumns,
+    saving: savingAuditColumns,
+  } = useTableColumns<AuditLogColumnConfig>({
+    tableKey: AUDIT_LOG_TABLE_KEY,
+    defaultColumns: AUDIT_LOG_DEFAULT_COLUMNS,
+    fetchConfig: fetchTableConfig
+      ? async (tableKey) => fetchTableConfig(tableKey)
+      : undefined,
+    saveConfig: saveTableConfig
+      ? async (tableKey, columns) => saveTableConfig(tableKey, columns)
+      : undefined,
+  });
 
   const {
     logs,
@@ -53,15 +87,24 @@ export default function AuditLogPage() {
     filters,
     pagination,
     setPagination,
+    sortField,
+    sortOrder,
+    setSortField,
+    setSortOrder,
   });
 
   useEffect(() => {
     void loadLogs(1, pagination.pageSize);
+  }, [filters, loadLogs, pagination.pageSize]);
+
+  useEffect(() => {
     void loadStats();
-  }, [filters, loadLogs, loadStats, pagination.pageSize]);
+  }, [filters, loadStats]);
 
   const handleReset = (): void => {
     setFilters(INITIAL_FILTERS);
+    setSortField('createdAt');
+    setSortOrder('desc');
   };
 
   const handleRetry = (): void => {
@@ -103,6 +146,7 @@ export default function AuditLogPage() {
               handleReset={handleReset}
               filterDrawerOpen={filterDrawerOpen}
               setFilterDrawerOpen={setFilterDrawerOpen}
+              onOpenSettings={() => setSettingsOpen(true)}
             />
           }
         >
@@ -141,6 +185,9 @@ export default function AuditLogPage() {
                     logs={logs}
                     loading={loading}
                     pagination={pagination}
+                    visibleColumns={visibleAuditColumns}
+                    sortField={sortField}
+                    sortOrder={sortOrder}
                     handleTableChange={handleTableChange}
                     options={options}
                   />
@@ -150,6 +197,24 @@ export default function AuditLogPage() {
           )}
         </PageLayout>
       </div>
+      <TableFieldSettings
+        open={settingsOpen}
+        columns={auditColumns}
+        onClose={() => setSettingsOpen(false)}
+        onSave={async (columns) => {
+          await saveAuditColumns(
+            columns.map((column) => ({
+              ...column,
+              fieldKey: column.fieldKey,
+              label: column.label || column.fieldKey,
+            })) as AuditLogColumnConfig[],
+          );
+          setSettingsOpen(false);
+        }}
+        onReset={resetAuditColumns}
+        saving={savingAuditColumns}
+        title="审计日志字段设置"
+      />
       {isMobile && <FloatButton.BackTop style={{ right: 24, bottom: 24 }} />}
     </>
   );

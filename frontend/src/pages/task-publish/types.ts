@@ -9,6 +9,15 @@ export type TaskPublishViewMode = 'card' | 'list' | 'mini';
 export type TaskStatusKey = '' | 'upcoming' | 'inProgress' | 'ended';
 export type TaskTimeRange = '' | 'week' | 'month' | 'custom';
 
+export interface TaskColumnConfig {
+  fieldKey: string;
+  label: string;
+  visible: boolean;
+  sortable: boolean;
+  order: number;
+  [key: string]: unknown;
+}
+
 export interface TaskPublishFormState {
   title: string;
   startAt: Dayjs | null;
@@ -125,6 +134,8 @@ export interface TaskPublishActions {
   createTask: (payload: TaskSubmitPayload) => Promise<unknown>;
   updateTask: (taskId: EntityId, payload: TaskSubmitPayload) => Promise<unknown>;
   deleteTask: (taskId: EntityId) => Promise<unknown>;
+  fetchTableConfig?: (tableKey: string) => Promise<{ config?: TaskColumnConfig[] } | null | undefined>;
+  saveTableConfig?: (tableKey: string, columns: TaskColumnConfig[]) => Promise<unknown>;
 }
 
 export interface UseTaskPublishActionsProps {
@@ -193,6 +204,7 @@ export interface TaskPublishToolbarProps {
   taskFilterCount: number;
   onOpenFilter: () => void;
   onCreateTask: () => void;
+  onOpenSettings?: () => void;
   taskFilterConfig: TaskFilterConfigItem[];
 }
 
@@ -201,6 +213,10 @@ export interface TaskPublishTableProps {
   canDeleteTasks: boolean;
   filteredTasks: TaskPublishTask[];
   userLookup: TaskPublishUserLookup;
+  visibleColumns: TaskColumnConfig[];
+  sortField: string;
+  sortOrder: 'asc' | 'desc';
+  onSortChange: (field: string, order: 'asc' | 'desc' | null) => void;
   handleOpenEditModal: (task: TaskPublishTask) => void;
   handleDeleteTask: (task: TaskPublishTask) => Promise<void>;
 }

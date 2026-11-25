@@ -1,7 +1,29 @@
 import { Tag, Typography } from 'antd';
 import { SwapOutlined } from '@ant-design/icons';
 
-import type { AuditLogRecord } from './types';
+import type { AuditLogColumnConfig, AuditLogRecord } from './types';
+
+export const AUDIT_LOG_TABLE_KEY = 'auditLogList';
+
+export const AUDIT_LOG_COLUMN_WIDTHS: Record<string, number> = {
+  createdAt: 180,
+  action: 110,
+  module: 110,
+  description: 240,
+  targetName: 130,
+  operatorName: 130,
+  ipAddress: 140,
+};
+
+export const AUDIT_LOG_DEFAULT_COLUMNS: AuditLogColumnConfig[] = [
+  { fieldKey: 'createdAt', label: '时间', visible: true, sortable: true, order: 0 },
+  { fieldKey: 'action', label: '操作类型', visible: true, sortable: true, order: 1 },
+  { fieldKey: 'module', label: '模块', visible: true, sortable: true, order: 2 },
+  { fieldKey: 'description', label: '操作描述', visible: true, sortable: false, order: 3 },
+  { fieldKey: 'targetName', label: '目标', visible: true, sortable: true, order: 4 },
+  { fieldKey: 'operatorName', label: '操作者', visible: true, sortable: true, order: 5 },
+  { fieldKey: 'ipAddress', label: 'IP 地址', visible: true, sortable: true, order: 6 },
+];
 
 const { Text } = Typography;
 

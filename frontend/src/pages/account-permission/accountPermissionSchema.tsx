@@ -60,6 +60,18 @@ export const initialUserForm: UserFormState = {
 // 用户表格键
 export const USER_TABLE_KEY = "userList";
 
+// 用户表格默认列宽
+export const USER_COLUMN_WIDTHS: Record<string, number> = {
+  avatarUrl: 64,
+  username: 140,
+  fullName: 120,
+  phone: 130,
+  email: 180,
+  department: 150,
+  roles: 160,
+  isDisabled: 100,
+};
+
 // 用户表格默认列配置
 export const USER_DEFAULT_COLUMNS: UserColumnConfig[] = [
   {
@@ -68,55 +80,63 @@ export const USER_DEFAULT_COLUMNS: UserColumnConfig[] = [
     visible: true,
     sortable: false,
     order: -1,
+    width: 64,
   },
   {
     fieldKey: "username",
     label: "用户名",
     visible: true,
-    sortable: false,
+    sortable: true,
     order: 0,
+    width: 140,
   },
   {
     fieldKey: "fullName",
     label: "姓名",
     visible: true,
-    sortable: false,
+    sortable: true,
     order: 1,
+    width: 120,
   },
   {
     fieldKey: "phone",
     label: "联系电话",
     visible: true,
-    sortable: false,
+    sortable: true,
     order: 2,
+    width: 130,
   },
   {
     fieldKey: "email",
     label: "电子邮箱",
     visible: true,
-    sortable: false,
+    sortable: true,
     order: 3,
+    width: 180,
   },
   {
     fieldKey: "department",
     label: "学院",
     visible: true,
-    sortable: false,
+    sortable: true,
     order: 4,
+    width: 150,
   },
   {
     fieldKey: "roles",
     label: "角色",
     visible: true,
-    sortable: false,
+    sortable: true,
     order: 5,
+    width: 160,
   },
   {
     fieldKey: "isDisabled",
     label: "启用状态",
     visible: true,
-    sortable: false,
+    sortable: true,
     order: 6,
+    width: 100,
   },
 ];
 

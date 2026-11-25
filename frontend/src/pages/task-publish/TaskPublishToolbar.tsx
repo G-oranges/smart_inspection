@@ -8,6 +8,7 @@ import {
   FilterOutlined,
   ReloadOutlined,
   PlusOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import FilterDropdownPanel from "../../components/common/FilterDropdownPanel";
 
@@ -24,6 +25,7 @@ export const TaskPublishToolbar = ({
   taskFilterCount,
   onOpenFilter,
   onCreateTask,
+  onOpenSettings,
   taskFilterConfig,
 }: TaskPublishToolbarProps) => {
   const desktopFilterConfig = taskFilterConfig.map((filter) => ({
@@ -126,8 +128,8 @@ export const TaskPublishToolbar = ({
               重置
             </Button>
           </div>
-          {canCreateTasks ? (
-            <div className="dorm-toolbar-row dorm-toolbar-row-actions">
+          <div className="dorm-toolbar-row dorm-toolbar-row-actions">
+            {canCreateTasks ? (
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
@@ -136,8 +138,17 @@ export const TaskPublishToolbar = ({
               >
                 发布新任务
               </Button>
-            </div>
-          ) : null}
+            ) : null}
+            {onOpenSettings ? (
+              <Button
+                className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
+                icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
+                onClick={onOpenSettings}
+              >
+                字段设置
+              </Button>
+            ) : null}
+          </div>
         </div>
       )}
 

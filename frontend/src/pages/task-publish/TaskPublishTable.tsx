@@ -1,179 +1,266 @@
+import { useMemo } from "react";
 import { Tooltip, Tag, Space, Button } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import GlassTable from "../../components/GlassTable";
+import { useResizableColumns } from "../../hooks/useResizableColumns";
+import { TASK_COLUMN_WIDTHS } from "./taskPublishSchema";
 import { getTaskStatusConfig } from "./utils";
 
 import type { EntityId } from "../../types/service";
-import type { TaskExecutor, TaskPublishTableProps, TaskPublishTask } from "./types";
-import type { TableProps } from "antd";
+import type {
+  TaskColumnConfig,
+  TaskExecutor,
+  TaskPublishTableProps,
+  TaskPublishTask,
+} from "./types";
+import type { ColumnsType } from "antd/es/table";
+
+type ResizableTaskColumn = ColumnsType<TaskPublishTask>[number] & {
+  key?: string | number;
+  dataIndex?: string | number | readonly (string | number)[];
+  width?: number;
+  fixed?: boolean | "left" | "right";
+  onHeaderCell?: () => {
+    width: number;
+    onResize: (...args: unknown[]) => void;
+  };
+  [key: string]: unknown;
+};
 
 export const TaskPublishTable = ({
   canEditTasks,
   canDeleteTasks,
   filteredTasks,
   userLookup,
+  visibleColumns,
+  sortField,
+  sortOrder,
+  onSortChange,
   handleOpenEditModal,
   handleDeleteTask,
 }: TaskPublishTableProps) => {
-  const columns: TableProps<TaskPublishTask>["columns"] = [
-    {
-      title: "任务名称",
-      key: "metadata",
-      render: (_value: unknown, r: TaskPublishTask) => (
-        <div className="flex flex-col gap-1">
-          <div className="font-bold text-gray-800 dark:text-gray-100">
-            {r.title || "未命名任务"}
-          </div>
-          <Tooltip
-            title={`执行时间 ${dayjs(r.date).format(
-              "YYYY.MM.DD HH:mm"
-            )} ~ ${dayjs(r.deadline).format(
-              "YYYY.MM.DD HH:mm"
-            )}`}
-          >
-            <span className="text-xs text-gray-400">
-              发布者 {r.createdByName || "未知"}
-            </span>
-          </Tooltip>
-        </div>
-      ),
-    },
-    {
-      title: "状态",
-      key: "status",
-      align: "center",
-      render: (_value: unknown, r: TaskPublishTask) => {
-        const status = getTaskStatusConfig(r);
-        return (
-          <Tag
-            color={status.color}
-            className={status.className}
-          >
-            {status.label}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: "检查进度",
-      key: "completion",
-      align: "center",
-      render: (_value: unknown, r: TaskPublishTask) => {
-        const inspected = Number(
-          r.inspectionCount || r.inspectedCount || 0
-        );
-        const total = r.dormIds?.length || 0;
-        const percent = total
-          ? Math.min(100, Math.round((inspected / total) * 100))
-          : 0;
-        return (
-          <Tooltip
-            title={
-              total ? `完成度 ${percent}%` : "暂无检查范围"
-            }
-          >
-            <div className="task-progress-cell">
-              <div className="task-progress-value">
-                {inspected} / {total}
-              </div>
-              <div className="task-progress-track">
-                <span
-                  className="task-progress-fill"
-                  style={{ width: `${percent}%` }}
-                />
-              </div>
+  const columnMap = useMemo<Record<string, ColumnsType<TaskPublishTask>[number]>>(
+    () => ({
+      metadata: {
+        title: "任务名称",
+        key: "metadata",
+        dataIndex: "title",
+        width: TASK_COLUMN_WIDTHS.metadata,
+        render: (_value: unknown, r: TaskPublishTask) => (
+          <div className="flex flex-col gap-1">
+            <div className="font-bold text-gray-800 dark:text-gray-100">
+              {r.title || "未命名任务"}
             </div>
-          </Tooltip>
-        );
+            <Tooltip
+              title={`执行时间 ${dayjs(r.date).format(
+                "YYYY.MM.DD HH:mm"
+              )} ~ ${dayjs(r.deadline).format(
+                "YYYY.MM.DD HH:mm"
+              )}`}
+            >
+              <span className="text-xs text-gray-400">
+                发布者 {r.createdByName || "未知"}
+              </span>
+            </Tooltip>
+          </div>
+        ),
       },
-    },
-    {
-      title: "检查人",
-      key: "executors",
-      align: "center",
-      render: (_value: unknown, r: TaskPublishTask) => {
-        const executorList = (r.executors && r.executors.length > 0)
-          ? r.executors
-          : (r.executorIds || []).map((id) =>
-              userLookup[String(id)] ? { ...userLookup[String(id)], id } : { id }
-            );
-
-        const getLabel = (executor: TaskExecutor & { id?: EntityId }) =>
-          executor.fullName ||
-          executor.username ||
-          "未知用户";
-
-        const executorNames = executorList.map((executor) => getLabel(executor));
-        if (!executorList.length) {
+      status: {
+        title: "状态",
+        key: "status",
+        align: "center",
+        width: TASK_COLUMN_WIDTHS.status,
+        render: (_value: unknown, r: TaskPublishTask) => {
+          const status = getTaskStatusConfig(r);
           return (
-            <span className="text-xs text-gray-400">未指派</span>
+            <Tag color={status.color} className={status.className}>
+              {status.label}
+            </Tag>
           );
-        }
-        return (
-          <Tooltip title={executorNames.join("、")}>
-            <Space size={4} wrap>
-              {executorList.slice(0, 3).map((executor) => (
-                <Tag
-                  key={executor.id}
-                  className="ant-tag-blue !m-0"
-                >
-                  {getLabel(executor)}
-                </Tag>
-              ))}
-              {executorList.length > 3 && (
-                <Tag className="apple-tag-gray !m-0">
-                  +{executorList.length - 3}
-                </Tag>
-              )}
-            </Space>
-          </Tooltip>
-        );
+        },
       },
-    },
-    ...(canEditTasks || canDeleteTasks
-      ? [
-          {
-            title: "操作",
-            key: "actions",
-            fixed: "right" as const,
-            width: 76,
-            className: "table-action-column",
-            render: (_value: unknown, r: TaskPublishTask) => (
-              <Space size={8} className="table-action-buttons dorm-table-action-group">
-                {canEditTasks ? (
-                <Tooltip title="编辑任务">
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<EditOutlined />}
-                    className="dorm-table-action-btn is-edit"
-                    onClick={() => handleOpenEditModal(r)}
-                    aria-label="编辑任务"
+      completion: {
+        title: "检查进度",
+        key: "completion",
+        align: "center",
+        width: TASK_COLUMN_WIDTHS.completion,
+        render: (_value: unknown, r: TaskPublishTask) => {
+          const inspected = Number(
+            r.inspectionCount || r.inspectedCount || 0
+          );
+          const total = r.dormIds?.length || 0;
+          const percent = total
+            ? Math.min(100, Math.round((inspected / total) * 100))
+            : 0;
+          return (
+            <Tooltip
+              title={total ? `完成度 ${percent}%` : "暂无检查范围"}
+            >
+              <div className="task-progress-cell">
+                <div className="task-progress-value">
+                  {inspected} / {total}
+                </div>
+                <div className="task-progress-track">
+                  <span
+                    className="task-progress-fill"
+                    style={{ width: `${percent}%` }}
                   />
-                </Tooltip>
-                ) : null}
-                {canDeleteTasks ? (
-                <Tooltip title="删除任务">
-                  <Button
-                    type="text"
-                    size="small"
-                    danger
-                    icon={<DeleteOutlined />}
-                    className="dorm-table-action-btn is-danger"
-                    onClick={() => {
-                      void handleDeleteTask(r);
-                    }}
-                    aria-label="删除任务"
-                  />
-                </Tooltip>
-                ) : null}
+                </div>
+              </div>
+            </Tooltip>
+          );
+        },
+      },
+      executors: {
+        title: "检查人",
+        key: "executors",
+        align: "center",
+        width: TASK_COLUMN_WIDTHS.executors,
+        render: (_value: unknown, r: TaskPublishTask) => {
+          const executorList =
+            r.executors && r.executors.length > 0
+              ? r.executors
+              : (r.executorIds || []).map((id) =>
+                  userLookup[String(id)] ? { ...userLookup[String(id)], id } : { id }
+                );
+
+          const getLabel = (executor: TaskExecutor & { id?: EntityId }) =>
+            executor.fullName || executor.username || "未知用户";
+
+          const executorNames = executorList.map((executor) => getLabel(executor));
+          if (!executorList.length) {
+            return <span className="text-xs text-gray-400">未指派</span>;
+          }
+          return (
+            <Tooltip title={executorNames.join("、")}>
+              <Space size={4} wrap>
+                {executorList.slice(0, 3).map((executor) => (
+                  <Tag key={executor.id} className="ant-tag-blue !m-0">
+                    {getLabel(executor)}
+                  </Tag>
+                ))}
+                {executorList.length > 3 && (
+                  <Tag className="apple-tag-gray !m-0">
+                    +{executorList.length - 3}
+                  </Tag>
+                )}
               </Space>
-            ),
-          },
-        ]
-      : []),
-  ];
+            </Tooltip>
+          );
+        },
+      },
+    }),
+    [userLookup],
+  );
+
+  const allColumns = useMemo<ColumnsType<TaskPublishTask>>(() => {
+    const baseCols = visibleColumns
+      .map((col: TaskColumnConfig) => {
+        const def = columnMap[col.fieldKey];
+        if (!def) {
+          return null;
+        }
+        return {
+          ...def,
+          title: col.label || def.title,
+          key: col.fieldKey,
+          width: TASK_COLUMN_WIDTHS[col.fieldKey] || 150,
+          sorter: Boolean(col.sortable),
+          sortOrder:
+            sortField === col.fieldKey
+              ? sortOrder === "asc"
+                ? "ascend"
+                : "descend"
+              : null,
+        } as ColumnsType<TaskPublishTask>[number];
+      })
+      .filter((col): col is ColumnsType<TaskPublishTask>[number] => Boolean(col));
+
+    if (canEditTasks || canDeleteTasks) {
+      baseCols.push({
+        title: "操作",
+        key: "actions",
+        fixed: "right" as const,
+        width: 76,
+        className: "table-action-column",
+        render: (_value: unknown, r: TaskPublishTask) => (
+          <Space size={8} className="table-action-buttons dorm-table-action-group">
+            {canEditTasks ? (
+              <Tooltip title="编辑任务">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<EditOutlined />}
+                  className="dorm-table-action-btn is-edit"
+                  onClick={() => handleOpenEditModal(r)}
+                  aria-label="编辑任务"
+                />
+              </Tooltip>
+            ) : null}
+            {canDeleteTasks ? (
+              <Tooltip title="删除任务">
+                <Button
+                  type="text"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  className="dorm-table-action-btn is-danger"
+                  onClick={() => {
+                    void handleDeleteTask(r);
+                  }}
+                  aria-label="删除任务"
+                />
+              </Tooltip>
+            ) : null}
+          </Space>
+        ),
+      });
+    }
+
+    return baseCols;
+  }, [
+    canDeleteTasks,
+    canEditTasks,
+    columnMap,
+    handleDeleteTask,
+    handleOpenEditModal,
+    sortField,
+    sortOrder,
+    visibleColumns,
+  ]);
+
+  const resizableInput = useMemo<ResizableTaskColumn[]>(
+    () =>
+      allColumns.map((column) => ({
+        ...column,
+        key:
+          column.key !== undefined && column.key !== null
+            ? String(column.key)
+            : undefined,
+        dataIndex:
+          "dataIndex" in column &&
+          (typeof column.dataIndex === "string" ||
+            typeof column.dataIndex === "number" ||
+            Array.isArray(column.dataIndex))
+            ? column.dataIndex
+            : undefined,
+        width: typeof column.width === "number" ? column.width : undefined,
+        fixed:
+          column.fixed === true ||
+          column.fixed === "left" ||
+          column.fixed === "right"
+            ? column.fixed
+            : undefined,
+        onHeaderCell: undefined,
+      })),
+    [allColumns],
+  );
+
+  const { columns: resizableColumns } = useResizableColumns(resizableInput, {
+    minWidth: 80,
+    maxWidth: 500,
+  });
 
   return (
     <GlassTable
@@ -185,7 +272,23 @@ export const TaskPublishTable = ({
         showQuickJumper: false,
       }}
       className="dorm-table"
-      columns={columns}
+      columns={resizableColumns as ColumnsType<TaskPublishTask>}
+      scroll={{ x: "max-content" }}
+      resizable={true}
+      onChange={(_pagination, _filters, sorter) => {
+        const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+        const field =
+          activeSorter?.columnKey !== undefined && activeSorter?.columnKey !== null
+            ? String(activeSorter.columnKey)
+            : activeSorter?.field !== undefined && activeSorter?.field !== null
+              ? String(activeSorter.field)
+              : "";
+        if (!activeSorter?.order || !field) {
+          onSortChange("", null);
+          return;
+        }
+        onSortChange(field, activeSorter.order === "ascend" ? "asc" : "desc");
+      }}
     />
   );
 };

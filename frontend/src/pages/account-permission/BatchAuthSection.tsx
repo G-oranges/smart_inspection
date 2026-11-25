@@ -11,6 +11,7 @@ import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 
 import GlassTable from '../../components/GlassTable';
 import { useMobile } from '../../hooks/useMobile';
+import { useResizableColumns } from '../../hooks/useResizableColumns';
 import { commonService } from '../../services/commonService';
 import type { PermissionDefinition, EntityId, RoleDataScope } from '../../types/service';
 import DataScopeEditor from './DataScopeEditor';
@@ -26,6 +27,9 @@ interface BatchAuthSectionProps {
   tableData: TableListState<AccountUser>;
   loading: boolean;
   page: number;
+  sortField?: string;
+  sortOrder?: 'asc' | 'desc';
+  onSortChange?: (field: string, order: 'asc' | 'desc' | null) => void;
   selectedUserIds: EntityId[];
   setSelectedUserIds: Dispatch<SetStateAction<EntityId[]>>;
   permissions?: PermissionDefinition[];
@@ -122,23 +126,53 @@ function useSingleAccountState(
   return { singleUserId, baseline, scope, setScope, scopeLoading, scopeSaving, saveScope };
 }
 
-const USER_TABLE_COLUMNS: TableColumnsType<AccountUser> = [
-  { title: '用户名', dataIndex: 'username', key: 'username', width: 160 },
-  { title: '姓名', dataIndex: 'fullName', key: 'fullName', width: 140 },
-  {
-    title: '角色',
-    key: 'roles',
-    width: 220,
-    render: (_, user) => user.roles?.map((role) => role.name).join(', ') || user.userType || '-',
-  },
-  {
-    title: '学院',
-    dataIndex: 'department',
-    key: 'department',
-    width: 180,
-    render: (value: AccountUser['department']) => value || '-',
-  },
-];
+function buildBatchUserColumns(
+  sortField?: string,
+  sortOrder?: 'asc' | 'desc',
+): TableColumnsType<AccountUser> {
+  const resolveOrder = (key: string) =>
+    sortField === key ? (sortOrder === 'asc' ? 'ascend' : 'descend') : null;
+
+  return [
+    {
+      title: '用户名',
+      dataIndex: 'username',
+      key: 'username',
+      width: 160,
+      sorter: true,
+      sortOrder: resolveOrder('username'),
+      ellipsis: true,
+    },
+    {
+      title: '姓名',
+      dataIndex: 'fullName',
+      key: 'fullName',
+      width: 140,
+      sorter: true,
+      sortOrder: resolveOrder('fullName'),
+      ellipsis: true,
+    },
+    {
+      title: '角色',
+      key: 'roles',
+      width: 220,
+      sorter: true,
+      sortOrder: resolveOrder('roles'),
+      ellipsis: true,
+      render: (_, user) => user.roles?.map((role) => role.name).join(', ') || user.userType || '-',
+    },
+    {
+      title: '学院',
+      dataIndex: 'department',
+      key: 'department',
+      width: 180,
+      sorter: true,
+      sortOrder: resolveOrder('department'),
+      ellipsis: true,
+      render: (value: AccountUser['department']) => value || '-',
+    },
+  ];
+}
 
 const PERMISSION_MODE_OPTIONS: Array<{ value: PermissionMode; label: string }> = [
   { value: 'inherit', label: '继承角色' },
@@ -157,6 +191,9 @@ export default function BatchAuthSection({
   tableData,
   loading,
   page,
+  sortField,
+  sortOrder,
+  onSortChange,
   selectedUserIds,
   setSelectedUserIds,
   permissions,
@@ -167,6 +204,14 @@ export default function BatchAuthSection({
   const isMobile = useMobile();
   const account = useSingleAccountState(selectedUserIds, setBatchPermissions);
   const { options: scopeOptions, error: scopeOptionsError } = useScopeOptions(account.singleUserId !== null);
+  const baseUserColumns = useMemo(
+    () => buildBatchUserColumns(sortField, sortOrder),
+    [sortField, sortOrder],
+  );
+  const { columns: resizableUserColumns } = useResizableColumns(
+    baseUserColumns as Array<Record<string, unknown>>,
+    { minWidth: 80, maxWidth: 460 },
+  );
   const permissionDataSource = useMemo(
     () =>
       (permissions || []).map((permission) => ({
@@ -190,6 +235,8 @@ export default function BatchAuthSection({
         dataIndex: 'permissionName',
         key: 'permissionName',
         width: 280,
+        sorter: (left, right) =>
+          left.permissionName.localeCompare(right.permissionName, 'zh-CN'),
         render: (value: string) => <span className="font-medium">{value}</span>,
       },
       {
@@ -222,6 +269,10 @@ export default function BatchAuthSection({
       },
     ],
     [batchPermissions, setBatchPermissions],
+  );
+  const { columns: resizablePermissionColumns } = useResizableColumns(
+    permissionColumns as Array<Record<string, unknown>>,
+    { minWidth: 120, maxWidth: 500 },
   );
 
   const userTable = (
@@ -261,16 +312,36 @@ export default function BatchAuthSection({
             selectedRowKeys: selectedUserIds,
             onChange: (keys) => setSelectedUserIds(keys as EntityId[]),
           }}
-          columns={USER_TABLE_COLUMNS}
+          columns={resizableUserColumns as unknown as TableColumnsType<AccountUser>}
           pagination={{
             current: page,
             pageSize: 10,
             total: tableData.total,
-            onChange: (nextPage) => setPage(nextPage),
             showSizeChanger: false,
+          }}
+          onChange={(nextPagination, _filters, sorter) => {
+            if (nextPagination.current && nextPagination.current !== page) {
+              setPage(nextPagination.current);
+            }
+            if (!onSortChange) {
+              return;
+            }
+            const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+            const field =
+              activeSorter?.columnKey !== undefined && activeSorter?.columnKey !== null
+                ? String(activeSorter.columnKey)
+                : activeSorter?.field !== undefined && activeSorter?.field !== null
+                  ? String(activeSorter.field)
+                  : '';
+            if (!activeSorter?.order || !field) {
+              onSortChange('', null);
+            } else {
+              onSortChange(field, activeSorter.order === 'ascend' ? 'asc' : 'desc');
+            }
           }}
           scroll={{ x: 760 }}
           useSkeleton={false}
+          resizable={true}
         />
       </div>
     </>
@@ -299,12 +370,19 @@ export default function BatchAuthSection({
       <div className="table-wrapper dorm-table-wrapper">
         <GlassTable
           className="dorm-table"
-          columns={permissionColumns}
+          columns={
+            resizablePermissionColumns as unknown as TableColumnsType<{
+              key: string;
+              permissionId?: EntityId;
+              permissionName: string;
+            }>
+          }
           dataSource={permissionDataSource}
           rowKey="key"
           pagination={false}
           scroll={{ x: 520 }}
           useSkeleton={false}
+          resizable={true}
         />
       </div>
     </>

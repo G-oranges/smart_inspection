@@ -42,11 +42,30 @@ func (r *userRepository) GetByUsername(username string) (*model.User, error) {
 	return &user, nil
 }
 
+var userSortConfig = utils.SortConfig{
+	ValidFields: map[string]string{
+		"username":   "username",
+		"fullName":   "fullName",
+		"phone":      "phone",
+		"email":      "email",
+		"department": "department",
+		"userType":   "userType",
+		"roles":      "role",
+		"isDisabled": "isDisabled",
+		"createdAt":  "createdAt",
+	},
+	DefaultField: "createdAt",
+	DefaultOrder: "DESC",
+}
+
 func (r *userRepository) FindAll(page, pageSize int, filters map[string]interface{}) ([]model.User, int64, error) {
 	var users []model.User
 	var total int64
 
 	db := r.db.Model(&model.User{})
+
+	sortField := ""
+	sortOrder := ""
 
 	// 应用过滤条件
 	if filters != nil {
@@ -71,11 +90,18 @@ func (r *userRepository) FindAll(page, pageSize int, filters map[string]interfac
 				db = db.Where("isDisabled = ?", idBool)
 			}
 		}
+		if sf, ok := filters["sortField"].(string); ok {
+			sortField = sf
+		}
+		if so, ok := filters["sortOrder"].(string); ok {
+			sortOrder = so
+		}
 	}
 
 	db.Count(&total)
 
-	err := db.Preload("Roles").Order("createdAt DESC").Scopes(Paginate(page, pageSize)).Find(&users).Error
+	orderClause := utils.ValidateSortParams(sortField, sortOrder, userSortConfig)
+	err := db.Preload("Roles").Order(orderClause).Scopes(Paginate(page, pageSize)).Find(&users).Error
 	return users, total, err
 }
 

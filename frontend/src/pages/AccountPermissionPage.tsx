@@ -39,6 +39,7 @@ import CollapsibleStatsBoard, {
   type StatSegment,
 } from '../components/stats/CollapsibleStatsBoard';
 import { useTableColumns } from '../hooks/useTableColumns';
+import { useResizableColumns } from '../hooks/useResizableColumns';
 import useTableState from '../hooks/useTableState';
 import { useMobile } from '../hooks/useMobile';
 import {
@@ -379,6 +380,9 @@ interface UserManagementSectionProps {
   page: number;
   pageSize: number;
   setPageSize: Dispatch<SetStateAction<number>>;
+  sortField: string;
+  sortOrder: 'asc' | 'desc';
+  onTableChange: UseTableStateResult['handleTableChange'];
   tableData: TableListState<AccountUser>;
   fetchError: string;
   selectedIds: EntityId[];
@@ -458,6 +462,7 @@ interface UserManagementTableCardProps {
   isMobile: boolean;
   loading: boolean;
   onRetryLoad: () => void;
+  onTableChange: UseTableStateResult['handleTableChange'];
   page: number;
   pageSize: number;
   renderUserCard: (
@@ -686,6 +691,7 @@ function UserManagementTableCard({
   isMobile,
   loading,
   onRetryLoad,
+  onTableChange,
   page,
   pageSize,
   renderUserCard,
@@ -715,6 +721,27 @@ function UserManagementTableCard({
       columns={tableColumns}
       rowSelection={rowSelection}
       size="middle"
+      resizable={true}
+      scroll={{ x: 'max-content' }}
+      onChange={(nextPagination, _filters, sorter) => {
+        const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+        onTableChange(
+          {
+            current: nextPagination.current,
+            pageSize: nextPagination.pageSize,
+          },
+          undefined,
+          {
+            field:
+              activeSorter?.columnKey !== undefined && activeSorter?.columnKey !== null
+                ? String(activeSorter.columnKey)
+                : activeSorter?.field !== undefined && activeSorter?.field !== null
+                  ? String(activeSorter.field)
+                  : undefined,
+            order: activeSorter?.order,
+          },
+        );
+      }}
       emptyText={
         <div className="py-20 text-center">
           <UserOutlined className="text-5xl text-gray-200 mb-3" />
@@ -900,6 +927,9 @@ function UserManagementSection({
   page,
   pageSize,
   setPageSize,
+  sortField,
+  sortOrder,
+  onTableChange,
   tableData,
   loading,
   fetchError,
@@ -969,6 +999,8 @@ function UserManagementSection({
       onGenerateTempPassword,
       onDelete: onDeleteSingleUser,
       batchLoading,
+      sortField,
+      sortOrder,
     }),
     [
       batchLoading,
@@ -976,13 +1008,25 @@ function UserManagementSection({
       onGenerateTempPassword,
       onOpenModal,
       onToggleStatus,
+      sortField,
+      sortOrder,
     ],
   );
 
-  const tableColumns = useMemo(
+  const baseTableColumns = useMemo(
     () => buildAntTableColumns(visibleUserColumns, columnHandlers),
     [columnHandlers, visibleUserColumns],
   );
+  const { columns: resizableTableColumns } = useResizableColumns(
+    baseTableColumns as Array<Record<string, unknown>>,
+    {
+      minWidth: 64,
+      maxWidth: 460,
+    },
+  );
+  const tableColumns = resizableTableColumns as unknown as ReturnType<
+    typeof buildAntTableColumns
+  >;
 
   const renderUserCard = useCallback(
     (
@@ -1046,6 +1090,7 @@ function UserManagementSection({
         isMobile={isMobile}
         loading={loading}
         onRetryLoad={onRetryLoad}
+        onTableChange={onTableChange}
         page={page}
         pageSize={pageSize}
         renderUserCard={renderUserCard}
@@ -1270,6 +1315,8 @@ function useAccountPermissionUserState({
     draftFilters: filters,
     appliedFilters,
     pagination,
+    sortField,
+    sortOrder,
     draftSearchTerm: searchTerm,
     appliedSearchTerm,
     isDirty,
@@ -1279,9 +1326,12 @@ function useAccountPermissionUserState({
     setPagination,
     applyFilters: handleSearchNow,
     resetAll: resetTableState,
+    handleTableChange,
   } = toUserTableStateResult(
     useTableState({
       filterKeys: [...USER_FILTER_KEYS],
+      defaultSortField: 'createdAt',
+      defaultSortOrder: 'desc',
       defaultPageSize: 10,
       syncUrl: true,
       onApply: () => {
@@ -1406,6 +1456,8 @@ function useAccountPermissionUserState({
       appliedSearchTerm,
       page: pagination.current,
       pageSize: pagination.pageSize,
+      sortField,
+      sortOrder,
     });
 
     accountActions
@@ -1447,6 +1499,8 @@ function useAccountPermissionUserState({
     pagination.pageSize,
     reloadFlag,
     setPagination,
+    sortField,
+    sortOrder,
   ]);
 
   const setPage = useCallback(
@@ -1493,6 +1547,7 @@ function useAccountPermissionUserState({
     handleRetryLoad,
     handleSelectAllResults,
     handleSelectPage,
+    handleTableChange,
     hasActiveFilters,
     isDirty,
     loading,
@@ -1520,6 +1575,8 @@ function useAccountPermissionUserState({
     setSelectAcrossPages,
     setSettingsOpen,
     settingsOpen,
+    sortField,
+    sortOrder,
     tableData,
     userColumns,
     userMessage,
@@ -1544,6 +1601,8 @@ function useAccountPermissionPermissionState({
   const [batchPermissions, setBatchPermissions] = useState<BatchPermissionState>({});
   const [batchUserSearchTerm, setBatchUserSearchTerm] = useState('');
   const [batchUserPage, setBatchUserPage] = useState(1);
+  const [batchUserSortField, setBatchUserSortField] = useState('');
+  const [batchUserSortOrder, setBatchUserSortOrder] = useState<'asc' | 'desc'>('desc');
   const [batchUserData, setBatchUserData] = useState<TableListState<AccountUser>>(() =>
     createEmptyTableState<AccountUser>(),
   );
@@ -1552,6 +1611,8 @@ function useAccountPermissionPermissionState({
   const [monitorSearchTerm, setMonitorSearchTerm] = useState('');
   const [selectedStudentIds, setSelectedStudentIds] = useState<EntityId[]>([]);
   const [studentPage, setStudentPage] = useState(1);
+  const [studentSortField, setStudentSortField] = useState('');
+  const [studentSortOrder, setStudentSortOrder] = useState<'asc' | 'desc'>('asc');
   const [studentData, setStudentData] = useState<TableListState<AccountUser>>(() =>
     createEmptyTableState<AccountUser>(),
   );
@@ -1606,6 +1667,9 @@ function useAccountPermissionPermissionState({
         page: batchUserPage,
         pageSize: 10,
         search: batchUserSearchTerm,
+        ...(batchUserSortField
+          ? { sortField: batchUserSortField, sortOrder: batchUserSortOrder }
+          : {}),
       });
       setBatchUserData({
         items: toAccountUsers(result?.items),
@@ -1618,7 +1682,7 @@ function useAccountPermissionPermissionState({
     } finally {
       setBatchUserLoading(false);
     }
-  }, [accountActions, batchUserPage, batchUserSearchTerm]);
+  }, [accountActions, batchUserPage, batchUserSearchTerm, batchUserSortField, batchUserSortOrder]);
 
   useEffect(() => {
     if (activeTab !== 'overrides' || !canManagePermissions) {
@@ -1643,6 +1707,9 @@ function useAccountPermissionPermissionState({
         floor: monitorFilters.floor,
         major: monitorFilters.major,
         className: monitorFilters.className,
+        ...(studentSortField
+          ? { sortField: studentSortField, sortOrder: studentSortOrder }
+          : {}),
       });
       setStudentData({
         items: toAccountUsers(result?.items),
@@ -1655,7 +1722,42 @@ function useAccountPermissionPermissionState({
     } finally {
       setStudentLoading(false);
     }
-  }, [accountActions, monitorFilters, monitorSearchTerm, studentPage]);
+  }, [
+    accountActions,
+    monitorFilters,
+    monitorSearchTerm,
+    studentPage,
+    studentSortField,
+    studentSortOrder,
+  ]);
+
+  const handleBatchUserSortChange = useCallback(
+    (field: string, order: 'asc' | 'desc' | null) => {
+      setBatchUserPage(1);
+      if (!field || !order) {
+        setBatchUserSortField('');
+        setBatchUserSortOrder('desc');
+        return;
+      }
+      setBatchUserSortField(field);
+      setBatchUserSortOrder(order);
+    },
+    [],
+  );
+
+  const handleStudentSortChange = useCallback(
+    (field: string, order: 'asc' | 'desc' | null) => {
+      setStudentPage(1);
+      if (!field || !order) {
+        setStudentSortField('');
+        setStudentSortOrder('asc');
+        return;
+      }
+      setStudentSortField(field);
+      setStudentSortOrder(order);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (activeTab !== 'monitors' || !canManagePermissions) {
@@ -1672,6 +1774,10 @@ function useAccountPermissionPermissionState({
     batchUserLoading,
     batchUserPage,
     batchUserSearchTerm,
+    batchUserSortField,
+    batchUserSortOrder,
+    handleBatchUserSortChange,
+    handleStudentSortChange,
     loadBatchUsers,
     loadMatrix,
     loadStudentList,
@@ -1697,6 +1803,8 @@ function useAccountPermissionPermissionState({
     studentData,
     studentLoading,
     studentPage,
+    studentSortField,
+    studentSortOrder,
     tempPasswordModal,
   };
 }
@@ -1879,6 +1987,9 @@ export default function AccountPermissionPage() {
                     page={userState.page}
                     pageSize={userState.pageSize}
                     setPageSize={userState.setPageSize}
+                    sortField={userState.sortField}
+                    sortOrder={userState.sortOrder}
+                    onTableChange={userState.handleTableChange}
                     tableData={userState.tableData}
                     loading={userState.loading}
                     fetchError={userState.fetchError}
@@ -1969,6 +2080,9 @@ export default function AccountPermissionPage() {
                       tableData={permissionState.batchUserData}
                       loading={permissionState.batchUserLoading}
                       page={permissionState.batchUserPage}
+                      sortField={permissionState.batchUserSortField}
+                      sortOrder={permissionState.batchUserSortOrder}
+                      onSortChange={permissionState.handleBatchUserSortChange}
                       selectedUserIds={permissionState.batchUserIds}
                       setSelectedUserIds={permissionState.setBatchUserIds}
                       permissions={permissionState.matrix?.permissions}
@@ -2000,6 +2114,9 @@ export default function AccountPermissionPage() {
                       setMonitorFilters={permissionState.setMonitorFilters}
                       studentPage={permissionState.studentPage}
                       setStudentPage={permissionState.setStudentPage}
+                      sortField={permissionState.studentSortField}
+                      sortOrder={permissionState.studentSortOrder}
+                      onSortChange={permissionState.handleStudentSortChange}
                       studentData={permissionState.studentData}
                       studentLoading={permissionState.studentLoading}
                       selectedStudentIds={permissionState.selectedStudentIds}

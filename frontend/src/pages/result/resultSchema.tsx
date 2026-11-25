@@ -1,4 +1,30 @@
-import type { ResultFiltersState } from './types';
+import type { ResultColumnConfig, ResultFiltersState } from './types';
+
+export const RESULT_TABLE_KEY = "resultList";
+
+export const RESULT_COLUMN_WIDTHS: Record<string, number> = {
+  taskTitle: 180,
+  dorm: 150,
+  college: 160,
+  gradeGroup: 110,
+  photos: 110,
+  score: 100,
+  grade: 100,
+  time: 160,
+  reviewer: 120,
+};
+
+export const RESULT_DEFAULT_COLUMNS: ResultColumnConfig[] = [
+  { fieldKey: "taskTitle", label: "检查任务", visible: true, sortable: true, order: 0 },
+  { fieldKey: "dorm", label: "楼栋房号", visible: true, sortable: true, order: 1 },
+  { fieldKey: "college", label: "所属学院", visible: true, sortable: true, order: 2 },
+  { fieldKey: "gradeGroup", label: "年级", visible: true, sortable: true, order: 3 },
+  { fieldKey: "photos", label: "照片", visible: true, sortable: false, order: 4 },
+  { fieldKey: "score", label: "得分", visible: true, sortable: true, order: 5 },
+  { fieldKey: "grade", label: "等级", visible: true, sortable: true, order: 6 },
+  { fieldKey: "time", label: "检查时间", visible: true, sortable: true, order: 7 },
+  { fieldKey: "reviewer", label: "检查人", visible: true, sortable: true, order: 8 },
+];
 
 export const RESULT_FILTER_KEYS = ["taskId", "grade", "college", "level", "gender"];
 

@@ -12,6 +12,7 @@ import {
   FilterOutlined,
   ReloadOutlined,
   SearchOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import FilterDropdownPanel from "../../components/common/FilterDropdownPanel";
 import MobileAdvancedFilter from "../../components/common/MobileAdvancedFilter";
@@ -47,6 +48,7 @@ interface ResultFiltersProps {
   canAdjust: boolean;
   selectedResultIds: EntityId[];
   handleDeleteResults: (ids: EntityId[]) => void;
+  onOpenSettings?: () => void;
 }
 
 function normalizeDateRange(
@@ -200,6 +202,7 @@ interface ResultFilterActionBarProps {
   setDraftFilters: Dispatch<SetStateAction<ResultFiltersState>>;
   setFilterOpen: Dispatch<SetStateAction<boolean>>;
   totalCount: number;
+  onOpenSettings?: () => void;
 }
 
 function ResultFilterActionBar({
@@ -214,6 +217,7 @@ function ResultFilterActionBar({
   handleSearch,
   isDirty,
   isMobile,
+  onOpenSettings,
   selectedResultIds,
   setDraftFilters,
   setFilterOpen,
@@ -354,6 +358,15 @@ function ResultFilterActionBar({
             导出结果
           </Button>
         ) : null}
+        {onOpenSettings ? (
+          <Button
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
+            icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
+            onClick={onOpenSettings}
+          >
+            字段设置
+          </Button>
+        ) : null}
         {canAdjust && selectedResultIds.length > 0 ? (
           <Button
             danger
@@ -387,6 +400,7 @@ export default function ResultFilters({
   canAdjust,
   selectedResultIds,
   handleDeleteResults,
+  onOpenSettings,
 }: ResultFiltersProps) {
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -435,6 +449,7 @@ export default function ResultFilters({
           handleSearch={handleSearch}
           isDirty={isDirty}
           isMobile={isMobile}
+          onOpenSettings={onOpenSettings}
           selectedResultIds={selectedResultIds}
           setDraftFilters={setDraftFilters}
           setFilterOpen={setFilterOpen}
