@@ -4,7 +4,6 @@ import type { Dayjs } from 'dayjs';
 
 import type { AppActions, AppDataStore, UserLike } from '../../types/app';
 import type {
-  AppealHandlePayload,
   DormMembersResponse,
   EntityId,
   ServiceQueryParams,
@@ -92,17 +91,6 @@ export interface ResultFiltersState extends Record<string, unknown> {
   sort: string;
 }
 
-export interface AppealFormState {
-  inspectionId: EntityId | '';
-  content: string;
-}
-
-export interface AppealHandleFormState extends AppealHandlePayload {
-  appealId: EntityId | '';
-  status: string;
-  reply: string;
-}
-
 export interface ContactFormState {
   phone: string;
 }
@@ -133,8 +121,6 @@ export interface ResultPageActions extends AppActions {
   loadMyAppeals?: (force?: boolean) => Promise<unknown> | void;
   fetchDormMembers?: (dormId: EntityId) => Promise<DormMembersResponse>;
   updateMyContact?: (payload: ContactFormState) => Promise<unknown>;
-  createAppeal?: (payload: AppealFormState) => Promise<unknown>;
-  handleAppeal?: (payload: AppealHandleFormState) => Promise<unknown>;
   exportResults?: (params: ServiceQueryParams) => Promise<Blob>;
   deleteInspection?: (inspectionId: EntityId) => Promise<unknown>;
   deleteInspections?: (ids: EntityId[]) => Promise<unknown>;
@@ -143,6 +129,7 @@ export interface ResultPageActions extends AppActions {
 export interface UseResultActionsProps {
   actions: ResultPageActions;
   canAdjust: boolean;
+  canViewAppeals?: boolean;
   activeRoleCode?: string;
   permissionsReady: boolean;
   appliedFilters: ResultFiltersState;
@@ -153,10 +140,6 @@ export interface UseResultActionsProps {
 }
 
 export interface UseResultActionsResult {
-  appealForm: AppealFormState;
-  setAppealForm: Dispatch<SetStateAction<AppealFormState>>;
-  handleForm: AppealHandleFormState;
-  setHandleForm: Dispatch<SetStateAction<AppealHandleFormState>>;
   contactForm: ContactFormState;
   setContactForm: Dispatch<SetStateAction<ContactFormState>>;
   contactStatus: string;
@@ -166,8 +149,6 @@ export interface UseResultActionsResult {
   handleCloseDetail: () => void;
   handleModifyNavigation: (inspection: ResultInspectionRecord) => void;
   handleContactSubmit: () => Promise<void>;
-  handleAppealSubmit: () => Promise<void>;
-  handleAppealHandle: () => Promise<void>;
   handleExport: () => Promise<void>;
   handleRefresh: () => Promise<void>;
   handleDeleteResults: (ids: EntityId[]) => Promise<void>;

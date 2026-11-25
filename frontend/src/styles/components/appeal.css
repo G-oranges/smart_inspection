@@ -1,0 +1,111 @@
+/* ============================================================
+   Crystal Omni — Appeal Management Styles
+   仅使用 --co-* 设计令牌，自动适配亮/暗双模式
+   ============================================================ */
+
+.appeal-disputed-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--co-radius-full);
+  background: var(--co-warning);
+  flex-shrink: 0;
+}
+
+.appeal-inline-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: var(--co-radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.appeal-inline-pill--warning {
+  background: color-mix(in srgb, var(--co-warning) 14%, transparent);
+  color: var(--co-warning);
+}
+
+.appeal-inline-pill--primary {
+  background: color-mix(in srgb, var(--co-primary) 14%, transparent);
+  color: var(--co-primary);
+}
+
+.appeal-inline-pill--success {
+  background: color-mix(in srgb, var(--co-success) 14%, transparent);
+  color: var(--co-success);
+}
+
+.appeal-inline-pill--error {
+  background: color-mix(in srgb, var(--co-error) 14%, transparent);
+  color: var(--co-error);
+}
+
+.appeal-inline-pill--muted {
+  background: var(--co-btn-bg);
+  color: var(--co-text-muted);
+}
+
+.appeal-deduction-row {
+  transition: background var(--co-transition-fast);
+}
+
+.appeal-deduction-row--modified {
+  background: color-mix(in srgb, var(--co-primary) 7%, transparent);
+}
+
+.appeal-deduction-row--added {
+  background: color-mix(in srgb, var(--co-warning) 8%, transparent);
+}
+
+.appeal-deduction-row--removed {
+  background: var(--co-input-bg);
+}
+
+.appeal-score-preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--co-radius-md);
+  border: 1px solid var(--co-glass-border);
+  background: var(--co-input-bg);
+}
+
+.appeal-score-delta--up {
+  color: var(--co-success);
+  font-weight: 600;
+}
+
+.appeal-score-delta--down {
+  color: var(--co-error);
+  font-weight: 600;
+}
+
+.appeal-score-delta--same {
+  color: var(--co-text-muted);
+  font-weight: 500;
+}
+
+.appeal-timeline-card {
+  border-radius: var(--co-radius-md);
+  border: 1px solid var(--co-glass-border);
+  background: var(--co-input-bg);
+  padding: 12px 14px;
+}
+
+.appeal-student-card {
+  border-radius: var(--co-radius-lg);
+  border: 1px solid var(--co-glass-border);
+  background: var(--co-glass-bg);
+  backdrop-filter: blur(var(--co-glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--co-glass-blur-sm));
+  box-shadow: var(--co-ios-card-shadow);
+  padding: 16px;
+  transition: box-shadow var(--co-transition-fast), border-color var(--co-transition-fast);
+}
+
+.appeal-student-card:hover {
+  border-color: color-mix(in srgb, var(--co-primary) 28%, var(--co-glass-border));
+}

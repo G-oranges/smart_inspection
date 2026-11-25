@@ -2,6 +2,7 @@ package service
 
 import (
 	"log"
+	"slices"
 
 	"github.com/google/uuid"
 	"github.com/my-project/backend-go/internal/model"
@@ -38,6 +39,13 @@ var PermissionCatalog = []PermissionDef{
 	{Code: "RESULT_VIEW", Name: "查看查寝结果", Module: "result"},
 	{Code: "RESULT_RECORD", Name: "录入查寝结果", Module: "result"},
 	{Code: "RESULT_EXPORT", Name: "导出查寝结果", Module: "result"},
+	{Code: "APPEAL_VIEW", Name: "查看申诉", Module: "result"},
+	{Code: "APPEAL_HANDLE", Name: "处理申诉", Module: "result"},
+}
+
+var appealPermissionSources = map[string][]string{
+	"APPEAL_VIEW":   {"RESULT_VIEW", "RESULT_RECORD"},
+	"APPEAL_HANDLE": {"RESULT_RECORD"},
 }
 
 // 新增权限时，按“原来已拥有哪个权限”授予给现有角色，避免功能上线后原本能用的人突然用不了。
@@ -61,6 +69,7 @@ var legacyPermissionAliases = map[string]string{
 func EnsurePermissionCatalog(db *gorm.DB) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		byCode := map[string]model.Permission{}
+		newCodes := map[string]bool{}
 		var existing []model.Permission
 		if err := tx.Find(&existing).Error; err != nil {
 			return err
@@ -78,6 +87,7 @@ func EnsurePermissionCatalog(db *gorm.DB) error {
 				return err
 			}
 			byCode[def.Code] = permission
+			newCodes[def.Code] = true
 			log.Printf("Permission catalog: added %s", def.Code)
 			if source, ok := permissionGrantedWith[def.Code]; ok {
 				if sourcePermission, exists := byCode[source]; exists {
@@ -103,8 +113,59 @@ func EnsurePermissionCatalog(db *gorm.DB) error {
 			log.Printf("Permission catalog: merged %s into %s", legacyCode, targetCode)
 		}
 
-		return grantAllToAdmin(tx)
+		if err := grantAllToAdmin(tx, newCodes); err != nil {
+			return err
+		}
+		for code, sources := range appealPermissionSources {
+			if newCodes[code] {
+				if err := inheritAppealPermission(tx, byCode, code, sources); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
 	})
+}
+
+func inheritAppealPermission(tx *gorm.DB, byCode map[string]model.Permission, code string, sources []string) error {
+	target := byCode[code].ID
+	sourceIDs := make([]string, 0, len(sources))
+	for _, source := range sources {
+		id := byCode[source].ID
+		if err := grantToRolesHolding(tx, id, target); err != nil {
+			return err
+		}
+		sourceIDs = append(sourceIDs, id)
+	}
+	var userIDs []string
+	if err := tx.Model(&model.UserPermissionOverride{}).Distinct("userId").
+		Where("permissionId IN ?", sourceIDs).Pluck("userId", &userIDs).Error; err != nil {
+		return err
+	}
+	if len(userIDs) == 0 {
+		return nil
+	}
+	var users []model.User
+	if err := tx.Select("id", "role").Where("id IN ?", userIDs).Find(&users).Error; err != nil {
+		return err
+	}
+	loader := PermissionService{db: tx}
+	for _, user := range users {
+		permissions, err := loader.loadUserPermissions(&user)
+		if err != nil {
+			return err
+		}
+		allow := slices.ContainsFunc(sources, func(source string) bool { return slices.Contains(permissions, source) })
+		if allow == slices.Contains(permissions, code) {
+			continue
+		}
+		if err := tx.Create(&model.UserPermissionOverride{
+			ID: uuid.NewString(), UserID: user.ID, PermissionID: target, Allow: allow,
+		}).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // grantToRolesHolding 给拥有 sourceID 权限的角色补授 targetID 权限。
@@ -170,7 +231,7 @@ func mergeLegacyPermission(tx *gorm.DB, legacyID, targetID string) error {
 }
 
 // grantAllToAdmin 确保管理员角色拥有清单中的全部权限。
-func grantAllToAdmin(tx *gorm.DB) error {
+func grantAllToAdmin(tx *gorm.DB, newCodes map[string]bool) error {
 	var admin model.RoleEntity
 	if err := tx.Select("id").Where("code = ?", model.RoleAdmin).First(&admin).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -180,6 +241,9 @@ func grantAllToAdmin(tx *gorm.DB) error {
 	}
 	codes := make([]string, 0, len(PermissionCatalog))
 	for _, def := range PermissionCatalog {
+		if _, isAppeal := appealPermissionSources[def.Code]; isAppeal && !newCodes[def.Code] {
+			continue
+		}
 		codes = append(codes, def.Code)
 	}
 	var permissionIDs []string

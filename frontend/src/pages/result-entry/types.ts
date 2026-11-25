@@ -250,7 +250,9 @@ export interface DeductionDrawerProps {
   newDeductionForm: ResultEntryNewDeductionForm;
   setNewDeductionForm: Dispatch<SetStateAction<ResultEntryNewDeductionForm>>;
   enabledDeductions: ResultEntryDeductionItem[];
-  appliedDeductions: ResultEntryDeductionRow[];
+  appliedDeductions?: ResultEntryDeductionRow[];
+  disabledCodes?: string[];
+  zIndex?: number;
   settings: AppSettings | null;
   onToggleLocation: (location: string) => void;
   onConfirm: () => void;

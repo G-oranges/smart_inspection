@@ -326,11 +326,27 @@ export function buildQuickActions(
     },
     {
       key: 'results',
-      label: stats.pendingAppeals > 0 ? '处理申诉' : '查寝记录',
-      path: stats.pendingAppeals > 0 ? '/results?focus=appeals' : '/results',
-      tone: stats.pendingAppeals > 0 ? 'error' : 'success',
-      badge: stats.pendingAppeals > 0 ? stats.pendingAppeals : undefined,
-      visible: hasPermission('RESULT_VIEW'),
+      label:
+        stats.pendingAppeals > 0 && hasPermission('APPEAL_VIEW')
+          ? '处理申诉'
+          : hasPermission('RESULT_VIEW')
+            ? '查寝记录'
+            : '申诉处理',
+      path:
+        stats.pendingAppeals > 0 && hasPermission('APPEAL_VIEW')
+          ? '/appeals?status=pending'
+          : hasPermission('RESULT_VIEW')
+            ? '/results'
+            : '/appeals',
+      tone:
+        stats.pendingAppeals > 0 && hasPermission('APPEAL_VIEW')
+          ? 'error'
+          : 'success',
+      badge:
+        stats.pendingAppeals > 0 && hasPermission('APPEAL_VIEW')
+          ? stats.pendingAppeals
+          : undefined,
+      visible: hasPermission('RESULT_VIEW') || hasPermission('APPEAL_VIEW'),
     },
     {
       key: 'occupancy',

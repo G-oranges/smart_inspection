@@ -34,6 +34,7 @@ import type { UseAuthResult } from './hooks/useAuth';
 import {
   AccountPermissionPage,
   AdminSettingsPage,
+  AppealManagementPage,
   AuditLogPage,
   BuildingManagementPage,
   BuildingSelectPage,
@@ -614,6 +615,7 @@ function App() {
                     element={<ResultEntryPage />}
                   />
                   <Route path="/results" element={<ResultViewPage />} />
+                  <Route path="/appeals" element={<AppealManagementPage />} />
                   <Route path="/accounts" element={<AccountPermissionPage />} />
                   <Route path="/settings" element={<AdminSettingsPage />} />
                   <Route path="/buildings" element={<BuildingManagementPage />} />

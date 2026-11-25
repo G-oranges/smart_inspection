@@ -48,8 +48,164 @@ export interface InspectionsListResponse {
   inspections?: ServiceRecord[];
 }
 
+export type AppealStatus = 'pending' | 'approved' | 'rejected' | 'withdrawn';
+
+export type AppealDeductionAction = 'add' | 'update' | 'remove' | 'keep';
+
+export interface AppealDeductionSnapshotRow extends ServiceRecord {
+  id?: string;
+  code: string;
+  count: number;
+  locations: string[];
+  points?: number | null;
+}
+
+export interface AppealDeductionAdjustment {
+  code: string;
+  action: AppealDeductionAction;
+  count?: number;
+  locations?: string[];
+}
+
+export interface AppealStudentSummary extends ServiceRecord {
+  id?: string;
+  fullName?: string;
+  studentNo?: string;
+  college?: string;
+  major?: string;
+  className?: string;
+}
+
+export interface AppealDormSummary extends ServiceRecord {
+  id?: string;
+  building?: string;
+  floor?: number | null;
+  roomNo?: string;
+  campus?: string;
+  gender?: string;
+  buildingRef?: {
+    id?: number | string;
+    name?: string;
+  } | null;
+}
+
+export interface AppealInspectionSummary extends ServiceRecord {
+  id?: string;
+  taskId?: string | null;
+  dormId?: string | null;
+  totalScore?: number | null;
+  comments?: string | null;
+  photos?: string[];
+  photoUrls?: string[];
+  detail?: AppealDeductionSnapshotRow[];
+  createdAt?: string;
+  updatedAt?: string;
+  task?: {
+    id?: string;
+    title?: string;
+    date?: string;
+  } | null;
+  dorm?: AppealDormSummary | null;
+}
+
+export interface AppealRecord extends ServiceRecord {
+  id: string;
+  inspectionId: string;
+  studentId: string;
+  content: string;
+  status: AppealStatus;
+  reply?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+  handledById?: string | null;
+  handledBy?: {
+    id?: string;
+    fullName?: string;
+    username?: string;
+  } | null;
+  handledAt?: string | null;
+  originalScore?: number | null;
+  originalDetail?: AppealDeductionSnapshotRow[] | null;
+  disputedCodes?: string[] | null;
+  adjustedScore?: number | null;
+  adjustedDetail?: AppealDeductionSnapshotRow[] | null;
+  scoreDelta?: number | null;
+  photos?: string[] | null;
+  inspectionChanged?: boolean;
+  student?: AppealStudentSummary | null;
+  inspection?: AppealInspectionSummary | null;
+}
+
 export interface AppealsListResponse {
-  appeals?: ServiceRecord[];
+  appeals?: AppealRecord[];
+  total?: number;
+}
+
+export interface AppealQueryParams extends QueryParams {
+  page?: number;
+  pageSize?: number;
+  status?: AppealStatus | '';
+  keyword?: string;
+  taskId?: string | number;
+  buildingId?: string | number;
+  startAt?: string;
+  endAt?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}
+
+export interface AppealStatsResponse {
+  pending: number;
+  approved: number;
+  rejected: number;
+  withdrawn: number;
+  total: number;
+  avgHandleHours: number;
+}
+
+export interface AppealDeductionItemRow {
+  code: string;
+  name: string;
+  points?: number | null;
+  count: number;
+  locations: string[];
+  disputed: boolean;
+}
+
+export interface AppealDeductionsResponse {
+  rows: AppealDeductionItemRow[];
+  baseScore?: number | null;
+  totalScore?: number | null;
+  inspectionVersion: string;
+}
+
+export interface AppealCreatePayload extends ServiceRecord {
+  inspectionId: EntityId;
+  studentId?: EntityId;
+  content: string;
+  disputedCodes?: string[];
+  photos?: string[];
+}
+
+export interface AppealBatchPayload {
+  ids: string[];
+  status: 'approved' | 'rejected';
+  reply?: string;
+}
+
+export interface AppealBatchFailedItem {
+  id: string;
+  code: string;
+  message: string;
+}
+
+export interface AppealBatchResponse {
+  success: number;
+  failed: AppealBatchFailedItem[];
+}
+
+export interface AppealPhotoUploadResponse {
+  photoId: string;
 }
 
 export interface AssignedDormsResponse {
@@ -76,6 +232,8 @@ export interface AppealHandlePayload extends ServiceRecord {
   appealId?: EntityId;
   status?: string;
   reply?: string;
+  inspectionVersion?: string;
+  deductionAdjustments?: AppealDeductionAdjustment[];
 }
 
 export interface PermissionDefinition extends ServiceRecord {

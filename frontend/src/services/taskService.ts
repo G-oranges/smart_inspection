@@ -1,4 +1,5 @@
 import { buildQueryString, request } from '../utils/api';
+import { appealService } from './appealService';
 
 import type {
   AppealsListResponse,
@@ -71,11 +72,11 @@ export const taskService = {
   },
 
   getAppeals: async (): Promise<AppealsListResponse> => {
-    return request<AppealsListResponse>('/api/appeals');
+    return appealService.getAppeals({ page: 1, pageSize: 200 });
   },
 
   getMyAppeals: async (): Promise<AppealsListResponse> => {
-    return request<AppealsListResponse>('/api/appeals/mine');
+    return appealService.getMyAppeals({ page: 1, pageSize: 200 });
   },
 
   submitScore: async (payload: ScoreSubmissionPayload): Promise<unknown> => {
@@ -124,17 +125,11 @@ export const taskService = {
   },
 
   handleAppeal: async (payload: AppealHandlePayload): Promise<unknown> => {
-    return request(`/api/appeals/${payload.appealId}`, {
-      method: 'PUT',
-      body: { status: payload.status, reply: payload.reply },
-    });
+    return appealService.handleAppeal(payload);
   },
 
   createAppeal: async (payload: ServiceRecord): Promise<unknown> => {
-    return request('/api/appeals', {
-      method: 'POST',
-      body: payload,
-    });
+    return appealService.createAppeal(payload);
   },
 
   fetchAssignedDorms: async (

@@ -64,7 +64,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	inspectionController := controller.NewInspectionController(db, inspectionService)
 
 	appealRepo := repository.NewAppealRepository(db)
-	appealService := service.NewAppealService(appealRepo)
+	appealService := service.NewAppealService(db, appealRepo, service.NewAuditService(db))
 	appealController := controller.NewAppealController(db, appealService)
 
 	dashboardService := service.NewDashboardService(db)
@@ -319,9 +319,16 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 			appeals := protected.Group("/appeals")
 			{
 				appeals.POST("", appealController.Create)
-				appeals.GET("", middleware.RequirePermission("RESULT_VIEW", "RESULT_RECORD"), appealController.GetAppeals)
-				appeals.GET("/mine", appealController.GetMyAppeals) // 移动端我的申诉
-				appeals.PUT("/:id/status", middleware.RequirePermission("RESULT_RECORD"), appealController.UpdateStatus)
+				appeals.GET("/mine", appealController.GetMyAppeals)
+				appeals.POST("/photos", appealController.UploadPhoto)
+				appeals.GET("", middleware.RequirePermission("APPEAL_VIEW"), appealController.GetAppeals)
+				appeals.GET("/stats", middleware.RequirePermission("APPEAL_VIEW"), appealController.GetStats)
+				appeals.PUT("/batch/status", middleware.RequirePermission("APPEAL_HANDLE"), appealController.BatchUpdateStatus)
+				appeals.GET("/:id", middleware.RequirePermission("APPEAL_VIEW"), appealController.GetDetail)
+				appeals.GET("/:id/deductions", middleware.RequirePermission("APPEAL_HANDLE"), appealController.GetDeductions)
+				appeals.GET("/:id/photos/:photoId", appealController.GetPhoto)
+				appeals.PUT("/:id/status", middleware.RequirePermission("APPEAL_HANDLE"), appealController.UpdateStatus)
+				appeals.PUT("/:id/withdraw", appealController.Withdraw)
 			}
 
 			// 看板统计

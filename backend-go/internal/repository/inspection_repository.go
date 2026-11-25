@@ -1,11 +1,15 @@
 package repository
 
 import (
+	"errors"
 	"sort"
+	"time"
 
 	"github.com/my-project/backend-go/internal/model"
 	"gorm.io/gorm"
 )
+
+var ErrInspectionChanged = errors.New("查寝记录已变更，请刷新后再处理")
 
 type InspectionRepository interface {
 	FindAll(page, pageSize int, taskId *string, dormId *string) ([]model.Inspection, int64, error)
@@ -169,7 +173,33 @@ func (r *inspectionRepository) GetByID(id string) (*model.Inspection, error) {
 }
 
 func (r *inspectionRepository) Update(inspection *model.Inspection) error {
-	return r.db.Save(inspection).Error
+	return UpdateInspectionResult(r.db, inspection)
+}
+
+func UpdateInspectionResult(db *gorm.DB, inspection *model.Inspection) error {
+	previous := inspection.UpdatedAt
+	next := time.Now().Truncate(time.Millisecond).Add(time.Millisecond)
+	if !next.After(previous) {
+		next = previous.Truncate(time.Millisecond).Add(time.Millisecond)
+	}
+	query := db.Model(&model.Inspection{}).Where("id = ?", inspection.ID)
+	if previous.IsZero() {
+		query = query.Where("updatedAt IS NULL OR updatedAt = ?", previous)
+	} else {
+		query = query.Where("updatedAt = ?", previous)
+	}
+	result := query.Updates(map[string]any{
+		"totalScore": inspection.TotalScore, "detail": inspection.Detail, "comments": inspection.Comments,
+		"photoUrls": inspection.Photos, "reviewedById": inspection.ReviewedByID, "updatedAt": next,
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected != 1 {
+		return ErrInspectionChanged
+	}
+	inspection.UpdatedAt = next
+	return nil
 }
 
 func (r *inspectionRepository) FindByReviewerID(page, pageSize int, reviewerID string) ([]model.Inspection, int64, error) {

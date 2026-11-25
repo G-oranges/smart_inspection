@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/my-project/backend-go/internal/model"
+	"github.com/my-project/backend-go/internal/repository"
 	"github.com/my-project/backend-go/internal/service"
 	"gorm.io/gorm"
 )
@@ -324,6 +325,10 @@ func (ctrl *TaskController) SubmitTaskInspection(c *gin.Context) {
 
 	err := ctrl.service.SubmitTaskInspection(taskId, req.DormId, userID.(string), req.TotalScore, req.Comments, req.PhotoUrls, req.Detail)
 	if err != nil {
+		if errors.Is(err, repository.ErrInspectionChanged) {
+			respondAppealError(c, err)
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}

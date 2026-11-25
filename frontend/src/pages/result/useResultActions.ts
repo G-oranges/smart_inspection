@@ -1,16 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Modal, message } from 'antd';
 
-import {
-  INITIAL_APPEAL_FORM,
-  INITIAL_HANDLE_FORM,
-} from './resultSchema';
 import { confirmDangerCountdown } from '../../utils/confirm';
 
 import type { EntityId, ServiceQueryParams } from '../../types/service';
 import type {
-  AppealFormState,
-  AppealHandleFormState,
   ContactFormState,
   ResultDetailState,
   ResultInspectionRecord,
@@ -36,6 +30,7 @@ function readErrorMessage(error: unknown, fallback: string): string {
 export function useResultActions({
   actions,
   canAdjust,
+  canViewAppeals,
   activeRoleCode,
   permissionsReady,
   appliedFilters,
@@ -44,12 +39,6 @@ export function useResultActions({
   navigate,
   myProfile,
 }: UseResultActionsProps): UseResultActionsResult {
-  const [appealForm, setAppealForm] = useState<AppealFormState>(
-    INITIAL_APPEAL_FORM as AppealFormState,
-  );
-  const [handleForm, setHandleForm] = useState<AppealHandleFormState>(
-    INITIAL_HANDLE_FORM as AppealHandleFormState,
-  );
   const [contactForm, setContactForm] = useState<ContactFormState>({ phone: '' });
   const [detail, setDetail] = useState<ResultDetailState>(INITIAL_DETAIL_STATE);
   const [exporting, setExporting] = useState(false);
@@ -151,74 +140,6 @@ export function useResultActions({
     }
   }
 
-  async function handleAppealSubmit(): Promise<void> {
-    if (!appealForm.inspectionId || !appealForm.content || !actions.createAppeal) {
-      return;
-    }
-
-    try {
-      const confirmed = await new Promise<boolean>((resolve) => {
-        Modal.confirm({
-          title: '确认提交申诉',
-          content: '申诉提交后将进入审核流程，确认继续？',
-          okText: '确认提交',
-          cancelText: '取消',
-          maskClosable: false,
-          keyboard: false,
-          onOk: () => resolve(true),
-          onCancel: () => resolve(false),
-        });
-      });
-      if (!confirmed) {
-        return;
-      }
-
-      await actions.createAppeal(appealForm);
-      setAppealForm(INITIAL_APPEAL_FORM as AppealFormState);
-      message.success('已提交申诉');
-    } catch (error) {
-      Modal.error({
-        title: '提交失败',
-        content: readErrorMessage(error, '提交申诉失败，请稍后再试'),
-        className: 'apple-modal',
-      });
-    }
-  }
-
-  async function handleAppealHandle(): Promise<void> {
-    if (!handleForm.appealId || !actions.handleAppeal) {
-      return;
-    }
-
-    try {
-      const confirmed = await new Promise<boolean>((resolve) => {
-        Modal.confirm({
-          title: '确认处理申诉',
-          content: '该处理结果将立即生效并通知学生，确认继续？',
-          okText: '确认处理',
-          cancelText: '取消',
-          maskClosable: false,
-          keyboard: false,
-          onOk: () => resolve(true),
-          onCancel: () => resolve(false),
-        });
-      });
-      if (!confirmed) {
-        return;
-      }
-
-      await actions.handleAppeal(handleForm);
-      setHandleForm(INITIAL_HANDLE_FORM as AppealHandleFormState);
-      message.success('已处理该申诉');
-    } catch (error) {
-      Modal.error({
-        title: '处理失败',
-        content: readErrorMessage(error, '处理失败，请稍后重试。'),
-        className: 'apple-modal',
-      });
-    }
-  }
-
   async function handleExport(): Promise<void> {
     if (!filteredInspections.length || !actions.exportResults) {
       return;
@@ -254,7 +175,6 @@ export function useResultActions({
       Modal.error({
         title: '导出失败',
         content: readErrorMessage(error, '数据导出出现异常。'),
-        className: 'apple-modal',
       });
     } finally {
       setExporting(false);
@@ -271,7 +191,9 @@ export function useResultActions({
       await actions.loadMyAppeals?.();
     } else {
       await actions.loadInspections?.();
-      await actions.loadAppeals?.();
+      if (canViewAppeals) {
+        await actions.loadAppeals?.();
+      }
     }
     await actions.loadTasks?.();
     await actions.loadDorms?.();
@@ -311,16 +233,11 @@ export function useResultActions({
       Modal.error({
         title: '删除失败',
         content: readErrorMessage(error, '操作失败，请稍后重试。'),
-        className: 'apple-modal',
       });
     }
   }
 
   return {
-    appealForm,
-    setAppealForm,
-    handleForm,
-    setHandleForm,
     contactForm,
     setContactForm,
     contactStatus,
@@ -330,8 +247,6 @@ export function useResultActions({
     handleCloseDetail,
     handleModifyNavigation,
     handleContactSubmit,
-    handleAppealSubmit,
-    handleAppealHandle,
     handleExport,
     handleRefresh,
     handleDeleteResults,

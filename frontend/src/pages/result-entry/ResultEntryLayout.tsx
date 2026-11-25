@@ -2,11 +2,11 @@ import { Button, Image, Input, Progress, Skeleton, Tag, Tooltip } from 'antd';
 import {
   CameraOutlined,
   CloseOutlined,
-  DeleteOutlined,
   EditOutlined,
   PlusOutlined,
 } from '@ant-design/icons';
 
+import DeductionRowItem from '../../components/common/DeductionRowItem';
 import PermissionDeniedState from '../../components/common/PermissionDeniedState';
 import { resultRecordPermissionPreset } from '../../components/common/permissionDeniedPresets';
 import { resolvePhotoUrl } from '../../utils/url';
@@ -228,52 +228,23 @@ function DeductionsSection({
         ) : (
           <div>
             {appliedDeductions.map((row, index) => {
-              const { deductionInfo, totalPoints } = resolveDeductionTotal(
+              const { deductionInfo } = resolveDeductionTotal(
                 row,
                 enabledDeductions,
               );
 
               return (
-                <div
+                <DeductionRowItem
                   key={String(row.id)}
-                  className="re-deduction-row"
-                  style={{
-                    borderBottom:
-                      index < appliedDeductions.length - 1
-                        ? '1px solid var(--co-glass-border)'
-                        : undefined,
-                  }}
-                  onClick={() => canSubmit && onOpenEditDrawer(row)}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm truncate" style={{ color: 'var(--co-text)' }}>
-                      {deductionInfo?.name || '未选择'}
-                    </div>
-                    <div className="text-[11px] mt-0.5 flex items-center gap-1 flex-wrap" style={{ color: 'var(--co-text-muted)' }}>
-                      {row.locations.length > 0 ? (
-                        row.locations.map((loc) => <span key={loc}>{loc}</span>)
-                      ) : (
-                        <span className="italic">公共区域</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <span className="re-deduct-total">-{totalPoints}</span>
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={
-                        <DeleteOutlined style={{ color: 'var(--co-text-muted)', transition: 'color 0.15s' }} />
-                      }
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onRemoveDeductionRow(row.id);
-                      }}
-                      disabled={!canSubmit}
-                      className="hover:!text-red-500"
-                    />
-                  </div>
-                </div>
+                  name={deductionInfo?.name || '未选择'}
+                  locations={row.locations}
+                  points={deductionInfo?.points ?? 0}
+                  count={row.count || 1}
+                  showDivider={index < appliedDeductions.length - 1}
+                  disabled={!canSubmit}
+                  onClick={() => onOpenEditDrawer(row)}
+                  onRemove={() => onRemoveDeductionRow(row.id)}
+                />
               );
             })}
           </div>

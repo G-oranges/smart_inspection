@@ -21,6 +21,7 @@ export interface DeductionItem {
 export interface AppSettings {
   gradingRules: GradingRule[];
   inspectionDefaultScore: number;
+  appealWindowDays?: number;
   studentContactEditable: boolean;
   contactEmailDomains: string[];
   deductionItems: DeductionItem[];

@@ -78,86 +78,92 @@ func (s *auditService) Log(params AuditLogParams) error {
 
 	// 异步处理：获取名称、序列化数据并写入数据库
 	go func() {
-		operatorName := params.OperatorName
-		// 如果 OperatorName 为空或无效，尝试从数据库查询
-		if operatorName == "" || operatorName == "<nil>" || operatorName == "%!v(MISSING)" {
-			if params.OperatorID != "" && params.OperatorID != "<nil>" {
-				var user model.User
-				// 仅查询 FullName 字段
-				if err := s.db.Select("fullName").Where("id = ?", params.OperatorID).First(&user).Error; err == nil {
-					operatorName = user.FullName
-				}
-			}
-			if operatorName == "" {
-				operatorName = "系统"
-			}
-		}
-
-		// 处理可选字段的 nil 值，避免违反外键约束 (空字符串 != NULL)
-		var targetIDPtr, operatorIDPtr, ipAddressPtr, userAgentPtr, targetNamePtr, descriptionPtr, operatorNamePtr *string
-
-		if params.TargetID != "" {
-			tID := params.TargetID
-			targetIDPtr = &tID
-		}
-		if params.TargetName != "" {
-			tName := params.TargetName
-			targetNamePtr = &tName
-		}
-		if params.Description != "" {
-			desc := params.Description
-			descriptionPtr = &desc
-		}
-		if params.OperatorID != "" && params.OperatorID != "<nil>" {
-			oID := params.OperatorID
-			operatorIDPtr = &oID
-		}
-		if operatorName != "" {
-			oName := operatorName
-			operatorNamePtr = &oName
-		}
-		if params.IPAddress != "" {
-			ip := params.IPAddress
-			ipAddressPtr = &ip
-		}
-		if params.UserAgent != "" {
-			ua := params.UserAgent
-			userAgentPtr = &ua
-		}
-
-		logEntry := model.AuditLog{
-			ID:           id,
-			Action:       params.Action,
-			Module:       params.Module,
-			TargetID:     targetIDPtr,
-			TargetName:   targetNamePtr,
-			Description:  descriptionPtr,
-			OperatorID:   operatorIDPtr,
-			OperatorName: operatorNamePtr,
-			IPAddress:    ipAddressPtr,
-			UserAgent:    userAgentPtr,
-			CreatedAt:    now,
-		}
-
-		// 序列化 OldValue 和 NewValue
-		if params.OldValue != nil {
-			if data, err := json.Marshal(params.OldValue); err == nil {
-				logEntry.OldValue = datatypes.JSON(data)
-			}
-		}
-		if params.NewValue != nil {
-			if data, err := json.Marshal(params.NewValue); err == nil {
-				logEntry.NewValue = datatypes.JSON(data)
-			}
-		}
-
-		if err := s.db.Create(&logEntry).Error; err != nil {
-			// 审计日志写入失败不影响主业务，仅打印错误
+		if err := s.write(params, now, id, false); err != nil {
 			println("Failed to create audit log async:", err.Error())
 		}
 	}()
-
 	return nil
+}
+
+func (s *auditService) write(params AuditLogParams, now time.Time, id string, strict bool) error {
+	operatorName := params.OperatorName
+	// 如果 OperatorName 为空或无效，尝试从数据库查询
+	if operatorName == "" || operatorName == "<nil>" || operatorName == "%!v(MISSING)" {
+		if params.OperatorID != "" && params.OperatorID != "<nil>" {
+			var user model.User
+			// 仅查询 FullName 字段
+			if err := s.db.Select("fullName").Where("id = ?", params.OperatorID).First(&user).Error; err == nil {
+				operatorName = user.FullName
+			}
+		}
+		if operatorName == "" {
+			operatorName = "系统"
+		}
+	}
+
+	// 处理可选字段的 nil 值，避免违反外键约束 (空字符串 != NULL)
+	var targetIDPtr, operatorIDPtr, ipAddressPtr, userAgentPtr, targetNamePtr, descriptionPtr, operatorNamePtr *string
+
+	if params.TargetID != "" {
+		tID := params.TargetID
+		targetIDPtr = &tID
+	}
+	if params.TargetName != "" {
+		tName := params.TargetName
+		targetNamePtr = &tName
+	}
+	if params.Description != "" {
+		desc := params.Description
+		descriptionPtr = &desc
+	}
+	if params.OperatorID != "" && params.OperatorID != "<nil>" {
+		oID := params.OperatorID
+		operatorIDPtr = &oID
+	}
+	if operatorName != "" {
+		oName := operatorName
+		operatorNamePtr = &oName
+	}
+	if params.IPAddress != "" {
+		ip := params.IPAddress
+		ipAddressPtr = &ip
+	}
+	if params.UserAgent != "" {
+		ua := params.UserAgent
+		userAgentPtr = &ua
+	}
+
+	logEntry := model.AuditLog{
+		ID:           id,
+		Action:       params.Action,
+		Module:       params.Module,
+		TargetID:     targetIDPtr,
+		TargetName:   targetNamePtr,
+		Description:  descriptionPtr,
+		OperatorID:   operatorIDPtr,
+		OperatorName: operatorNamePtr,
+		IPAddress:    ipAddressPtr,
+		UserAgent:    userAgentPtr,
+		CreatedAt:    now,
+	}
+
+	// 序列化 OldValue 和 NewValue
+	if params.OldValue != nil {
+		data, err := json.Marshal(params.OldValue)
+		if err != nil && strict {
+			return err
+		}
+		logEntry.OldValue = datatypes.JSON(data)
+	}
+	if params.NewValue != nil {
+		data, err := json.Marshal(params.NewValue)
+		if err != nil && strict {
+			return err
+		}
+		logEntry.NewValue = datatypes.JSON(data)
+	}
+
+	return s.db.Create(&logEntry).Error
 }
 
 // 全局审计服务实例（方便在各处调用）

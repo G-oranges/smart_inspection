@@ -273,6 +273,14 @@ export function useTasks(user?: UserLike | null, activeRole?: RoleLike | null) {
       return;
     }
 
+    if (currentRole === 'STUDENT') {
+      if (!loaded.appeals || force) {
+        setCollection('appeals', []);
+        setLoadedFlag('appeals', true);
+      }
+      return;
+    }
+
     await loadCollection<AppealsListResponse>({
       loaded: loaded.appeals,
       force,
@@ -283,7 +291,7 @@ export function useTasks(user?: UserLike | null, activeRole?: RoleLike | null) {
       },
       logLabel: 'appeals',
     });
-  }, [loaded.appeals, setCollection, setLoadedFlag]);
+  }, [currentRole, loaded.appeals, setCollection, setLoadedFlag]);
 
   const fetchMyAppeals = useCallback(async (force = false): Promise<void> => {
     if (!tokenManager.hasTokens()) {

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/my-project/backend-go/internal/model"
+	"github.com/my-project/backend-go/internal/repository"
 	"gorm.io/gorm"
 )
 
@@ -100,7 +101,7 @@ type inspectionScoreRow struct {
 
 type DashboardService interface {
 	GetSummary(userID string) (*DashboardStats, error)
-	GetSummaryWithRange(userID string, rangeKey string) (*DashboardStats, error)
+	GetSummaryWithRange(userID string, rangeKey string, includeAppeals bool) (*DashboardStats, error)
 	InvalidateCache() // 用于强制刷新缓存
 }
 
@@ -149,10 +150,10 @@ func resolveDashboardWindowStart(rangeKey string, now time.Time) *time.Time {
 }
 
 func (s *dashboardService) GetSummary(userID string) (*DashboardStats, error) {
-	return s.GetSummaryWithRange(userID, "6m")
+	return s.GetSummaryWithRange(userID, "6m", true)
 }
 
-func (s *dashboardService) GetSummaryWithRange(userID string, rangeKey string) (*DashboardStats, error) {
+func (s *dashboardService) GetSummaryWithRange(userID string, rangeKey string, includeAppeals bool) (*DashboardStats, error) {
 	scope, err := ResolveUserDataScopeByUserID(s.db, userID)
 	if err != nil {
 		return nil, err
@@ -288,12 +289,14 @@ func (s *dashboardService) GetSummaryWithRange(userID string, rangeKey string) (
 		stats.TrendData = buildEmptyTrendData(normalizedRange, now)
 	}
 
-	pendingCount, pendingList, err := s.queryVisiblePendingAppeals(scope, 5)
-	if err != nil {
-		return nil, err
+	if includeAppeals {
+		pendingCount, pendingList, err := s.queryVisiblePendingAppeals(scope, 5)
+		if err != nil {
+			return nil, err
+		}
+		stats.PendingAppeals = pendingCount
+		stats.PendingAppealList = pendingList
 	}
-	stats.PendingAppeals = pendingCount
-	stats.PendingAppealList = pendingList
 
 	myDormSummary, err := s.buildMyDormSummary(userID, now)
 	if err != nil {
@@ -664,41 +667,25 @@ func (s *dashboardService) buildFullScoreDorms(visibleDormIDs *gorm.DB, since *t
 }
 
 func (s *dashboardService) queryVisiblePendingAppeals(scope *ResolvedUserDataScope, limit int) (int64, []DashboardPendingAppeal, error) {
-	var appeals []model.Appeal
-	if err := s.db.Preload("Student").Preload("Inspection.Dorm").
-		Where("status = ?", model.AppealPending).
-		Order("createdAt DESC").
-		Find(&appeals).Error; err != nil {
+	appeals, total, err := repository.NewAppealRepository(s.db).FindPage(repository.AppealQuery{
+		Page: 1, PageSize: limit, Status: model.AppealPending, Scope: ApplyAppealScope(scope),
+	})
+	if err != nil {
 		return 0, nil, err
 	}
-
-	var count int64
-	list := make([]DashboardPendingAppeal, 0, limit)
+	list := make([]DashboardPendingAppeal, 0, len(appeals))
 	for _, appeal := range appeals {
-		allowed := scope == nil || scope.All ||
-			scopeAllowsStudentForDashboard(scope, &appeal.Student) ||
-			scopeAllowsDormForDashboard(scope, appeal.Inspection.Dorm)
-		if !allowed {
-			continue
+		studentName := strings.TrimSpace(appeal.Student.FullName)
+		if studentName == "" {
+			studentName = "学生"
 		}
-		count++
-		if len(list) < limit {
-			studentName := strings.TrimSpace(appeal.Student.FullName)
-			if studentName == "" {
-				studentName = "学生"
-			}
-			list = append(list, DashboardPendingAppeal{
-				ID:           appeal.ID,
-				InspectionID: appeal.InspectionID,
-				DormName:     formatDashboardDormName(appeal.Inspection.Dorm),
-				StudentName:  studentName,
-				TotalScore:   appeal.Inspection.TotalScore,
-				Content:      strings.TrimSpace(appeal.Content),
-				CreatedAt:    appeal.CreatedAt,
-			})
-		}
+		list = append(list, DashboardPendingAppeal{
+			ID: appeal.ID, InspectionID: appeal.InspectionID,
+			DormName: formatDashboardDormName(appeal.Inspection.Dorm), StudentName: studentName,
+			TotalScore: appeal.Inspection.TotalScore, Content: strings.TrimSpace(appeal.Content), CreatedAt: appeal.CreatedAt,
+		})
 	}
-	return count, list, nil
+	return total, list, nil
 }
 
 func (s *dashboardService) buildMyDormSummary(userID string, now time.Time) (*DashboardMyDormSummary, error) {
@@ -829,61 +816,4 @@ func buildScopeLabel(scope *ResolvedUserDataScope) string {
 		return fmt.Sprintf("管辖 %d 间宿舍", len(scope.Dormitory.DormIDs))
 	}
 	return "管辖范围"
-}
-
-func scopeAllowsStudentForDashboard(scope *ResolvedUserDataScope, student *model.Student) bool {
-	if scope == nil || scope.All {
-		return true
-	}
-	if student == nil || !scope.HasAcademicAccess() {
-		return false
-	}
-
-	college := ptrToStr(student.College)
-	if college != "" {
-		if _, ok := scope.Academic.Colleges[college]; ok {
-			return true
-		}
-	}
-	major := ptrToStr(student.Major)
-	if major != "" {
-		if _, ok := scope.Academic.Majors[major]; ok {
-			return true
-		}
-	}
-	className := ptrToStr(student.ClassName)
-	if className != "" {
-		if _, ok := scope.Academic.ClassNames[className]; ok {
-			return true
-		}
-	}
-	return false
-}
-
-func scopeAllowsDormForDashboard(scope *ResolvedUserDataScope, dorm *model.Dormitory) bool {
-	if scope == nil || scope.All {
-		return true
-	}
-	if dorm == nil || !scope.HasDormitoryAccess() {
-		return false
-	}
-	if dorm.ID != "" && scope.AllowsDormID(dorm.ID) {
-		return true
-	}
-	building := ptrToStr(dorm.Building)
-	roomNo := ptrToStr(dorm.RoomNo)
-	if building == "" {
-		return false
-	}
-	if dorm.RoomNo != nil && roomNo != "" {
-		floor := 0
-		if dorm.Floor != nil {
-			floor = *dorm.Floor
-		}
-		return scope.AllowsRoom(building, floor, roomNo)
-	}
-	if dorm.Floor != nil {
-		return scope.AllowsFloor(building, *dorm.Floor)
-	}
-	return scope.AllowsBuilding(building)
 }

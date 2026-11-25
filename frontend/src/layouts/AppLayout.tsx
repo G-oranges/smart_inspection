@@ -62,6 +62,7 @@ interface AppLayoutNavChild {
   label: string;
   permission?: string | string[] | null;
   roleExclude?: string[];
+  allowRoles?: string[];
 }
 
 interface MobileLayoutProps {
@@ -510,25 +511,36 @@ const AppLayout = () => {
   const canEditContact = Boolean(settings?.studentContactEditable);
 
   const checkItemPermission = useMemo(
-    () => (item: Pick<AppLayoutNavChild, 'permission' | 'roleExclude'>): boolean => {
-      if (
-        item.roleExclude &&
-        activeRole?.code &&
-        item.roleExclude.includes(activeRole.code)
-      ) {
-        return false;
-      }
+    () =>
+      (
+        item: Pick<AppLayoutNavChild, 'permission' | 'roleExclude' | 'allowRoles'>,
+      ): boolean => {
+        if (
+          item.roleExclude &&
+          activeRole?.code &&
+          item.roleExclude.includes(activeRole.code)
+        ) {
+          return false;
+        }
 
-      if (!item.permission) {
-        return true;
-      }
+        if (
+          item.allowRoles &&
+          activeRole?.code &&
+          item.allowRoles.includes(activeRole.code)
+        ) {
+          return true;
+        }
 
-      if (Array.isArray(item.permission)) {
-        return item.permission.some((code) => hasPermission(code));
-      }
+        if (!item.permission) {
+          return true;
+        }
 
-      return hasPermission(item.permission);
-    },
+        if (Array.isArray(item.permission)) {
+          return item.permission.some((code) => hasPermission(code));
+        }
+
+        return hasPermission(item.permission);
+      },
     [activeRole?.code, hasPermission],
   );
 
@@ -555,6 +567,12 @@ const AppLayout = () => {
           { key: '/tasks/publish', label: '任务发布', permission: ['TASK_PUBLISH', 'TASK_EDIT', 'TASK_DELETE'] },
           { key: '/tasks/entry', label: '分数录入', permission: 'RESULT_RECORD' },
           { key: '/results', label: '结果查看', permission: 'RESULT_VIEW' },
+          {
+            key: '/appeals',
+            label: activeRole?.code === 'STUDENT' ? '我的申诉' : '申诉处理',
+            permission: 'APPEAL_VIEW',
+            allowRoles: ['STUDENT'],
+          },
         ],
       },
       {
@@ -589,14 +607,18 @@ const AppLayout = () => {
 
       return [{ ...item, children: visibleChildren }];
     });
-  }, [checkItemPermission]);
+  }, [activeRole?.code, checkItemPermission]);
 
   useEffect(() => {
     if (!permissionsReady || !activeRole) {
       return;
     }
 
-    const routeGuards: Array<{ prefix: string; permission: string | string[] }> = [
+    const routeGuards: Array<{
+      prefix: string;
+      permission: string | string[];
+      allowRoles?: string[];
+    }> = [
       { prefix: '/buildings', permission: 'SYSTEM_SETTINGS' },
       { prefix: '/dorms', permission: 'DORM_VIEW' },
       { prefix: '/occupancy', permission: 'DORM_VIEW' },
@@ -605,6 +627,7 @@ const AppLayout = () => {
       { prefix: '/tasks/publish', permission: ['TASK_PUBLISH', 'TASK_EDIT', 'TASK_DELETE'] },
       { prefix: '/tasks/entry', permission: 'RESULT_RECORD' },
       { prefix: '/results', permission: 'RESULT_VIEW' },
+      { prefix: '/appeals', permission: 'APPEAL_VIEW', allowRoles: ['STUDENT'] },
       {
         prefix: '/accounts',
         permission: ['PERMISSION_MANAGE', 'USER_MANAGE'],
@@ -623,9 +646,16 @@ const AppLayout = () => {
       return;
     }
 
-    const allowed = Array.isArray(matchedGuard.permission)
-      ? matchedGuard.permission.some((code) => hasPermission(code))
-      : hasPermission(matchedGuard.permission);
+    const allowedByRole = Boolean(
+      matchedGuard.allowRoles &&
+        activeRole.code &&
+        matchedGuard.allowRoles.includes(activeRole.code),
+    );
+    const allowed =
+      allowedByRole ||
+      (Array.isArray(matchedGuard.permission)
+        ? matchedGuard.permission.some((code) => hasPermission(code))
+        : hasPermission(matchedGuard.permission));
 
     if (!allowed) {
       antMessage.warning('当前角色无权访问此页面，已自动跳转');
@@ -844,10 +874,14 @@ const AppLayout = () => {
       layoutActions.loadMyInspections?.();
       layoutActions.loadMyAppeals?.();
     } else {
-      layoutActions.loadInspections?.();
-      layoutActions.loadAppeals?.();
+      if (hasPermission("RESULT_VIEW")) {
+        layoutActions.loadInspections?.();
+      }
+      if (hasPermission("APPEAL_VIEW")) {
+        layoutActions.loadAppeals?.();
+      }
     }
-  }, [profileOpen, basePhone, baseEmail, layoutActions, activeRole?.code]);
+  }, [profileOpen, basePhone, baseEmail, layoutActions, activeRole?.code, hasPermission]);
 
   const stats = useMemo(() => {
     const inspectionCount =

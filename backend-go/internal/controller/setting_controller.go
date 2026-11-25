@@ -23,7 +23,7 @@ func (ctrl *SettingController) GetSettings(c *gin.Context) {
 	var settings model.SystemSettings
 	if err := ctrl.db.First(&settings).Error; err != nil {
 		// 如果不存在则初始化一个默认的
-		settings = model.SystemSettings{ID: 1, InspectionDefaultScore: 100}
+		settings = model.SystemSettings{ID: 1, InspectionDefaultScore: 100, AppealWindowDays: service.DefaultAppealWindowDays}
 	}
 	// 包裹在 settings 键中，与前端解析逻辑匹配
 	c.JSON(http.StatusOK, gin.H{"settings": settings})
@@ -36,14 +36,32 @@ func (ctrl *SettingController) UpdateSettings(c *gin.Context) {
 		return
 	}
 
-	var req model.SystemSettings
-	if err := c.ShouldBindJSON(&req); err != nil {
+	var payload struct {
+		model.SystemSettings
+		AppealWindowDays *int `json:"appealWindowDays"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "参数错误"})
 		return
 	}
 
+	req := payload.SystemSettings
 	req.ID = 1 // 强制更新 ID 为 1 的记录
-	if err := ctrl.db.Save(&req).Error; err != nil {
+	save := ctrl.db
+	if payload.AppealWindowDays != nil {
+		if *payload.AppealWindowDays < 1 || *payload.AppealWindowDays > 36500 {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "申诉时限须为 1 至 36500 天"})
+			return
+		}
+		req.AppealWindowDays = *payload.AppealWindowDays
+	} else {
+		save = save.Omit("AppealWindowDays")
+	}
+	if err := save.Save(&req).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+	if err := ctrl.db.First(&req, 1).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}

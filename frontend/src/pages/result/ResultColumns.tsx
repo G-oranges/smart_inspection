@@ -4,7 +4,12 @@
 
 import type { ColumnsType } from 'antd/es/table';
 import { Button, Image, Space, Tag, Tooltip } from "antd";
-import { DeleteOutlined, EyeOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  EyeOutlined,
+  MessageOutlined,
+  WarningOutlined,
+} from "@ant-design/icons";
 import dayjs from "dayjs";
 import { resolvePhotoUrl } from "../../utils/url";
 import { GRADE_COLORS } from "./resultSchema";
@@ -12,6 +17,7 @@ import { GRADE_COLORS } from "./resultSchema";
 import type { EntityId } from '../../types/service';
 import type {
   RatingForScore,
+  ResultAppealRecord,
   ResultInspectionRecord,
 } from './types';
 
@@ -23,8 +29,13 @@ interface CreateBaseColumnsOptions {
 
 interface CreateActionColumnOptions {
   canAdjust: boolean;
+  canViewAppeals?: boolean;
+  activeRoleCode?: string;
+  appealByInspectionId?: Map<string, ResultAppealRecord>;
   onOpenDetail: (inspection: ResultInspectionRecord) => Promise<void>;
   onDelete: (ids: EntityId[]) => Promise<void>;
+  onOpenAppealCreate?: (inspection: ResultInspectionRecord) => void;
+  onViewAppeal?: (appealId: EntityId) => void;
 }
 
 export function createBaseColumns({
@@ -195,45 +206,105 @@ export function createBaseColumns({
 
 export function createActionColumn({
   canAdjust,
+  canViewAppeals,
+  activeRoleCode,
+  appealByInspectionId,
   onOpenDetail,
   onDelete,
+  onOpenAppealCreate,
+  onViewAppeal,
 }: CreateActionColumnOptions): ColumnsType<ResultInspectionRecord>[number] {
+  const isStudent = activeRoleCode === "STUDENT";
+  const hasExtraAppealCol = isStudent || Boolean(canViewAppeals);
+  const colWidth = canAdjust
+    ? hasExtraAppealCol
+      ? 112
+      : 76
+    : hasExtraAppealCol
+      ? 80
+      : 44;
+
   return {
     title: "操作",
     key: "actions",
     fixed: "right",
-    width: canAdjust ? 76 : 44,
+    width: colWidth,
     className: "table-action-column",
-    render: (_, record) => (
-      <Space size={8} className="table-action-buttons dorm-table-action-group">
-        <Tooltip title="查看详情">
-          <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => onOpenDetail(record)}
-            className="dorm-table-action-btn is-view"
-            aria-label="查看详情"
-          />
-        </Tooltip>
-        {canAdjust && (
-          <Tooltip title="删除记录">
+    render: (_, record) => {
+      const matchedAppeal =
+        record.id !== undefined && record.id !== null
+          ? appealByInspectionId?.get(String(record.id))
+          : undefined;
+      const canSeeAppeal =
+        matchedAppeal?.id !== undefined &&
+        matchedAppeal?.id !== null &&
+        (isStudent || Boolean(canViewAppeals));
+      const canCreateAppeal =
+        isStudent &&
+        !canSeeAppeal &&
+        record.totalScore !== null &&
+        record.totalScore !== undefined;
+
+      return (
+        <Space size={8} className="table-action-buttons dorm-table-action-group">
+          <Tooltip title="查看详情">
             <Button
               type="text"
               size="small"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => {
-                if (record.id !== undefined && record.id !== null) {
-                  void onDelete([record.id]);
-                }
-              }}
-              className="dorm-table-action-btn is-danger"
-              aria-label="删除记录"
+              icon={<EyeOutlined />}
+              onClick={() => onOpenDetail(record)}
+              className="dorm-table-action-btn is-view"
+              aria-label="查看详情"
             />
           </Tooltip>
-        )}
-      </Space>
-    ),
+          {canSeeAppeal && matchedAppeal?.id !== undefined ? (
+            <Tooltip
+              title={
+                matchedAppeal.status === "pending"
+                  ? "查看待处理申诉"
+                  : "查看申诉详情"
+              }
+            >
+              <Button
+                type="text"
+                size="small"
+                icon={<MessageOutlined />}
+                onClick={() => onViewAppeal?.(matchedAppeal.id!)}
+                className="dorm-table-action-btn is-edit"
+                aria-label="查看申诉"
+              />
+            </Tooltip>
+          ) : canCreateAppeal ? (
+            <Tooltip title="提交申诉">
+              <Button
+                type="text"
+                size="small"
+                icon={<WarningOutlined />}
+                onClick={() => onOpenAppealCreate?.(record)}
+                className="dorm-table-action-btn is-edit"
+                aria-label="提交申诉"
+              />
+            </Tooltip>
+          ) : null}
+          {canAdjust && (
+            <Tooltip title="删除记录">
+              <Button
+                type="text"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => {
+                  if (record.id !== undefined && record.id !== null) {
+                    void onDelete([record.id]);
+                  }
+                }}
+                className="dorm-table-action-btn is-danger"
+                aria-label="删除记录"
+              />
+            </Tooltip>
+          )}
+        </Space>
+      );
+    },
   };
 }

@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/my-project/backend-go/internal/model"
+	"github.com/my-project/backend-go/internal/repository"
 	"github.com/my-project/backend-go/internal/service"
 	"github.com/my-project/backend-go/pkg/utils"
 	"gorm.io/gorm"
@@ -93,6 +95,10 @@ func (ctrl *InspectionController) SubmitResult(c *gin.Context) {
 	userID, _ := c.Get("userId")
 	inspection, err := ctrl.service.SubmitResult(id, req, userID.(string))
 	if err != nil {
+		if errors.Is(err, repository.ErrInspectionChanged) {
+			respondAppealError(c, err)
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}

@@ -100,9 +100,8 @@ func initDB() {
 	}
 
 	DB = db
-	// 自动迁移鉴权相关结构和系统设置，确保权限中心新增字段可用
+	// 自动迁移鉴权相关结构，确保权限中心新增字段可用
 	if err := DB.AutoMigrate(
-		&model.SystemSettings{},
 		&model.RoleType{},
 		&model.RoleEntity{},
 		&model.Permission{},
@@ -114,11 +113,15 @@ func initDB() {
 	}
 	ensureUserColumns(DB)
 	ensureUserRoleColumnIsText(DB)
+	// Appeal references existing business tables. Avoid migrating those tables as associations.
+	if err := DB.AutoMigrate(&model.Appeal{}, &model.SystemSettings{}); err != nil {
+		log.Fatalf("Failed to migrate appeal schema: %v", err)
+	}
 	if err := service.EnsureRoleTypeCatalog(DB); err != nil {
 		log.Printf("Warning: Failed to initialize role types: %v", err)
 	}
 	if err := service.EnsurePermissionCatalog(DB); err != nil {
-		log.Printf("Warning: Failed to sync permission catalog: %v", err)
+		log.Fatalf("Failed to sync permission catalog: %v", err)
 	}
 	if err := service.EnsureDataScopeDefaults(DB); err != nil {
 		log.Printf("Warning: Failed to migrate data scope defaults: %v", err)

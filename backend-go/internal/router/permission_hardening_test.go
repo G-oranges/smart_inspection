@@ -6,11 +6,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/my-project/backend-go/internal/model"
+	"github.com/my-project/backend-go/internal/service"
 	"github.com/my-project/backend-go/pkg/utils"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -53,6 +56,91 @@ func setupHardeningRouter(t *testing.T) (*gin.Engine, *gorm.DB, authzSeed) {
 	db := setupAuthzTestDB(t)
 	seed := seedAuthzData(t, db)
 	return SetupRouter(db), db, seed
+}
+
+func TestHardening_AppealManagementRequiresIndependentPermissions(t *testing.T) {
+	router, _, seed := setupHardeningRouter(t)
+	for _, identity := range []struct{ id, role string }{
+		{seed.studentUserID, "STUDENT"},
+		{seed.leaderUserID, "LEADER"},
+	} {
+		token := mustAccessToken(t, identity.id, identity.role)
+		if resp := performAuthzRequest(router, http.MethodGet, "/api/appeals", token); resp.Code != http.StatusForbidden {
+			t.Fatalf("%s without APPEAL_VIEW: got %d", identity.role, resp.Code)
+		}
+		if resp := performAuthzRequest(router, http.MethodPut, "/api/appeals/test/status", token); resp.Code != http.StatusForbidden {
+			t.Fatalf("%s without APPEAL_HANDLE: got %d", identity.role, resp.Code)
+		}
+	}
+	if resp := performAuthzRequest(router, http.MethodGet, "/api/appeals/test/photos/test", ""); resp.Code != http.StatusUnauthorized {
+		t.Fatalf("anonymous photo request: got %d", resp.Code)
+	}
+}
+
+func TestAppealRouteVersionConflictAndCorrection(t *testing.T) {
+	router, db, seed := setupHardeningRouter(t)
+	if err := db.AutoMigrate(&model.Appeal{}, &model.Inspection{}, &model.Dormitory{}, &model.SystemSettings{}); err != nil {
+		t.Fatal(err)
+	}
+	if err := service.EnsurePermissionCatalog(db); err != nil {
+		t.Fatal(err)
+	}
+	dormID := uuid.NewString()
+	score := 80
+	inspection := model.Inspection{
+		ID: uuid.NewString(), DormID: &dormID, TotalScore: &score,
+		CreatedAt: time.Now().Add(-time.Hour), UpdatedAt: time.Now().Add(-time.Hour),
+		Detail: datatypes.JSON(`[{"id":"row-1","code":"A","count":1,"locations":[]}]`),
+	}
+	if err := db.Create(&model.Dormitory{ID: dormID}).Error; err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Delete(&model.Dormitory{}, "id = ?", dormID) })
+	if err := db.Create(&inspection).Error; err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		db.Delete(&model.Appeal{}, "inspectionId = ?", inspection.ID)
+		db.Delete(&model.Inspection{}, "id = ?", inspection.ID)
+	})
+	if err := db.Model(&model.Student{}).Where("userId = ?", seed.studentUserID).Update("dormId", dormID).Error; err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		db.Model(&model.Student{}).Where("userId = ?", seed.studentUserID).Update("dormId", nil)
+	})
+	studentToken := mustAccessToken(t, seed.studentUserID, "STUDENT")
+	created := performJSONRequest(router, http.MethodPost, "/api/appeals", studentToken, map[string]any{
+		"inspectionId": inspection.ID, "content": "请复核本宿舍扣分记录",
+	})
+	var appeal model.Appeal
+	if err := json.Unmarshal(created.Body.Bytes(), &appeal); created.Code != http.StatusCreated || err != nil || appeal.ID == "" {
+		t.Fatalf("create: %d %s (%v)", created.Code, created.Body, err)
+	}
+	adminToken := mustAccessToken(t, seed.adminUserID, "ADMIN")
+	path := "/api/appeals/" + appeal.ID
+	preview := performAuthzRequest(router, http.MethodGet, path+"/deductions", adminToken)
+	var details service.AppealDeductions
+	if err := json.Unmarshal(preview.Body.Bytes(), &details); preview.Code != http.StatusOK || err != nil || details.InspectionVersion.IsZero() {
+		t.Fatalf("deductions: %d %s (%v)", preview.Code, preview.Body, err)
+	}
+	input := map[string]any{
+		"status": "approved", "inspectionVersion": details.InspectionVersion.Add(-time.Minute),
+		"deductionAdjustments": []map[string]any{{"code": "A", "action": "remove"}},
+	}
+	conflict := performJSONRequest(router, http.MethodPut, path+"/status", adminToken, input)
+	var failure struct {
+		Code string `json:"code"`
+	}
+	if err := json.Unmarshal(conflict.Body.Bytes(), &failure); conflict.Code != http.StatusConflict || err != nil || failure.Code != "INSPECTION_CHANGED" {
+		t.Fatalf("stale version: %d %s (%v)", conflict.Code, conflict.Body, err)
+	}
+	input["inspectionVersion"] = details.InspectionVersion
+	approved := performJSONRequest(router, http.MethodPut, path+"/status", adminToken, input)
+	if err := json.Unmarshal(approved.Body.Bytes(), &appeal); approved.Code != http.StatusOK || err != nil ||
+		appeal.Inspection.TotalScore == nil || *appeal.Inspection.TotalScore != 82 || appeal.Status != model.AppealApproved {
+		t.Fatalf("approve: %d %s (%v)", approved.Code, approved.Body, err)
+	}
 }
 
 // 只有账号管理权限（无「权限配置」）的操作者，不能给别人分配管理员角色，也不能删除/重置管理员。

@@ -16,9 +16,10 @@ const (
 
 // AppealStatus 枚举
 const (
-	AppealPending  = "pending"
-	AppealApproved = "approved"
-	AppealRejected = "rejected"
+	AppealPending   = "pending"
+	AppealApproved  = "approved"
+	AppealRejected  = "rejected"
+	AppealWithdrawn = "withdrawn"
 )
 
 // BedStatus 枚举
@@ -421,16 +422,29 @@ func (Inspection) TableName() string {
 
 // Appeal 模型
 type Appeal struct {
-	ID           string     `gorm:"column:id;primaryKey;type:char(36)" json:"id"`
-	Inspection   Inspection `gorm:"foreignKey:InspectionID" json:"inspection,omitempty"`
-	InspectionID string     `gorm:"column:inspectionId;type:char(36)" json:"inspectionId"`
-	Student      Student    `gorm:"foreignKey:StudentID" json:"student,omitempty"`
-	StudentID    string     `gorm:"column:studentId;type:char(36)" json:"studentId"`
-	Content      string     `gorm:"column:content;not null" json:"content"`
-	Status       string     `gorm:"column:status;default:'pending'" json:"status"`
-	Reply        *string    `gorm:"column:reply" json:"reply"`
-	CreatedAt    time.Time  `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
-	UpdatedAt    time.Time  `gorm:"column:updatedAt;autoUpdateTime" json:"updatedAt"`
+	ID                        string         `gorm:"column:id;primaryKey;type:char(36)" json:"id"`
+	Inspection                Inspection     `gorm:"foreignKey:InspectionID" json:"inspection,omitempty"`
+	InspectionID              string         `gorm:"column:inspectionId;type:char(36);index:idx_appeal_pending,priority:1" json:"inspectionId"`
+	Student                   Student        `gorm:"foreignKey:StudentID" json:"student,omitempty"`
+	StudentID                 string         `gorm:"column:studentId;type:char(36);index:idx_appeal_student;index:idx_appeal_pending,priority:2" json:"studentId"`
+	Content                   string         `gorm:"column:content;not null" json:"content"`
+	Status                    string         `gorm:"column:status;type:varchar(32);default:'pending';index:idx_appeal_status;index:idx_appeal_pending,priority:3" json:"status"`
+	Reply                     *string        `gorm:"column:reply" json:"reply"`
+	CreatedAt                 time.Time      `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
+	UpdatedAt                 time.Time      `gorm:"column:updatedAt;autoUpdateTime" json:"updatedAt"`
+	HandledBy                 *User          `gorm:"foreignKey:HandledByID" json:"handledBy,omitempty"`
+	HandledByID               *string        `gorm:"column:handledById;type:char(36)" json:"handledById"`
+	HandledAt                 *time.Time     `gorm:"column:handledAt" json:"handledAt"`
+	OriginalScore             *int           `gorm:"column:originalScore" json:"originalScore"`
+	OriginalInspectionVersion *time.Time     `gorm:"column:originalInspectionVersion;precision:6" json:"-"`
+	OriginalDetail            datatypes.JSON `gorm:"column:originalDetail" json:"originalDetail"`
+	DisputedCodes             datatypes.JSON `gorm:"column:disputedCodes" json:"disputedCodes"`
+	AdjustedScore             *int           `gorm:"column:adjustedScore" json:"adjustedScore"`
+	AdjustedDetail            datatypes.JSON `gorm:"column:adjustedDetail" json:"adjustedDetail"`
+	ScoreDelta                *int           `gorm:"column:scoreDelta" json:"scoreDelta"`
+	Photos                    datatypes.JSON `gorm:"column:photoUrls" json:"photos"`
+	PhotoUploaderID           *string        `gorm:"column:photoUploaderId;type:char(36)" json:"-"`
+	InspectionChanged         bool           `gorm:"-" json:"inspectionChanged"`
 }
 
 func (Appeal) TableName() string {
@@ -442,6 +456,7 @@ type SystemSettings struct {
 	ID                     int            `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	GradingRules           datatypes.JSON `gorm:"column:gradingRules;not null" json:"gradingRules"`
 	InspectionDefaultScore int            `gorm:"column:inspectionDefaultScore;default:100" json:"inspectionDefaultScore"`
+	AppealWindowDays       int            `gorm:"column:appealWindowDays;not null;default:7" json:"appealWindowDays"`
 	StudentContactEditable bool           `gorm:"column:studentContactEditable;default:false" json:"studentContactEditable"`
 	ContactEmailDomains    datatypes.JSON `gorm:"column:contactEmailDomains" json:"contactEmailDomains"`
 

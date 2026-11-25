@@ -1,8 +1,4 @@
-import type {
-  AppealHandleFormState,
-  AppealFormState,
-  ResultFiltersState,
-} from './types';
+import type { ResultFiltersState } from './types';
 
 export const RESULT_FILTER_KEYS = ["taskId", "grade", "college", "level", "gender"];
 
@@ -63,15 +59,4 @@ export const INITIAL_REVIEW_FORM = {
   totalScore: "",
   comments: "",
   photoUrls: [],
-};
-
-export const INITIAL_APPEAL_FORM: AppealFormState = {
-  inspectionId: "",
-  content: "",
-};
-
-export const INITIAL_HANDLE_FORM: AppealHandleFormState = {
-  appealId: "",
-  status: "approved",
-  reply: "",
 };

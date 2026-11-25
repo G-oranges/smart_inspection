@@ -1,12 +1,72 @@
 package service
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/my-project/backend-go/internal/model"
 	"gorm.io/gorm"
 )
+
+func TestEnsurePermissionCatalog_InheritsAppealAccessOnce(t *testing.T) {
+	db := openDataScopeTestDB(t)
+	if err := db.AutoMigrate(&model.User{}, &model.RoleEntity{}, &model.Permission{}, &model.RolePermission{}, &model.UserPermissionOverride{}); err != nil {
+		t.Fatal(err)
+	}
+	makeRows := func(rows ...any) {
+		t.Helper()
+		for _, row := range rows {
+			if err := db.Create(row).Error; err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	roles := []model.RoleEntity{
+		{ID: "admin", Code: model.RoleAdmin, Name: "Admin", Status: "ACTIVE"},
+		{ID: "recorder", Code: "RECORDER", Name: "Recorder", Status: "ACTIVE"},
+	}
+	users := []model.User{
+		{ID: "deny-view", Username: "deny-view", FullName: "Deny View", Role: "RECORDER", Password: "test"},
+		{ID: "deny-both", Username: "deny-both", FullName: "Deny Both", Role: "RECORDER", Password: "test"},
+		{ID: "allow-one", Username: "allow-one", FullName: "Allow One", Role: "NONE", Password: "test"},
+	}
+	makeRows(&roles, &users,
+		&model.Permission{ID: "view", Code: "RESULT_VIEW", Name: "View", Module: "result"},
+		&model.Permission{ID: "record", Code: "RESULT_RECORD", Name: "Record", Module: "result"},
+		&model.RolePermission{ID: "recorder-view", RoleID: "recorder", PermissionID: "view"},
+		&model.RolePermission{ID: "recorder-record", RoleID: "recorder", PermissionID: "record"},
+		&model.UserPermissionOverride{ID: "deny-view-view", UserID: "deny-view", PermissionID: "view"},
+		&model.UserPermissionOverride{ID: "deny-both-view", UserID: "deny-both", PermissionID: "view"},
+		&model.UserPermissionOverride{ID: "deny-both-record", UserID: "deny-both", PermissionID: "record"},
+		&model.UserPermissionOverride{ID: "allow-one-view", UserID: "allow-one", PermissionID: "view", Allow: true},
+	)
+	if err := EnsurePermissionCatalog(db); err != nil {
+		t.Fatal(err)
+	}
+	loader := PermissionService{db: db}
+	for i, want := range [][2]bool{{true, true}, {false, false}, {true, false}} {
+		got, err := loader.loadUserPermissions(&users[i])
+		if err != nil || slices.Contains(got, "APPEAL_VIEW") != want[0] || slices.Contains(got, "APPEAL_HANDLE") != want[1] {
+			t.Fatalf("%s: effective permissions %v (%v)", users[i].ID, got, err)
+		}
+	}
+	var view model.Permission
+	if err := db.First(&view, "code = ?", "APPEAL_VIEW").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Where("permissionId = ?", view.ID).Delete(&model.RolePermission{}).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := EnsurePermissionCatalog(db); err != nil {
+		t.Fatal(err)
+	}
+	for _, role := range roles {
+		if rolePermissionCodes(t, db, role.ID)["APPEAL_VIEW"] {
+			t.Fatalf("restart regranted APPEAL_VIEW to %s", role.Code)
+		}
+	}
+}
 
 func rolePermissionCodes(t *testing.T, db *gorm.DB, roleID string) map[string]bool {
 	t.Helper()

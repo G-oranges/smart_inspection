@@ -18,6 +18,7 @@ interface DashboardAlertsPanelProps {
   lowScoreDorms: DashboardLowScoreDorm[];
   isMobile: boolean;
   canViewResults: boolean;
+  canViewAppeals?: boolean;
 }
 
 export default function DashboardAlertsPanel({
@@ -25,8 +26,10 @@ export default function DashboardAlertsPanel({
   lowScoreDorms,
   isMobile,
   canViewResults,
+  canViewAppeals,
 }: DashboardAlertsPanelProps) {
   const navigate = useNavigate();
+  const canOpenAppeals = canViewAppeals ?? canViewResults;
   const [tab, setTab] = useState<'appeals' | 'lowScore'>(() =>
     pendingAppeals.length > 0 ? 'appeals' : 'lowScore',
   );
@@ -42,10 +45,8 @@ export default function DashboardAlertsPanel({
   const limit = isMobile ? 3 : 4;
 
   const openAppeal = (appeal: DashboardPendingAppeal) => {
-    if (!canViewResults) return;
-    navigate(
-      `/results?appealId=${encodeURIComponent(appeal.id)}&focus=appeals`,
-    );
+    if (!canOpenAppeals) return;
+    navigate(`/appeals?appealId=${encodeURIComponent(appeal.id)}`);
   };
 
   const openLowScore = (item: DashboardLowScoreDorm) => {
@@ -79,14 +80,14 @@ export default function DashboardAlertsPanel({
             },
           ]}
         />
-        {canViewResults ? (
+        {(tab === 'appeals' ? canOpenAppeals : canViewResults) ? (
           <Button
             type="link"
             size="small"
             onClick={() =>
               navigate(
                 tab === 'appeals'
-                  ? '/results?focus=appeals'
+                  ? '/appeals?status=pending'
                   : '/results?sort=score_asc',
               )
             }
@@ -112,8 +113,8 @@ export default function DashboardAlertsPanel({
                   key={item.id}
                   className="mobile-compact-card co-press"
                   onClick={() => openAppeal(item)}
-                  role={canViewResults ? 'button' : undefined}
-                  tabIndex={canViewResults ? 0 : undefined}
+                  role={canOpenAppeals ? 'button' : undefined}
+                  tabIndex={canOpenAppeals ? 0 : undefined}
                 >
                   <div className="compact-card-header">
                     <div className="compact-header-left">
@@ -136,7 +137,7 @@ export default function DashboardAlertsPanel({
                   key={item.id}
                   type="button"
                   onClick={() => openAppeal(item)}
-                  disabled={!canViewResults}
+                  disabled={!canOpenAppeals}
                   className="dashboard-alert-row co-press"
                 >
                   <div className="dashboard-alert-row__main">

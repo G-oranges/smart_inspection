@@ -353,7 +353,7 @@ func (s *taskService) SubmitTaskInspection(taskId string, dormId string, reviewe
 	photoBytes, _ := json.Marshal(photos)
 	detailBytes, _ := json.Marshal(detail)
 
-	if err != nil {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		// 创建新记录
 		inspection = model.Inspection{
 			ID:           uuid.New().String(),
@@ -368,6 +368,9 @@ func (s *taskService) SubmitTaskInspection(taskId string, dormId string, reviewe
 		}
 		return s.db.Create(&inspection).Error
 	}
+	if err != nil {
+		return err
+	}
 
 	// 更新旧记录
 	inspection.TotalScore = &score
@@ -375,7 +378,5 @@ func (s *taskService) SubmitTaskInspection(taskId string, dormId string, reviewe
 	inspection.Photos = photoBytes
 	inspection.Detail = detailBytes
 	inspection.ReviewedByID = &reviewerID
-	inspection.UpdatedAt = time.Now()
-
-	return s.db.Save(&inspection).Error
+	return repository.UpdateInspectionResult(s.db, &inspection)
 }

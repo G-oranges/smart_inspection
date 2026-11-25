@@ -78,16 +78,36 @@ export default function DashboardMyDormCard({
         </div>
       </div>
 
-      {canViewResults ? (
+      <div className="flex flex-wrap gap-2.5">
+        {canViewResults ? (
+          <button
+            type="button"
+            onClick={() => navigate('/results')}
+            className="apple-btn-secondary dashboard-my-dorm__cta co-press flex-1"
+          >
+            <span>查看查寝成绩</span>
+            <ArrowRightOutlined />
+          </button>
+        ) : null}
         <button
           type="button"
-          onClick={() => navigate('/results')}
-          className="apple-btn-secondary dashboard-my-dorm__cta co-press"
+          onClick={() =>
+            navigate(
+              summary.myPendingAppeals > 0
+                ? '/appeals?status=pending'
+                : '/appeals',
+            )
+          }
+          className="apple-btn-secondary dashboard-my-dorm__cta co-press flex-1"
         >
-          <span>查看查寝成绩</span>
+          <span>
+            {summary.myPendingAppeals > 0
+              ? `我的申诉 (${summary.myPendingAppeals})`
+              : '我的申诉'}
+          </span>
           <ArrowRightOutlined />
         </button>
-      ) : null}
+      </div>
     </section>
   );
 }

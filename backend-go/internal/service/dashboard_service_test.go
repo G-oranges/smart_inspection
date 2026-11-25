@@ -266,7 +266,7 @@ func TestDashboardServiceGetSummaryWithRange_ExtendedMetrics(t *testing.T) {
 	}
 
 	svc := NewDashboardService(db)
-	stats3m, err := svc.GetSummaryWithRange(admin.ID, "3m")
+	stats3m, err := svc.GetSummaryWithRange(admin.ID, "3m", true)
 	if err != nil {
 		t.Fatalf("get 3m summary failed: %v", err)
 	}
@@ -290,7 +290,7 @@ func TestDashboardServiceGetSummaryWithRange_ExtendedMetrics(t *testing.T) {
 		t.Fatalf("unexpected task progress: %+v", taskSummary)
 	}
 
-	stuStats, err := svc.GetSummaryWithRange(studentUser.ID, "month")
+	stuStats, err := svc.GetSummaryWithRange(studentUser.ID, "month", false)
 	if err != nil {
 		t.Fatalf("get student summary failed: %v", err)
 	}

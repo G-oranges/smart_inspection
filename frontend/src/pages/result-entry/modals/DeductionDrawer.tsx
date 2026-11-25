@@ -10,7 +10,9 @@ export default function DeductionDrawer({
   newDeductionForm,
   setNewDeductionForm,
   enabledDeductions,
-  appliedDeductions,
+  appliedDeductions = [],
+  disabledCodes,
+  zIndex,
   settings,
   onToggleLocation,
   onConfirm,
@@ -21,12 +23,52 @@ export default function DeductionDrawer({
       : DEFAULT_LOCATION_OPTIONS
   ).filter((location): location is string => typeof location === 'string');
 
+  const selectedOption = enabledDeductions.find(
+    (item) => item.code === newDeductionForm.code,
+  );
+  const maxAllowedCount = (() => {
+    const points = Number(selectedOption?.points) || 0;
+    const rawMax = selectedOption?.maxPoints;
+    const maxPoints =
+      rawMax !== null && rawMax !== undefined && rawMax !== ''
+        ? Number(rawMax)
+        : NaN;
+    if (points > 0 && Number.isFinite(maxPoints) && maxPoints > 0) {
+      return Math.max(1, Math.floor(maxPoints / points));
+    }
+    return 10;
+  })();
+
+  const selectOptions = disabledCodes
+    ? enabledDeductions.map((option) => {
+        const isCurrentEditing =
+          Boolean(newDeductionForm.id) && option.code === newDeductionForm.code;
+        const isDisabled = !isCurrentEditing && disabledCodes.includes(option.code);
+        return {
+          value: option.code,
+          label: `${option.name} (-${option.points}分)${isDisabled ? '（已添加）' : ''}`,
+          disabled: isDisabled,
+        };
+      })
+    : enabledDeductions
+        .filter((option) => {
+          if (newDeductionForm.id && option.code === newDeductionForm.code) {
+            return true;
+          }
+          return !appliedDeductions.some((item) => item.code === option.code);
+        })
+        .map((option) => ({
+          value: option.code,
+          label: `${option.name} (-${option.points}分)`,
+        }));
+
   return (
     <Drawer
       open={open}
       onClose={onClose}
       placement="bottom"
       height="auto"
+      zIndex={zIndex}
       closable={false}
       className="ios-drawer-rounded"
       styles={{
@@ -62,19 +104,13 @@ export default function DeductionDrawer({
               className="w-full"
               size="large"
               onChange={(value) => {
-                setNewDeductionForm((prev) => ({ ...prev, code: value }));
+                setNewDeductionForm((prev) => ({
+                  ...prev,
+                  code: value,
+                  count: 1,
+                }));
               }}
-              options={enabledDeductions
-                .filter((option) => {
-                  if (newDeductionForm.id && option.code === newDeductionForm.code) {
-                    return true;
-                  }
-                  return !appliedDeductions.some((item) => item.code === option.code);
-                })
-                .map((option) => ({
-                  value: option.code,
-                  label: `${option.name} (-${option.points}分)`,
-                }))}
+              options={selectOptions}
             />
           </div>
 
@@ -86,7 +122,7 @@ export default function DeductionDrawer({
               <InputNumber
                 value={newDeductionForm.count}
                 min={1}
-                max={10}
+                max={maxAllowedCount}
                 size="large"
                 className="flex-1 text-center"
                 onChange={(value) =>

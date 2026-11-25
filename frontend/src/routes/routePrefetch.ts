@@ -67,6 +67,9 @@ const resultEntryImporter = createPreloadableImporter(
 const resultViewImporter = createPreloadableImporter(
   () => import('../pages/ResultViewPage'),
 );
+const appealManagementImporter = createPreloadableImporter(
+  () => import('../pages/AppealManagementPage'),
+);
 const accountPermissionImporter = createPreloadableImporter(
   () => import('../pages/AccountPermissionPage'),
 );
@@ -99,6 +102,7 @@ export const OccupancyManagementPage = createLazyRoute(
 export const TaskPublishPage = createLazyRoute(taskPublishImporter);
 export const ResultEntryPage = createLazyRoute(resultEntryImporter);
 export const ResultViewPage = createLazyRoute(resultViewImporter);
+export const AppealManagementPage = createLazyRoute(appealManagementImporter);
 export const AccountPermissionPage = createLazyRoute(accountPermissionImporter);
 export const AdminSettingsPage = createLazyRoute(adminSettingsImporter);
 export const BuildingSelectPage = createLazyRoute(buildingSelectImporter);
@@ -126,6 +130,7 @@ const ROUTE_MATCHERS: RouteMatcher[] = [
     ],
   },
   { exact: '/results', loaders: [resultViewImporter] },
+  { exact: '/appeals', loaders: [appealManagementImporter] },
   { exact: '/accounts', loaders: [accountPermissionImporter] },
   { exact: '/settings', loaders: [adminSettingsImporter] },
   { exact: '/buildings', loaders: [buildingManagementImporter] },
@@ -201,7 +206,7 @@ export function getLikelyPrefetchPaths(roleCode: RoleCode) {
     case 'TEACHER':
       return ['/dashboard', '/teachers', '/results', '/tasks/entry/buildings'];
     case 'STUDENT':
-      return ['/dashboard', '/results'];
+      return ['/dashboard', '/results', '/appeals'];
     case 'LEADER':
       return ['/dashboard', '/results', '/audit-logs'];
     default:

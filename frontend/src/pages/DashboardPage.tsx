@@ -81,6 +81,7 @@ export default function DashboardPage() {
   );
 
   const canViewResults = hasPermission('RESULT_VIEW');
+  const canViewAppeals = hasPermission('APPEAL_VIEW');
   const updatedTimeText = dataUpdatedAt
     ? dayjs(dataUpdatedAt).format('HH:mm')
     : '--:--';
@@ -159,6 +160,7 @@ export default function DashboardPage() {
               lowScoreDorms={lowScoreDorms}
               isMobile
               canViewResults={canViewResults}
+              canViewAppeals={canViewAppeals}
             />
           ) : null}
         </div>
@@ -210,6 +212,7 @@ export default function DashboardPage() {
                   lowScoreDorms={lowScoreDorms}
                   isMobile={false}
                   canViewResults={canViewResults}
+                  canViewAppeals={canViewAppeals}
                 />
               </Col>
             ) : null}

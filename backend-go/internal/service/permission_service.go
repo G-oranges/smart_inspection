@@ -56,7 +56,7 @@ type userPermCacheItem struct {
 
 const (
 	permCacheTTL       = 10 * time.Minute
-	permRedisKeyPrefix = "user_perms:"
+	permRedisKeyPrefix = "user_perms:v2:"
 )
 
 const (
@@ -151,6 +151,20 @@ func (s *PermissionService) ComputeUserPermissions(user *model.User) ([]string, 
 		}
 	}
 
+	result, err := s.loadUserPermissions(user)
+	if err != nil {
+		return nil, err
+	}
+	s.cache.mu.Lock()
+	s.cache.userPerms[user.ID] = userPermCacheItem{perms: result, updatedAt: time.Now()}
+	s.cache.mu.Unlock()
+	if data, err := json.Marshal(result); err == nil {
+		utils.SetCache(redisKey, data, permCacheTTL)
+	}
+	return result, nil
+}
+
+func (s *PermissionService) loadUserPermissions(user *model.User) ([]string, error) {
 	// 3. 收集用户的所有角色代码
 	roleCodes := make(map[string]bool)
 	if user.Role != "" {
@@ -230,19 +244,6 @@ func (s *PermissionService) ComputeUserPermissions(user *model.User) ([]string, 
 	result := make([]string, 0, len(permissionSet))
 	for code := range permissionSet {
 		result = append(result, code)
-	}
-
-	// 6. 更新 L1
-	s.cache.mu.Lock()
-	s.cache.userPerms[user.ID] = userPermCacheItem{
-		perms:     result,
-		updatedAt: time.Now(),
-	}
-	s.cache.mu.Unlock()
-
-	// 7. 更新 L2
-	if data, err := json.Marshal(result); err == nil {
-		utils.SetCache(redisKey, data, permCacheTTL)
 	}
 
 	return result, nil

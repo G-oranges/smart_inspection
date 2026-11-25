@@ -45,3 +45,9 @@ export const studentManagementPermissionPreset = {
   message: '当前角色没有学生管理权限，请联系管理员开通。',
   variant: 'warning' as const,
 };
+
+export const appealManagementPermissionPreset = {
+  title: '无权访问申诉处理',
+  message: '当前角色没有申诉查看权限，请切换角色或联系管理员开通。',
+  variant: 'warning' as const,
+};

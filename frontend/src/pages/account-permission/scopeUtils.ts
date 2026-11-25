@@ -27,10 +27,10 @@ export const INHERIT_OPTION = { value: 'INHERIT' as const, label: '跟随角色�
 
 export const PRESET_HINTS: Record<ScopeEditorMode, string> = {
   INHERIT: '按用户所属角色的数据范围计算，多角色合并生效。',
-  OWN_COLLEGE: '仅可见本学院的学生及其宿舍、查寝结果和任务；未填学院时不可见数据。',
+  OWN_COLLEGE: '仅可见本学院的学生及其宿舍、查寝结果、申诉和任务；未填学院时不可见数据。',
   SELF: '仅可见本人宿舍数据（教职工无本人宿舍）。',
-  ACADEMIC: '可见所选学院、专业或班级的学生及其宿舍、查寝结果和任务。',
-  DORMITORY: '可见所选楼栋、楼层或房间的宿舍、查寝结果和任务。',
+  ACADEMIC: '可见所选学院、专业或班级的学生及其宿舍、查寝结果、申诉和任务。',
+  DORMITORY: '可见所选楼栋、楼层或房间的宿舍、查寝结果、申诉和任务。',
   CUSTOM: '学院范围与楼栋范围合并生效。',
   ALL: '可见全校全部数据，仅建议授予管理类角色。',
 };
@@ -49,7 +49,7 @@ export const PERMISSION_MODULE_LABELS: Record<string, string> = {
   teacher: '教职工',
   dorm: '宿舍与入住',
   task: '查寝任务',
-  result: '查寝结果',
+  result: '查寝结果与申诉',
 };
 
 export function permissionModuleLabel(module: string): string {

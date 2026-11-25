@@ -1,15 +1,12 @@
 import type { Dispatch, Key, SetStateAction } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Button, Col, FloatButton, Form, Input, Row, Select, Table } from 'antd';
-import PanelSelect from '../components/common/PanelSelect';
+import { Col, FloatButton, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
-  CheckCircleOutlined,
   DashboardOutlined,
   FileSearchOutlined,
   SafetyCertificateOutlined,
-  SendOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -28,6 +25,8 @@ import { useResultTableState } from '../hooks/useResultTableState';
 import { useBulkSelection } from '../hooks/useBulkSelection';
 import { useTableFetch } from '../hooks/useTableFetch';
 import { gradeLabelFromRules } from '../utils/settings';
+import { AppealCreateModal, useAppealActions } from './appeal';
+import type { AppealCandidateInspection } from './appeal/modals/AppealCreateModal';
 import {
   createActionColumn,
   createBaseColumns,
@@ -38,7 +37,7 @@ import {
   useResultActions,
 } from './result';
 
-import type { EntityId, ServiceRecord } from '../types/service';
+import type { AppealRecord, EntityId, ServiceRecord } from '../types/service';
 import type { PaginationState } from '../types/table';
 import type {
   RatingForScore,
@@ -51,28 +50,10 @@ import type {
   ResultTaskRecord,
 } from './result/types';
 
-const { Option } = Select;
-
 interface ResultStatsProps {
   inspections: ResultInspectionRecord[];
   appeals: ResultAppealRecord[];
   totalCount: number;
-}
-
-interface ResultAuxiliaryPanelsProps {
-  activeRoleCode?: string;
-  inspections: ResultInspectionRecord[];
-  appeals: ResultAppealRecord[];
-  appealForm: { inspectionId: EntityId | ''; content: string };
-  setAppealForm: Dispatch<
-    SetStateAction<{ inspectionId: EntityId | ''; content: string }>
-  >;
-  handleAppealSubmit: () => Promise<void>;
-  handleForm: { appealId: EntityId | ''; status: string; reply: string };
-  setHandleForm: Dispatch<
-    SetStateAction<{ appealId: EntityId | ''; status: string; reply: string }>
-  >;
-  handleAppealHandle: () => Promise<void>;
 }
 
 interface ResultListSectionProps {
@@ -89,26 +70,19 @@ interface ResultListSectionProps {
 }
 
 interface ResultViewContentProps {
-  activeRoleCode?: string;
   allAppeals: ResultAppealRecord[];
   allInspections: ResultInspectionRecord[];
-  appeals: ResultAppealRecord[];
-  appealForm: { inspectionId: EntityId | ''; content: string };
   canAdjust: boolean;
+  collegeOptions: string[];
   draftFilters: ResultFiltersState;
   exporting: boolean;
   filteredInspections: ResultInspectionRecord[];
   gradeOptions: string[];
-  collegeOptions: string[];
-  handleAppealHandle: () => Promise<void>;
-  handleAppealSubmit: () => Promise<void>;
   handleDeleteResults: (ids: EntityId[]) => Promise<void>;
   handleExport?: () => Promise<void>;
-  handleForm: { appealId: EntityId | ''; status: string; reply: string };
   handleRefresh: () => Promise<void>;
   handleResetFilters: () => void;
   handleSearch: () => void;
-  inspections: ResultInspectionRecord[];
   isDirty: boolean;
   isMobile: boolean;
   levelOptions: string[];
@@ -116,16 +90,9 @@ interface ResultViewContentProps {
   pagination: PaginationState;
   ratingForScore: RatingForScore;
   selectedResultIds: EntityId[];
-  setAppealForm: Dispatch<
-    SetStateAction<{ inspectionId: EntityId | ''; content: string }>
-  >;
   setDraftFilters: Dispatch<SetStateAction<ResultFiltersState>>;
-  setHandleForm: Dispatch<
-    SetStateAction<{ appealId: EntityId | ''; status: string; reply: string }>
-  >;
   setPagination: Dispatch<SetStateAction<PaginationState>>;
   setSelectedResultIds: Dispatch<SetStateAction<EntityId[]>>;
-  showAuxPanels: boolean;
   tableColumns: ColumnsType<ResultInspectionRecord>;
   totalCount: number;
 }
@@ -133,15 +100,18 @@ interface ResultViewContentProps {
 interface ResultViewOverlaysProps {
   actionSheetOpen: boolean;
   activeRoleCode?: string;
+  appealByInspectionId: Map<string, ResultAppealRecord>;
   canAdjust: boolean;
+  canViewAppeals: boolean;
   detail: ReturnType<typeof useResultActions>['detail'];
   filteredInspections: ResultInspectionRecord[];
   handleCloseDetail: () => void;
   handleDeleteResults: (ids: EntityId[]) => Promise<void>;
   handleModifyNavigation: (inspection: ResultInspectionRecord) => void;
   handleOpenDetail: (inspection: ResultInspectionRecord) => Promise<void>;
-  handleSelectAppealInspection: (inspectionId: EntityId) => void;
   isMobile: boolean;
+  onOpenAppealCreate: (inspection: ResultInspectionRecord) => void;
+  onViewAppeal: (appealId: EntityId) => void;
   ratingForScore: RatingForScore;
   selectedResultIds: EntityId[];
   setActionSheetOpen: Dispatch<SetStateAction<boolean>>;
@@ -266,173 +236,6 @@ function mapResultStatsToSegments(
   ];
 }
 
-function ResultAuxiliaryPanels({
-  activeRoleCode,
-  inspections,
-  appeals,
-  appealForm,
-  setAppealForm,
-  handleAppealSubmit,
-  handleForm,
-  setHandleForm,
-  handleAppealHandle,
-}: ResultAuxiliaryPanelsProps) {
-  const showAppealPanel = activeRoleCode === 'STUDENT' && inspections.length > 0;
-  const showReviewPanel = appeals.length > 0;
-
-  if (!showAppealPanel && !showReviewPanel) {
-    return null;
-  }
-
-  return (
-    <div className="space-y-6">
-      {showAppealPanel ? (
-        <div
-          id="appeal-section"
-          className="glass-panel p-6 rounded-3xl shadow-sm border border-black/5"
-        >
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-1.5 h-6 bg-purple-500 rounded-full" />
-            <h3 className="text-lg font-bold">提交申诉</h3>
-          </div>
-          <Form
-            layout="vertical"
-            onFinish={() => {
-              void handleAppealSubmit();
-            }}
-          >
-            <Row gutter={24}>
-              <Col xs={24} md={8}>
-                <Form.Item label="查寝记录" required className="apple-form-item">
-                  <PanelSelect
-                    value={appealForm.inspectionId}
-                    onChange={(inspectionId: EntityId) =>
-                      setAppealForm((prev) => ({ ...prev, inspectionId }))
-                    }
-                    placeholder="请选择需要申诉的记录"
-                    className="apple-select"
-                  >
-                    {inspections.map((item) => (
-                      <Option key={String(item.id)} value={item.id}>
-                        {item.task?.title || item.id} ({item.totalScore} 分)
-                      </Option>
-                    ))}
-                  </PanelSelect>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={16}>
-                <Form.Item label="申诉理由" required className="apple-form-item">
-                  <div className="flex gap-2">
-                    <Input
-                      className="apple-input !rounded-xl flex-1"
-                      value={appealForm.content}
-                      onChange={(event) =>
-                        setAppealForm((prev) => ({
-                          ...prev,
-                          content: event.target.value,
-                        }))
-                      }
-                      placeholder="说明具体情况或扣分异议"
-                    />
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      icon={<SendOutlined />}
-                      className="apple-btn-primary"
-                    >
-                      提交申诉
-                    </Button>
-                  </div>
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
-        </div>
-      ) : null}
-
-      {showReviewPanel ? (
-        <div
-          id="appeal-review-section"
-          className="glass-panel p-6 rounded-3xl shadow-sm border border-black/5"
-        >
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-1.5 h-6 bg-red-500 rounded-full" />
-            <h3 className="text-lg font-bold">待处理申诉</h3>
-          </div>
-          <Form
-            layout="vertical"
-            onFinish={() => {
-              void handleAppealHandle();
-            }}
-          >
-            <Row gutter={24}>
-              <Col xs={24} md={6}>
-                <Form.Item label="申诉事项" required className="apple-form-item">
-                  <PanelSelect
-                    value={handleForm.appealId}
-                    onChange={(appealId: EntityId) =>
-                      setHandleForm((prev) => ({ ...prev, appealId }))
-                    }
-                    placeholder="待处理申诉"
-                    className="apple-select"
-                  >
-                    {appeals
-                      .filter((appeal) => appeal.status === 'pending')
-                      .map((appeal) => (
-                        <Option key={String(appeal.id)} value={appeal.id}>
-                          {appeal.studentName || '未知学生'} - {dayjs(appeal.createdAt).format('MM-DD')}
-                        </Option>
-                      ))}
-                  </PanelSelect>
-                </Form.Item>
-              </Col>
-              <Col xs={12} md={4}>
-                <Form.Item label="处理结果" className="apple-form-item">
-                  <PanelSelect
-                    value={handleForm.status}
-                    onChange={(status: string) =>
-                      setHandleForm((prev) => ({ ...prev, status }))
-                    }
-                    className="apple-select"
-                  >
-                    <Option value="approved">通过（可修改得分）</Option>
-                    <Option value="rejected">驳回</Option>
-                  </PanelSelect>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={14}>
-                <Form.Item label="回复学生" className="apple-form-item">
-                  <div className="flex gap-2">
-                    <Input
-                      className="apple-input !rounded-xl flex-1"
-                      value={handleForm.reply}
-                      onChange={(event) =>
-                        setHandleForm((prev) => ({
-                          ...prev,
-                          reply: event.target.value,
-                        }))
-                      }
-                      placeholder="输入回复内容"
-                    />
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      icon={<CheckCircleOutlined />}
-                      className="apple-btn-primary"
-                    >
-                      提交处理
-                    </Button>
-                  </div>
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 function ResultListSection({
   isMobile,
   filteredInspections,
@@ -541,26 +344,19 @@ function ResultViewAccessDenied({ navigateHome }: { navigateHome: () => void }) 
 }
 
 function ResultViewContent({
-  activeRoleCode,
   allAppeals,
   allInspections,
-  appeals,
-  appealForm,
   canAdjust,
   collegeOptions,
   draftFilters,
   exporting,
   filteredInspections,
   gradeOptions,
-  handleAppealHandle,
-  handleAppealSubmit,
   handleDeleteResults,
   handleExport,
-  handleForm,
   handleRefresh,
   handleResetFilters,
   handleSearch,
-  inspections,
   isDirty,
   isMobile,
   levelOptions,
@@ -568,44 +364,12 @@ function ResultViewContent({
   pagination,
   ratingForScore,
   selectedResultIds,
-  setAppealForm,
   setDraftFilters,
-  setHandleForm,
   setPagination,
   setSelectedResultIds,
-  showAuxPanels,
   tableColumns,
   totalCount,
 }: ResultViewContentProps) {
-  const listSection = (
-    <ResultListSection
-      isMobile={isMobile}
-      filteredInspections={filteredInspections}
-      selectedResultIds={selectedResultIds}
-      setSelectedResultIds={setSelectedResultIds}
-      pagination={pagination}
-      setPagination={setPagination}
-      totalCount={totalCount}
-      ratingForScore={ratingForScore}
-      canAdjust={canAdjust}
-      tableColumns={tableColumns}
-    />
-  );
-
-  const auxiliaryPanels = (
-    <ResultAuxiliaryPanels
-      activeRoleCode={activeRoleCode}
-      inspections={inspections}
-      appeals={canAdjust ? appeals : []}
-      appealForm={appealForm}
-      setAppealForm={setAppealForm}
-      handleAppealSubmit={handleAppealSubmit}
-      handleForm={handleForm}
-      setHandleForm={setHandleForm}
-      handleAppealHandle={handleAppealHandle}
-    />
-  );
-
   return (
     <div className="result-view-page management-theme-page">
       <PageLayout
@@ -658,17 +422,18 @@ function ResultViewContent({
           />
         }
       >
-        {showAuxPanels && !isMobile ? (
-          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px] gap-6 items-start">
-            {listSection}
-            {auxiliaryPanels}
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {listSection}
-            {auxiliaryPanels}
-          </div>
-        )}
+        <ResultListSection
+          isMobile={isMobile}
+          filteredInspections={filteredInspections}
+          selectedResultIds={selectedResultIds}
+          setSelectedResultIds={setSelectedResultIds}
+          pagination={pagination}
+          setPagination={setPagination}
+          totalCount={totalCount}
+          ratingForScore={ratingForScore}
+          canAdjust={canAdjust}
+          tableColumns={tableColumns}
+        />
       </PageLayout>
     </div>
   );
@@ -677,15 +442,18 @@ function ResultViewContent({
 function ResultViewOverlays({
   actionSheetOpen,
   activeRoleCode,
+  appealByInspectionId,
   canAdjust,
+  canViewAppeals,
   detail,
   filteredInspections,
   handleCloseDetail,
   handleDeleteResults,
   handleModifyNavigation,
   handleOpenDetail,
-  handleSelectAppealInspection,
   isMobile,
+  onOpenAppealCreate,
+  onViewAppeal,
   ratingForScore,
   selectedResultIds,
   setActionSheetOpen,
@@ -717,14 +485,17 @@ function ResultViewOverlays({
             selectedIds={selectedResultIds}
             filteredInspections={filteredInspections}
             canAdjust={canAdjust}
+            canViewAppeals={canViewAppeals}
             activeRoleCode={activeRoleCode}
+            appealByInspectionId={appealByInspectionId}
             onOpenDetail={(inspection: ResultInspectionRecord) => {
               void handleOpenDetail(inspection);
             }}
             onDeleteResults={(ids: EntityId[]) => {
               void handleDeleteResults(ids);
             }}
-            onSelectAppealInspection={handleSelectAppealInspection}
+            onOpenAppealCreate={onOpenAppealCreate}
+            onViewAppeal={onViewAppeal}
           />
         </>
       ) : null}
@@ -897,7 +668,7 @@ function useResultInspectionData({
             ...resolveDormGrades(record),
           ]
             .filter((value): value is string => Boolean(value))
-            .join(" ")
+            .join(' ')
             .toLowerCase();
 
           if (!keywordTargets.includes(keyword)) {
@@ -981,16 +752,15 @@ function useResultInspectionData({
     allInspections,
     appeals,
     collegeOptions,
+    decoratedInspections,
     filteredInspections,
     gradeOptions,
-    inspections,
     levelOptions,
     resolveDormColleges,
     resolveDormGrades,
   };
 }
 
-// Page-level orchestrator coordinates result filters, detail state, and side panels.
 export default function ResultViewPage() {
   const {
     data,
@@ -1005,7 +775,7 @@ export default function ResultViewPage() {
   const pageData = data as ResultPageData;
   const pageActions = actions as ResultPageActions;
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const isMobile = useMobile();
 
   const {
@@ -1034,9 +804,24 @@ export default function ResultViewPage() {
 
   const canView = hasPermission('RESULT_VIEW');
   const canAdjust = hasPermission('RESULT_RECORD');
-  // 导出与查看分开授权：只有拥有 RESULT_EXPORT 的角色才显示导出按钮
   const canExport = hasPermission('RESULT_EXPORT');
-  const canEditContact = Boolean(settings?.studentContactEditable);
+  const canViewAppeals = hasPermission('APPEAL_VIEW');
+
+  useEffect(() => {
+    const appealId = searchParams.get('appealId');
+    const focus = searchParams.get('focus');
+    if (!appealId && focus !== 'appeals') {
+      return;
+    }
+
+    const nextParams = new URLSearchParams();
+    if (appealId) {
+      nextParams.set('appealId', appealId);
+    } else {
+      nextParams.set('status', 'pending');
+    }
+    navigate(`/appeals?${nextParams.toString()}`, { replace: true });
+  }, [navigate, searchParams]);
 
   const ratingForScore = useMemo<RatingForScore>(
     () => (score) =>
@@ -1053,6 +838,8 @@ export default function ResultViewPage() {
 
     if (canView) {
       await pageActions.loadInspections?.();
+    }
+    if (canViewAppeals) {
       await pageActions.loadAppeals?.();
     }
 
@@ -1062,13 +849,13 @@ export default function ResultViewPage() {
     }
 
     return { items: [], total: 0 };
-  }, [activeRole?.code, canView, pageActions]);
+  }, [activeRole?.code, canView, canViewAppeals, pageActions]);
 
   useTableFetch({
     fetchFn: fetchResultData,
     buildParams: () => ({}),
     enabled: permissionsReady,
-    deps: [activeRole?.code, canView],
+    deps: [activeRole?.code, canView, canViewAppeals],
   });
 
   useEffect(() => {
@@ -1089,9 +876,9 @@ export default function ResultViewPage() {
     allInspections,
     appeals,
     collegeOptions,
+    decoratedInspections,
     filteredInspections,
     gradeOptions,
-    inspections,
     levelOptions,
     resolveDormColleges,
     resolveDormGrades,
@@ -1103,24 +890,60 @@ export default function ResultViewPage() {
     settings,
   });
 
+  const appealByInspectionId = useMemo(() => {
+    const map = new Map<string, ResultAppealRecord>();
+    appeals.forEach((appeal) => {
+      if (appeal.inspectionId === undefined || appeal.inspectionId === null) {
+        return;
+      }
+      if (appeal.status === 'withdrawn') {
+        return;
+      }
+      const key = String(appeal.inspectionId);
+      const existing = map.get(key);
+      if (!existing || appeal.status === 'pending') {
+        map.set(key, appeal);
+      }
+    });
+    return map;
+  }, [appeals]);
+
+  const appealActions = useAppealActions({
+    onSyncLegacyCollections: async () => {
+      await pageActions.loadMyAppeals?.(true);
+      await pageActions.loadMyInspections?.(true);
+    },
+  });
+
+  const handleOpenAppealCreate = useCallback(
+    (inspection: ResultInspectionRecord) => {
+      if (inspection.id !== undefined && inspection.id !== null) {
+        appealActions.openCreateModal(inspection.id);
+      }
+    },
+    [appealActions],
+  );
+
+  const handleViewAppeal = useCallback(
+    (appealId: EntityId) => {
+      navigate(`/appeals?appealId=${encodeURIComponent(String(appealId))}`);
+    },
+    [navigate],
+  );
+
   const {
-    appealForm,
-    setAppealForm,
-    handleForm,
-    setHandleForm,
     exporting,
     detail,
     handleOpenDetail,
     handleCloseDetail,
     handleModifyNavigation,
-    handleAppealSubmit,
-    handleAppealHandle,
     handleExport,
     handleRefresh,
     handleDeleteResults,
   } = useResultActions({
     actions: pageActions,
     canAdjust,
+    canViewAppeals,
     activeRoleCode: activeRole?.code,
     permissionsReady,
     appliedFilters: appliedFilters as ResultFiltersState,
@@ -1130,40 +953,7 @@ export default function ResultViewPage() {
     myProfile,
   });
 
-  const handleSelectAppealInspection = useCallback(
-    (inspectionId: EntityId) => {
-      setAppealForm((prev) => ({ ...prev, inspectionId }));
-    },
-    [setAppealForm],
-  );
-
-  useEffect(() => {
-    const appealId = searchParams.get('appealId');
-    const focus = searchParams.get('focus');
-    if (!appealId && focus !== 'appeals') {
-      return;
-    }
-
-    if (appealId && appeals.some((item) => String(item.id) === appealId)) {
-      setHandleForm((prev) => ({ ...prev, appealId }));
-    }
-
-    const target =
-      document.getElementById('appeal-review-section') ||
-      document.getElementById('appeal-section');
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      const nextParams = new URLSearchParams(searchParams);
-      nextParams.delete('appealId');
-      nextParams.delete('focus');
-      setSearchParams(nextParams, { replace: true });
-    }
-  }, [appeals, searchParams, setHandleForm, setSearchParams]);
-
   const totalCount = filteredInspections.length;
-  const showAuxPanels =
-    (activeRole?.code === 'STUDENT' && inspections.length > 0) ||
-    (canAdjust && appeals.length > 0);
 
   const baseColumns = useMemo(
     () =>
@@ -1179,11 +969,26 @@ export default function ResultViewPage() {
       ...baseColumns,
       createActionColumn({
         canAdjust,
+        canViewAppeals,
+        activeRoleCode: activeRole?.code,
+        appealByInspectionId,
         onOpenDetail: handleOpenDetail,
         onDelete: handleDeleteResults,
+        onOpenAppealCreate: handleOpenAppealCreate,
+        onViewAppeal: handleViewAppeal,
       }),
     ],
-    [baseColumns, canAdjust, handleDeleteResults, handleOpenDetail],
+    [
+      activeRole?.code,
+      appealByInspectionId,
+      baseColumns,
+      canAdjust,
+      canViewAppeals,
+      handleDeleteResults,
+      handleOpenAppealCreate,
+      handleOpenDetail,
+      handleViewAppeal,
+    ],
   );
 
   if (!permissionsReady) {
@@ -1197,26 +1002,19 @@ export default function ResultViewPage() {
   return (
     <>
       <ResultViewContent
-        activeRoleCode={activeRole?.code}
         allAppeals={allAppeals}
         allInspections={allInspections}
-        appeals={appeals}
-        appealForm={appealForm}
         canAdjust={canAdjust}
         collegeOptions={collegeOptions}
         draftFilters={draftFilters}
         exporting={exporting}
         filteredInspections={filteredInspections}
         gradeOptions={gradeOptions}
-        handleAppealHandle={handleAppealHandle}
-        handleAppealSubmit={handleAppealSubmit}
         handleDeleteResults={handleDeleteResults}
         handleExport={canExport ? handleExport : undefined}
-        handleForm={handleForm}
         handleRefresh={handleRefresh}
         handleResetFilters={handleResetFilters}
         handleSearch={handleSearch}
-        inspections={inspections}
         isDirty={isDirty}
         isMobile={isMobile}
         levelOptions={levelOptions}
@@ -1224,12 +1022,9 @@ export default function ResultViewPage() {
         pagination={pagination}
         ratingForScore={ratingForScore}
         selectedResultIds={selectedResultIds}
-        setAppealForm={setAppealForm}
         setDraftFilters={setDraftFilters}
-        setHandleForm={setHandleForm}
         setPagination={setPagination}
         setSelectedResultIds={setSelectedResultIds}
-        showAuxPanels={showAuxPanels}
         tableColumns={tableColumns}
         totalCount={totalCount}
       />
@@ -1237,20 +1032,38 @@ export default function ResultViewPage() {
       <ResultViewOverlays
         actionSheetOpen={actionSheetOpen}
         activeRoleCode={activeRole?.code}
+        appealByInspectionId={appealByInspectionId}
         canAdjust={canAdjust}
+        canViewAppeals={canViewAppeals}
         detail={detail}
         filteredInspections={filteredInspections}
         handleCloseDetail={handleCloseDetail}
         handleDeleteResults={handleDeleteResults}
         handleModifyNavigation={handleModifyNavigation}
         handleOpenDetail={handleOpenDetail}
-        handleSelectAppealInspection={handleSelectAppealInspection}
         isMobile={isMobile}
+        onOpenAppealCreate={handleOpenAppealCreate}
+        onViewAppeal={handleViewAppeal}
         ratingForScore={ratingForScore}
         selectedResultIds={selectedResultIds}
         setActionSheetOpen={setActionSheetOpen}
         settings={settings}
       />
+
+      {activeRole?.code === 'STUDENT' ? (
+        <AppealCreateModal
+          open={appealActions.createOpen}
+          isMobile={isMobile}
+          submitting={appealActions.createSubmitting}
+          inspections={decoratedInspections as AppealCandidateInspection[]}
+          existingAppeals={appeals as AppealRecord[]}
+          settings={settings}
+          form={appealActions.createForm}
+          setForm={appealActions.setCreateForm}
+          onClose={appealActions.closeCreateModal}
+          onSubmit={appealActions.submitCreateAppeal}
+        />
+      ) : null}
     </>
   );
 }
