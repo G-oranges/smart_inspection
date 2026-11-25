@@ -7,22 +7,40 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { Button, Card, Input, Select, Tag, message } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { ReloadOutlined, SearchOutlined, SettingOutlined } from '@ant-design/icons';
 
 import GlassTable from '../../components/GlassTable';
+import TableFieldSettings from '../../components/TableFieldSettings';
 import { useMobile } from '../../hooks/useMobile';
 import { useResizableColumns } from '../../hooks/useResizableColumns';
+import { useTableColumns } from '../../hooks/useTableColumns';
 import { commonService } from '../../services/commonService';
 import type { PermissionDefinition, EntityId, RoleDataScope } from '../../types/service';
 import DataScopeEditor from './DataScopeEditor';
+import { DesktopFilters } from './UserFilters';
 import { useScopeOptions } from './useScopeOptions';
 import { normalizeScope } from './scopeUtils';
-import type { BatchPermissionState, PermissionMode, AccountUser, TableListState } from './types';
+import {
+  BATCH_AUTH_USER_DEFAULT_COLUMNS,
+  BATCH_AUTH_USER_TABLE_KEY,
+  type UserColumnConfig,
+} from './accountPermissionSchema';
+import type {
+  AccountUser,
+  BatchPermissionState,
+  PermissionMode,
+  TableListState,
+  UserFilters,
+} from './types';
 
 interface BatchAuthSectionProps {
   searchTerm: string;
   setSearchTerm: Dispatch<SetStateAction<string>>;
+  filters: UserFilters;
+  setFilters: Dispatch<SetStateAction<UserFilters>>;
   setPage: Dispatch<SetStateAction<number>>;
+  onSearch: () => void;
+  onReset: () => void;
   onRefresh: () => void;
   tableData: TableListState<AccountUser>;
   loading: boolean;
@@ -35,6 +53,8 @@ interface BatchAuthSectionProps {
   permissions?: PermissionDefinition[];
   batchPermissions: BatchPermissionState;
   setBatchPermissions: Dispatch<SetStateAction<BatchPermissionState>>;
+  fetchTableConfig?: (tableKey: string) => Promise<{ config?: UserColumnConfig[] } | null | undefined>;
+  saveTableConfig?: (tableKey: string, columns: UserColumnConfig[]) => Promise<unknown>;
   /** baseline：单选账号时该账号已有的例外，用于只提交改动过的功能点 */
   onSave: (baseline: BatchPermissionState) => void | Promise<void>;
 }
@@ -127,51 +147,62 @@ function useSingleAccountState(
 }
 
 function buildBatchUserColumns(
+  visibleColumns: UserColumnConfig[],
   sortField?: string,
   sortOrder?: 'asc' | 'desc',
 ): TableColumnsType<AccountUser> {
   const resolveOrder = (key: string) =>
     sortField === key ? (sortOrder === 'asc' ? 'ascend' : 'descend') : null;
 
-  return [
-    {
+  const columnMap: Record<string, TableColumnsType<AccountUser>[number]> = {
+    username: {
       title: '用户名',
       dataIndex: 'username',
       key: 'username',
       width: 160,
-      sorter: true,
-      sortOrder: resolveOrder('username'),
       ellipsis: true,
     },
-    {
+    fullName: {
       title: '姓名',
       dataIndex: 'fullName',
       key: 'fullName',
       width: 140,
-      sorter: true,
-      sortOrder: resolveOrder('fullName'),
       ellipsis: true,
     },
-    {
+    roles: {
       title: '角色',
       key: 'roles',
       width: 220,
-      sorter: true,
-      sortOrder: resolveOrder('roles'),
       ellipsis: true,
       render: (_, user) => user.roles?.map((role) => role.name).join(', ') || user.userType || '-',
     },
-    {
+    department: {
       title: '学院',
       dataIndex: 'department',
       key: 'department',
       width: 180,
-      sorter: true,
-      sortOrder: resolveOrder('department'),
       ellipsis: true,
       render: (value: AccountUser['department']) => value || '-',
     },
-  ];
+  };
+
+  return visibleColumns
+    .map((column) => {
+      const def = columnMap[column.fieldKey];
+      if (!def) {
+        return null;
+      }
+      return {
+        ...def,
+        title: column.label || def.title,
+        key: column.fieldKey,
+        align: 'center' as const,
+        width: column.width ?? def.width ?? 150,
+        sorter: Boolean(column.sortable),
+        sortOrder: resolveOrder(column.fieldKey),
+      } as TableColumnsType<AccountUser>[number];
+    })
+    .filter((col): col is TableColumnsType<AccountUser>[number] => Boolean(col));
 }
 
 const PERMISSION_MODE_OPTIONS: Array<{ value: PermissionMode; label: string }> = [
@@ -186,7 +217,11 @@ const PERMISSION_MODE_OPTIONS: Array<{ value: PermissionMode; label: string }> =
 export default function BatchAuthSection({
   searchTerm,
   setSearchTerm,
+  filters,
+  setFilters,
   setPage,
+  onSearch,
+  onReset,
   onRefresh,
   tableData,
   loading,
@@ -199,14 +234,33 @@ export default function BatchAuthSection({
   permissions,
   batchPermissions,
   setBatchPermissions,
+  fetchTableConfig,
+  saveTableConfig,
   onSave,
 }: BatchAuthSectionProps) {
   const isMobile = useMobile();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const account = useSingleAccountState(selectedUserIds, setBatchPermissions);
   const { options: scopeOptions, error: scopeOptionsError } = useScopeOptions(account.singleUserId !== null);
+  const {
+    columns: batchUserColumns,
+    visibleColumns: visibleBatchUserColumns,
+    save: saveBatchUserColumns,
+    resetToDefault: resetBatchUserColumns,
+    saving: savingBatchUserColumns,
+  } = useTableColumns<UserColumnConfig>({
+    tableKey: BATCH_AUTH_USER_TABLE_KEY,
+    defaultColumns: BATCH_AUTH_USER_DEFAULT_COLUMNS,
+    fetchConfig: fetchTableConfig
+      ? async (tableKey) => fetchTableConfig(tableKey)
+      : undefined,
+    saveConfig: saveTableConfig
+      ? async (tableKey, columns) => saveTableConfig(tableKey, columns)
+      : undefined,
+  });
   const baseUserColumns = useMemo(
-    () => buildBatchUserColumns(sortField, sortOrder),
-    [sortField, sortOrder],
+    () => buildBatchUserColumns(visibleBatchUserColumns, sortField, sortOrder),
+    [sortField, sortOrder, visibleBatchUserColumns],
   );
   const { columns: resizableUserColumns } = useResizableColumns(
     baseUserColumns as Array<Record<string, unknown>>,
@@ -234,6 +288,7 @@ export default function BatchAuthSection({
         title: '功能点',
         dataIndex: 'permissionName',
         key: 'permissionName',
+        align: 'center',
         width: 280,
         sorter: (left, right) =>
           left.permissionName.localeCompare(right.permissionName, 'zh-CN'),
@@ -242,6 +297,7 @@ export default function BatchAuthSection({
       {
         title: '授权状态',
         key: 'mode',
+        align: 'center',
         width: 180,
         render: (_, record) => {
           const optionKey =
@@ -277,28 +333,64 @@ export default function BatchAuthSection({
 
   const userTable = (
     <>
-      <div className="dorm-toolbar-shell mb-4">
-        <div className="dorm-toolbar-row dorm-toolbar-row-main">
-          <Input
-            placeholder="搜索用户名/姓名"
-            prefix={<SearchOutlined className="text-gray-400" />}
-            className="apple-search-input dorm-toolbar-search !bg-gray-100/50 dark:!bg-white/5 border-none flex-1 min-w-[240px]"
-            value={searchTerm}
-            onChange={(event) => {
-              setSearchTerm(event.target.value);
-              setPage(1);
-            }}
-            allowClear
-          />
+      <div className="flex flex-col gap-3 mb-4">
+        <div className="dorm-toolbar-shell">
+          <div className="dorm-toolbar-row dorm-toolbar-row-main">
+            <Input
+              placeholder="搜索用户名/姓名"
+              prefix={<SearchOutlined className="text-gray-400" />}
+              className="apple-search-input dorm-toolbar-search !bg-gray-100/50 dark:!bg-white/5 border-none flex-1 min-w-[240px]"
+              value={searchTerm}
+              onChange={(event) => {
+                setSearchTerm(event.target.value);
+                setPage(1);
+              }}
+              onPressEnter={onSearch}
+              allowClear
+            />
+            <Button
+              type="primary"
+              icon={<SearchOutlined />}
+              onClick={onSearch}
+              loading={loading}
+              className="apple-btn-primary dorm-toolbar-button dorm-toolbar-button-primary active:scale-95 transition-all border-none"
+            >
+              搜索
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={onReset}
+              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
+            >
+              重置
+            </Button>
+          </div>
+          <div className="dorm-toolbar-row dorm-toolbar-row-actions">
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={onRefresh}
+              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
+            >
+              刷新
+            </Button>
+            <Button
+              icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
+              onClick={() => setSettingsOpen(true)}
+              className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
+            >
+              字段设置
+            </Button>
+          </div>
         </div>
-        <div className="dorm-toolbar-row dorm-toolbar-row-actions">
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={onRefresh}
-            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
-          >
-            刷新
-          </Button>
+        <div className="dorm-toolbar-row dorm-toolbar-row-filters">
+          <div className="flex-1">
+            <DesktopFilters
+              filters={filters}
+              setFilters={setFilters}
+              setPage={setPage}
+              onReset={onReset}
+            />
+          </div>
         </div>
       </div>
       <div className="table-wrapper dorm-table-wrapper">
@@ -419,6 +511,27 @@ export default function BatchAuthSection({
       </>
     ) : null;
 
+  const fieldSettingsModal = (
+    <TableFieldSettings
+      open={settingsOpen}
+      columns={batchUserColumns}
+      onClose={() => setSettingsOpen(false)}
+      onSave={async (columns) => {
+        await saveBatchUserColumns(
+          columns.map((column) => ({
+            ...column,
+            fieldKey: column.fieldKey,
+            label: column.label || column.fieldKey,
+          })) as UserColumnConfig[],
+        );
+        setSettingsOpen(false);
+      }}
+      onReset={resetBatchUserColumns}
+      saving={savingBatchUserColumns}
+      title="用户例外授权列表字段设置"
+    />
+  );
+
   if (!isMobile) {
     return (
       <>
@@ -436,6 +549,7 @@ export default function BatchAuthSection({
         </div>
         {permissionTable ? <div className="mb-6">{permissionTable}</div> : null}
         {scopeSection ? <div className="mb-6">{scopeSection}</div> : null}
+        {fieldSettingsModal}
       </>
     );
   }
@@ -453,6 +567,7 @@ export default function BatchAuthSection({
       {userTable}
       {permissionTable ? <div className="pt-2">{permissionTable}</div> : null}
       {scopeSection ? <div className="pt-2">{scopeSection}</div> : null}
+      {fieldSettingsModal}
     </Card>
   );
 }

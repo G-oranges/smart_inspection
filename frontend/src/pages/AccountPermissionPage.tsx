@@ -96,6 +96,12 @@ const DEFAULT_MONITOR_FILTERS: MonitorFilters = {
   className: [],
 };
 
+const DEFAULT_BATCH_USER_FILTERS: UserFilters = {
+  department: [],
+  userType: [],
+  isDisabled: [],
+};
+
 const DEFAULT_MONITOR_CONFLICT_MODAL: MonitorConflictModalState = {
   visible: false,
   conflicts: [],
@@ -1600,6 +1606,7 @@ function useAccountPermissionPermissionState({
   const [batchUserIds, setBatchUserIds] = useState<EntityId[]>([]);
   const [batchPermissions, setBatchPermissions] = useState<BatchPermissionState>({});
   const [batchUserSearchTerm, setBatchUserSearchTerm] = useState('');
+  const [batchUserFilters, setBatchUserFilters] = useState<UserFilters>(DEFAULT_BATCH_USER_FILTERS);
   const [batchUserPage, setBatchUserPage] = useState(1);
   const [batchUserSortField, setBatchUserSortField] = useState('');
   const [batchUserSortOrder, setBatchUserSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -1663,14 +1670,15 @@ function useAccountPermissionPermissionState({
 
     setBatchUserLoading(true);
     try {
-      const result = await accountActions.loadUsers({
+      const requestParams = buildUserTableParams({
+        ...batchUserFilters,
+        appliedSearchTerm: batchUserSearchTerm,
         page: batchUserPage,
         pageSize: 10,
-        search: batchUserSearchTerm,
-        ...(batchUserSortField
-          ? { sortField: batchUserSortField, sortOrder: batchUserSortOrder }
-          : {}),
+        sortField: batchUserSortField || undefined,
+        sortOrder: batchUserSortField ? batchUserSortOrder : undefined,
       });
+      const result = await accountActions.loadUsers(requestParams);
       setBatchUserData({
         items: toAccountUsers(result?.items),
         total: result?.total || 0,
@@ -1682,7 +1690,22 @@ function useAccountPermissionPermissionState({
     } finally {
       setBatchUserLoading(false);
     }
-  }, [accountActions, batchUserPage, batchUserSearchTerm, batchUserSortField, batchUserSortOrder]);
+  }, [
+    accountActions,
+    batchUserFilters,
+    batchUserPage,
+    batchUserSearchTerm,
+    batchUserSortField,
+    batchUserSortOrder,
+  ]);
+
+  const handleBatchUserReset = useCallback((): void => {
+    setBatchUserSearchTerm('');
+    setBatchUserFilters(DEFAULT_BATCH_USER_FILTERS);
+    setBatchUserPage(1);
+    setBatchUserSortField('');
+    setBatchUserSortOrder('desc');
+  }, []);
 
   useEffect(() => {
     if (activeTab !== 'overrides' || !canManagePermissions) {
@@ -1770,12 +1793,14 @@ function useAccountPermissionPermissionState({
   return {
     batchPermissions,
     batchUserData,
+    batchUserFilters,
     batchUserIds,
     batchUserLoading,
     batchUserPage,
     batchUserSearchTerm,
     batchUserSortField,
     batchUserSortOrder,
+    handleBatchUserReset,
     handleBatchUserSortChange,
     handleStudentSortChange,
     loadBatchUsers,
@@ -1789,6 +1814,7 @@ function useAccountPermissionPermissionState({
     permissionMessage,
     selectedStudentIds,
     setBatchPermissions,
+    setBatchUserFilters,
     setBatchUserIds,
     setBatchUserPage,
     setBatchUserSearchTerm,
@@ -2073,7 +2099,14 @@ export default function AccountPermissionPage() {
                     <BatchAuthSection
                       searchTerm={permissionState.batchUserSearchTerm}
                       setSearchTerm={permissionState.setBatchUserSearchTerm}
+                      filters={permissionState.batchUserFilters}
+                      setFilters={permissionState.setBatchUserFilters}
                       setPage={permissionState.setBatchUserPage}
+                      onSearch={() => {
+                        permissionState.setBatchUserPage(1);
+                        void permissionState.loadBatchUsers();
+                      }}
+                      onReset={permissionState.handleBatchUserReset}
                       onRefresh={() => {
                         void permissionState.loadBatchUsers();
                       }}
@@ -2088,6 +2121,21 @@ export default function AccountPermissionPage() {
                       permissions={permissionState.matrix?.permissions}
                       batchPermissions={permissionState.batchPermissions}
                       setBatchPermissions={permissionState.setBatchPermissions}
+                      fetchTableConfig={
+                        accountActions.fetchTableConfig
+                          ? async (tableKey) =>
+                              (await accountActions.fetchTableConfig?.(tableKey)) as
+                                | { config?: UserColumnConfig[] }
+                                | null
+                                | undefined
+                          : undefined
+                      }
+                      saveTableConfig={
+                        accountActions.saveTableConfig
+                          ? async (tableKey, columns) =>
+                              accountActions.saveTableConfig?.(tableKey, columns)
+                          : undefined
+                      }
                       onSave={(baseline) => void handleBatchSaveOverrides(baseline)}
                     />
                   ) : (
@@ -2135,6 +2183,21 @@ export default function AccountPermissionPage() {
                       onBatchSetMonitorExecute={(replaceExisting: boolean) => {
                         void accountActionHandlers.handleBatchSetMonitorExecute(replaceExisting);
                       }}
+                      fetchTableConfig={
+                        accountActions.fetchTableConfig
+                          ? async (tableKey) =>
+                              (await accountActions.fetchTableConfig?.(tableKey)) as
+                                | { config?: UserColumnConfig[] }
+                                | null
+                                | undefined
+                          : undefined
+                      }
+                      saveTableConfig={
+                        accountActions.saveTableConfig
+                          ? async (tableKey, columns) =>
+                              accountActions.saveTableConfig?.(tableKey, columns)
+                          : undefined
+                      }
                     />
                   ) : (
                     <PermissionAccessFallback message="没有批量设置寝室长的权限，请联系系统管理员开通" />

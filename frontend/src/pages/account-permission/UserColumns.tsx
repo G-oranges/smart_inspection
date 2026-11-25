@@ -88,6 +88,7 @@ export function buildAntTableColumns(
       title: column.label,
       dataIndex: column.fieldKey,
       key: column.fieldKey as React.Key,
+      align: 'center',
       width: column.width ?? USER_COLUMN_WIDTHS[column.fieldKey] ?? 130,
       sorter: Boolean(column.sortable),
       sortOrder:
@@ -135,6 +136,7 @@ export function buildAntTableColumns(
   cols.push({
     title: "操作",
     key: "action",
+    align: "center",
     width: 108,
     fixed: "right",
     className: "table-action-column",

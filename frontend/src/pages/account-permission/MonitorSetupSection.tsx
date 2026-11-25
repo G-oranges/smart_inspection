@@ -3,17 +3,24 @@
  * @module pages/account-permission/MonitorSetupSection
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { Button, Card, Input, Modal, Space, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
-import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { ReloadOutlined, SearchOutlined, SettingOutlined } from '@ant-design/icons';
 
 import FilterDropdownPanel from '../../components/common/FilterDropdownPanel';
 import { useScopeOptions } from './useScopeOptions';
 import GlassTable from '../../components/GlassTable';
+import TableFieldSettings from '../../components/TableFieldSettings';
 import { useMobile } from '../../hooks/useMobile';
 import { useResizableColumns } from '../../hooks/useResizableColumns';
+import { useTableColumns } from '../../hooks/useTableColumns';
+import {
+  MONITOR_STUDENT_DEFAULT_COLUMNS,
+  MONITOR_STUDENT_TABLE_KEY,
+  type UserColumnConfig,
+} from './accountPermissionSchema';
 import type { EntityId, ServiceRecord } from '../../types/service';
 import type {
   AccountUser,
@@ -51,6 +58,8 @@ interface MonitorSetupSectionProps {
   setConflictModal: Dispatch<SetStateAction<MonitorConflictModalState>>;
   onContinueNonConflicts: () => void | Promise<void>;
   onBatchSetMonitorExecute: (replaceExisting: boolean) => void | Promise<void>;
+  fetchTableConfig?: (tableKey: string) => Promise<{ config?: UserColumnConfig[] } | null | undefined>;
+  saveTableConfig?: (tableKey: string, columns: UserColumnConfig[]) => Promise<unknown>;
 }
 
 function uniqueStringOptions(values: Array<string | undefined>): Array<{ label: string; value: string }> {
@@ -60,72 +69,79 @@ function uniqueStringOptions(values: Array<string | undefined>): Array<{ label: 
 }
 
 function buildMonitorStudentColumns(
+  visibleColumns: UserColumnConfig[],
   sortField?: string,
   sortOrder?: 'asc' | 'desc',
 ): TableColumnsType<AccountUser> {
   const resolveOrder = (key: string) =>
     sortField === key ? (sortOrder === 'asc' ? 'ascend' : 'descend') : null;
 
-  return [
-    {
+  const columnMap: Record<string, TableColumnsType<AccountUser>[number]> = {
+    fullName: {
       title: '姓名',
       dataIndex: 'fullName',
       key: 'fullName',
       width: 120,
-      sorter: true,
-      sortOrder: resolveOrder('fullName'),
       ellipsis: true,
     },
-    {
+    building: {
       title: '楼栋',
       dataIndex: 'building',
       key: 'building',
       width: 120,
-      sorter: true,
-      sortOrder: resolveOrder('building'),
       ellipsis: true,
       render: (value: AccountUser['building']) => value || '-',
     },
-    {
+    roomNo: {
       title: '宿舍',
       dataIndex: 'roomNo',
       key: 'roomNo',
       width: 120,
-      sorter: true,
-      sortOrder: resolveOrder('roomNo'),
       ellipsis: true,
       render: (value: AccountUser['roomNo']) => value || '-',
     },
-    {
+    major: {
       title: '专业',
       dataIndex: 'major',
       key: 'major',
       width: 180,
-      sorter: true,
-      sortOrder: resolveOrder('major'),
       ellipsis: true,
       render: (value: AccountUser['major']) => value || '-',
     },
-    {
+    className: {
       title: '班级',
       dataIndex: 'className',
       key: 'className',
       width: 160,
-      sorter: true,
-      sortOrder: resolveOrder('className'),
       ellipsis: true,
       render: (value: AccountUser['className']) => value || '-',
     },
-    {
+    isMonitor: {
       title: '寝室长',
       dataIndex: 'isMonitor',
       key: 'isMonitor',
       width: 100,
-      sorter: true,
-      sortOrder: resolveOrder('isMonitor'),
       render: (value: AccountUser['isMonitor']) => (value ? <Tag color="green">是</Tag> : <Tag>否</Tag>),
     },
-  ];
+  };
+
+  return visibleColumns
+    .map((column) => {
+      const def = columnMap[column.fieldKey];
+      if (!def) {
+        return null;
+      }
+      return {
+        ...def,
+        title: column.label || def.title,
+        key: column.fieldKey,
+        align: 'center' as const,
+        width: column.width ?? def.width ?? 130,
+        sorter: Boolean(column.sortable),
+        sortOrder: resolveOrder(column.fieldKey),
+      } as TableColumnsType<AccountUser>[number];
+    })
+    .filter((col): col is TableColumnsType<AccountUser>[number] => Boolean(col));
 }
 
 /**
@@ -153,11 +169,30 @@ export default function MonitorSetupSection({
   setConflictModal,
   onContinueNonConflicts,
   onBatchSetMonitorExecute,
+  fetchTableConfig,
+  saveTableConfig,
 }: MonitorSetupSectionProps) {
   const isMobile = useMobile();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const {
+    columns: monitorColumns,
+    visibleColumns: visibleMonitorColumns,
+    save: saveMonitorColumns,
+    resetToDefault: resetMonitorColumns,
+    saving: savingMonitorColumns,
+  } = useTableColumns<UserColumnConfig>({
+    tableKey: MONITOR_STUDENT_TABLE_KEY,
+    defaultColumns: MONITOR_STUDENT_DEFAULT_COLUMNS,
+    fetchConfig: fetchTableConfig
+      ? async (tableKey) => fetchTableConfig(tableKey)
+      : undefined,
+    saveConfig: saveTableConfig
+      ? async (tableKey, columns) => saveTableConfig(tableKey, columns)
+      : undefined,
+  });
   const baseStudentColumns = useMemo(
-    () => buildMonitorStudentColumns(sortField, sortOrder),
-    [sortField, sortOrder],
+    () => buildMonitorStudentColumns(visibleMonitorColumns, sortField, sortOrder),
+    [sortField, sortOrder, visibleMonitorColumns],
   );
   const { columns: resizableStudentColumns } = useResizableColumns(
     baseStudentColumns as Array<Record<string, unknown>>,
@@ -221,6 +256,13 @@ export default function MonitorSetupSection({
             className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
           >
             刷新
+          </Button>
+          <Button
+            icon={<SettingOutlined className="text-gray-600 dark:text-gray-300" />}
+            onClick={() => setSettingsOpen(true)}
+            className="dorm-toolbar-button dorm-toolbar-button-subtle active:scale-95 transition-all"
+          >
+            字段设置
           </Button>
           <Button
             type="primary"
@@ -412,6 +454,27 @@ export default function MonitorSetupSection({
     </Modal>
   );
 
+  const fieldSettingsModal = (
+    <TableFieldSettings
+      open={settingsOpen}
+      columns={monitorColumns}
+      onClose={() => setSettingsOpen(false)}
+      onSave={async (columns) => {
+        await saveMonitorColumns(
+          columns.map((column) => ({
+            ...column,
+            fieldKey: column.fieldKey,
+            label: column.label || column.fieldKey,
+          })) as UserColumnConfig[],
+        );
+        setSettingsOpen(false);
+      }}
+      onReset={resetMonitorColumns}
+      saving={savingMonitorColumns}
+      title="寝室长设置列表字段设置"
+    />
+  );
+
   if (!isMobile) {
     return (
       <>
@@ -425,6 +488,7 @@ export default function MonitorSetupSection({
           {studentTable}
         </div>
         {conflictModalElement}
+        {fieldSettingsModal}
       </>
     );
   }
@@ -438,6 +502,7 @@ export default function MonitorSetupSection({
       </div>
       {studentTable}
       {conflictModalElement}
+      {fieldSettingsModal}
     </Card>
   );
 }

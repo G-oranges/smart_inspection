@@ -126,6 +126,7 @@ interface ServiceError {
 interface PasswordFormValues {
   oldPassword: string;
   newPassword: string;
+  confirmPassword: string;
 }
 
 const EMPTY_PREFETCH_PROPS = {};
@@ -1366,6 +1367,7 @@ const AppLayout = () => {
         onCancel={() => {
           if (!mustChangePassword) {
             setChangePasswordModal(false);
+            pwdForm.resetFields();
           }
         }}
         closable={!mustChangePassword}
@@ -1386,7 +1388,7 @@ const AppLayout = () => {
         ) : null}
         <Form form={pwdForm} layout="vertical" onFinish={handleChangePassword} className="mt-4">
           <Form.Item name="oldPassword" label="当前密码" rules={[{ required: true, message: '请输入当前密码' }]}>
-            <Input.Password placeholder="当前密码" className="apple-input h-11" />
+            <Input.Password placeholder="当前密码" className="apple-input h-11" autoComplete="current-password" />
           </Form.Item>
           <Form.Item
             name="newPassword"
@@ -1400,7 +1402,25 @@ const AppLayout = () => {
               },
             ]}
           >
-            <Input.Password placeholder="不少于 8 位，含大小写字母、数字和符号" className="apple-input h-11" />
+            <Input.Password placeholder="不少于 8 位，含大小写字母、数字和符号" className="apple-input h-11" autoComplete="new-password" />
+          </Form.Item>
+          <Form.Item
+            name="confirmPassword"
+            label="确认密码"
+            dependencies={['newPassword']}
+            rules={[
+              { required: true, message: '请再次输入新密码' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('newPassword') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('两次输入的密码不一致'));
+                },
+              }),
+            ]}
+          >
+            <Input.Password placeholder="再次输入新密码" className="apple-input h-11" autoComplete="new-password" />
           </Form.Item>
         </Form>
       </Modal>

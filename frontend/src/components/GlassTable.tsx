@@ -42,6 +42,29 @@ function getPaginationPageSize<T extends object>(
   return 10;
 }
 
+function applyDefaultCenterAlign<T extends object>(
+  columns: TableProps<T>['columns'],
+): TableProps<T>['columns'] {
+  if (!Array.isArray(columns)) {
+    return columns;
+  }
+
+  return columns.map((column) => {
+    if ('children' in column && Array.isArray(column.children)) {
+      return {
+        ...column,
+        align: column.align ?? 'center',
+        children: applyDefaultCenterAlign(column.children),
+      };
+    }
+
+    return {
+      ...column,
+      align: column.align ?? 'center',
+    };
+  });
+}
+
 export default function GlassTable<T extends object = TableRecord>({
   pagination,
   className = '',
@@ -53,6 +76,10 @@ export default function GlassTable<T extends object = TableRecord>({
   components: customComponents,
   ...restProps
 }: GlassTableProps<T>) {
+  const centeredColumns = useMemo(
+    () => applyDefaultCenterAlign(columns),
+    [columns],
+  );
   const mergedPagination =
     pagination === false
       ? false
@@ -88,7 +115,7 @@ export default function GlassTable<T extends object = TableRecord>({
       className={mergedClassName}
       pagination={mergedPagination}
       loading={Boolean(loading) && !useSkeleton}
-      columns={columns}
+      columns={centeredColumns}
       components={mergedComponents}
       {...restProps}
     />

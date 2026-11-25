@@ -133,6 +133,31 @@
   border-bottom: 1px solid color-mix(in srgb, var(--co-text) 14%, transparent);
 }
 
+.ant-table-thead > tr > th[style*="text-align: center"] .ant-table-column-sorters {
+  justify-content: center;
+  gap: 4px;
+}
+
+.ant-table-thead > tr > th[style*="text-align: center"] .ant-table-column-title {
+  flex: 0 1 auto;
+}
+
+.ant-table-thead > tr > th[style*="text-align: center"] .ant-table-column-sorter {
+  margin-inline-start: 0;
+}
+
+.glass-table .ant-table-tbody > tr > td[style*="text-align: center"] > .flex:not(.flex-col) {
+  justify-content: center;
+}
+
+.glass-table .ant-table-tbody > tr > td[style*="text-align: center"] > .flex.flex-col {
+  align-items: center;
+}
+
+.glass-table .ant-table-tbody > tr > td[style*="text-align: center"] > .dorm-occupancy-dots {
+  justify-content: center;
+}
+
 .glass-table tbody tr:hover td {
   background: color-mix(in srgb, var(--co-primary) 12%, transparent);
 }

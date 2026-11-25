@@ -59,6 +59,26 @@ export const initialUserForm: UserFormState = {
 
 // 用户表格键
 export const USER_TABLE_KEY = "userList";
+export const BATCH_AUTH_USER_TABLE_KEY = "batchAuthUserList";
+export const MONITOR_STUDENT_TABLE_KEY = "monitorStudentList";
+
+// 用户例外授权默认列配置
+export const BATCH_AUTH_USER_DEFAULT_COLUMNS: UserColumnConfig[] = [
+  { fieldKey: "username", label: "用户名", visible: true, sortable: true, order: 0, width: 160 },
+  { fieldKey: "fullName", label: "姓名", visible: true, sortable: true, order: 1, width: 140 },
+  { fieldKey: "roles", label: "角色", visible: true, sortable: true, order: 2, width: 220 },
+  { fieldKey: "department", label: "学院", visible: true, sortable: true, order: 3, width: 180 },
+];
+
+// 寝室长批量设置默认列配置
+export const MONITOR_STUDENT_DEFAULT_COLUMNS: UserColumnConfig[] = [
+  { fieldKey: "fullName", label: "姓名", visible: true, sortable: true, order: 0, width: 120 },
+  { fieldKey: "building", label: "楼栋", visible: true, sortable: true, order: 1, width: 120 },
+  { fieldKey: "roomNo", label: "宿舍", visible: true, sortable: true, order: 2, width: 120 },
+  { fieldKey: "major", label: "专业", visible: true, sortable: true, order: 3, width: 180 },
+  { fieldKey: "className", label: "班级", visible: true, sortable: true, order: 4, width: 160 },
+  { fieldKey: "isMonitor", label: "寝室长", visible: true, sortable: true, order: 5, width: 100 },
+];
 
 // 用户表格默认列宽
 export const USER_COLUMN_WIDTHS: Record<string, number> = {
@@ -154,7 +174,7 @@ export const USER_RENDERERS: UserRendererMap = {
   department: (user) => user.department || "-",
   roles: (user) =>
     user.roles && user.roles.length > 0 ? (
-      <div className="flex flex-wrap gap-1">
+      <div className="flex flex-wrap justify-center gap-1">
         {user.roles.map((role) => (
           <Tag
             key={role.id}
