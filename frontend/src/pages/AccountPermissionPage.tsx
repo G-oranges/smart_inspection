@@ -854,11 +854,15 @@ function UserManagementOverlays({
   tableData,
   userColumns,
 }: UserManagementOverlaysProps) {
+  const editingUser = editingId
+    ? tableData.items.find((item) => item.id === editingId) ?? null
+    : null;
   return (
     <>
       <UserFormModal
         open={modalOpen}
         editingId={editingId}
+        linkedProfile={editingUser}
         form={form}
         setForm={setForm}
         onSubmit={onFormSubmit}

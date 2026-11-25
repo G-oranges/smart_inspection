@@ -33,7 +33,7 @@ func TestStudentServiceUpdateStudentSyncsUserDepartmentFromCollege(t *testing.T)
 		t.Fatalf("seed student role failed: %v", err)
 	}
 
-	service := NewStudentService(repository.NewStudentRepository(db), db)
+	service := NewStudentService(repository.NewStudentRepository(db), db, nil)
 	student := &model.Student{
 		StudentNo: studentServiceStringPtr("2024001"),
 		FullName:  "张三",

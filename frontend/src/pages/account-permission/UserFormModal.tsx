@@ -4,17 +4,19 @@
  */
 
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
-import { Modal, Input, Switch, Button } from 'antd';
+import { Alert, Modal, Input, Switch, Button } from 'antd';
 import PanelSelect from '../../components/common/PanelSelect';
+import { deriveUserTypeFromRole, getLinkedProfileLabel } from './accountPermissionSchema';
 
 import type { RoleLike } from '../../types/app';
 import type { EntityId } from '../../types/service';
-import type { UserFormState } from './types';
+import type { LinkedProfileSummary, UserFormState } from './types';
 import { MODAL_WIDTH } from "../../components/common/modalSizes";
 
 interface UserFormModalProps {
   open: boolean;
   editingId: EntityId | null;
+  linkedProfile?: LinkedProfileSummary | null;
   form: UserFormState;
   setForm: Dispatch<SetStateAction<UserFormState>>;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -46,6 +48,7 @@ function withPrimary(primaryId: EntityId | null | undefined, extras: EntityId[])
 export default function UserFormModal({
   open,
   editingId,
+  linkedProfile,
   form,
   setForm,
   onSubmit,
@@ -56,6 +59,11 @@ export default function UserFormModal({
 }: UserFormModalProps) {
   const primaryRoleId = roleOptions.find((role) => role.code === form.role)?.id;
   const extraRoleIds = form.roles.filter((id) => id !== primaryRoleId);
+  const profileLabel = getLinkedProfileLabel(linkedProfile?.profileType);
+  const profileBanner =
+    editingId && profileLabel
+      ? `已关联${profileLabel}${linkedProfile?.profileNo ? `（${linkedProfile.profileNo}）` : ''}，修改姓名、学院、联系电话将同步更新档案。`
+      : '';
   return (
     <Modal
       open={open}
@@ -78,6 +86,9 @@ export default function UserFormModal({
         className="stack modal-form"
         onSubmit={onSubmit}
       >
+        {profileBanner ? (
+          <Alert type="info" showIcon message={profileBanner} className="mb-3" />
+        ) : null}
         <div className="modal-grid">
           <label className="field-block">
             <span className="field-label">用户名</span>
@@ -133,6 +144,7 @@ export default function UserFormModal({
                 setForm({
                   ...form,
                   role: selectedCode,
+                  userType: editingId ? form.userType : deriveUserTypeFromRole(selectedCode),
                   // 主角色总是包含在角色列表中；附加角色保留，但去掉旧的主角色
                   roles: withPrimary(nextPrimary?.id, extraRoleIds),
                 });

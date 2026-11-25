@@ -183,6 +183,9 @@ type User struct {
 	TableConfigs []TableConfig `gorm:"foreignKey:UserID" json:"tableConfigs,omitempty"`
 	AuditLogs    []AuditLog    `gorm:"foreignKey:OperatorID" json:"auditLogs,omitempty"`
 	AvatarURL    *string       `gorm:"column:avatarUrl;type:varchar(512)" json:"avatarUrl"`
+	ProfileType  *string       `gorm:"-" json:"profileType,omitempty"`
+	ProfileID    *string       `gorm:"-" json:"profileId,omitempty"`
+	ProfileNo    *string       `gorm:"-" json:"profileNo,omitempty"`
 }
 
 func (User) TableName() string {
@@ -296,7 +299,7 @@ type Student struct {
 	HomeAddress     *string        `gorm:"column:homeAddress" json:"homeAddress"`
 	IsMonitor       bool           `gorm:"column:isMonitor;default:false" json:"isMonitor"`
 	User            *User          `gorm:"foreignKey:UserID" json:"user,omitempty"`
-	UserID          *string        `gorm:"column:userId;type:char(36)" json:"userId"`
+	UserID          *string        `gorm:"column:userId;type:char(36);uniqueIndex:ux_student_user_id" json:"userId"`
 	CreatedAt       time.Time      `gorm:"column:createdAt;autoCreateTime" json:"createdAt"`
 	Appeals         []Appeal       `gorm:"foreignKey:StudentID" json:"appeals,omitempty"`
 	Bed             *DormBed       `gorm:"foreignKey:StudentID" json:"bed,omitempty"`
@@ -316,6 +319,7 @@ type Teacher struct {
 	Department *string   `gorm:"column:department" json:"department"`
 	Mobile     *string   `gorm:"column:mobile" json:"mobile"`
 	Classes    *string   `gorm:"column:classes" json:"classes"`
+	UserID     *string   `gorm:"column:userId;type:char(36);uniqueIndex:ux_teacher_user_id" json:"userId"`
 	CreatedAt  time.Time `gorm:"autoCreateTime" json:"createdAt"`
 	UpdatedAt  time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
 }

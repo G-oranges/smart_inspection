@@ -107,7 +107,7 @@ export function useTeacherActions({
 
     const confirmed = await confirmDangerCountdown({
       title: `确定删除选中的 ${selectionCount} 名教职工吗？`,
-      content: '删除后不可恢复，这些教职工的相关数据将被永久移除。',
+      content: '删除后不可恢复，这些教职工的档案将被永久移除，对应的登录账号将被停用。',
       okText: '删除教职工',
     });
     if (!confirmed) {
@@ -166,7 +166,7 @@ export function useTeacherActions({
       const teacherName = record.fullName || record.employeeNo || '未命名';
       const confirmed = await confirmDangerCountdown({
         title: `确定删除教职工「${teacherName}」吗？`,
-        content: '删除后不可恢复，该教职工的数据将被永久移除。',
+        content: '删除后不可恢复，该教职工的档案将被永久移除，对应的登录账号将被停用。',
         okText: '删除教职工',
       });
       if (!confirmed) {

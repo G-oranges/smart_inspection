@@ -151,7 +151,7 @@ export function useStudentActions({
 
     const confirmed = await confirmDangerCountdown({
       title: `确定删除选中的 ${selectionCount} 名学生吗？`,
-      content: '删除后不可恢复，这些学生的住宿关联记录也将一并清除。',
+      content: '删除后不可恢复，这些学生的住宿关联记录将一并清除，对应的登录账号将被停用。',
       okText: '删除学生',
     });
     if (!confirmed) {
@@ -208,7 +208,7 @@ export function useStudentActions({
       const studentName = record.fullName || record.studentNo || '未命名';
       const confirmed = await confirmDangerCountdown({
         title: `确定删除学生「${studentName}」吗？`,
-        content: '删除后不可恢复，该学生的住宿关联记录也将一并清除。',
+        content: '删除后不可恢复，该学生的住宿关联记录将一并清除，对应的登录账号将被停用。',
         okText: '删除学生',
       });
       if (!confirmed) {

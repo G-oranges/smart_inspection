@@ -72,43 +72,11 @@ func scopeAllowsDorm(scope *service.ResolvedUserDataScope, dorm *model.Dormitory
 	return scope.AllowsBuilding(building)
 }
 
-func scopeAllowsStudent(scope *service.ResolvedUserDataScope, student *model.Student) bool {
-	if scope == nil || scope.All {
-		return true
-	}
-	if student == nil || !scope.HasAcademicAccess() {
-		return false
-	}
-
-	college := strings.TrimSpace(ptrToStr(student.College))
-	if college != "" {
-		if _, ok := scope.Academic.Colleges[college]; ok {
-			return true
-		}
-	}
-
-	major := strings.TrimSpace(ptrToStr(student.Major))
-	if major != "" {
-		if _, ok := scope.Academic.Majors[major]; ok {
-			return true
-		}
-	}
-
-	className := strings.TrimSpace(ptrToStr(student.ClassName))
-	if className != "" {
-		if _, ok := scope.Academic.ClassNames[className]; ok {
-			return true
-		}
-	}
-
-	return false
-}
-
 func ensureStudentPayloadWritable(scope *service.ResolvedUserDataScope, student *model.Student, message string) error {
 	if scope == nil || scope.All {
 		return nil
 	}
-	if !scopeAllowsStudent(scope, student) {
+	if !scope.AllowsStudentAcademic(student) {
 		return errors.New(message)
 	}
 	return nil
@@ -121,7 +89,7 @@ func collectLegacyStudentImportScopeErrors(scope *service.ResolvedUserDataScope,
 
 	errors := make([]model.ImportError, 0)
 	for index, student := range students {
-		if scopeAllowsStudent(scope, student) {
+		if scope.AllowsStudentAcademic(student) {
 			continue
 		}
 		errors = append(errors, model.ImportError{
@@ -149,7 +117,7 @@ func collectStudentImportScopeIssues(scope *service.ResolvedUserDataScope, rows 
 			Major:     row.Major,
 			ClassName: row.ClassName,
 		}
-		if scopeAllowsStudent(scope, student) {
+		if scope.AllowsStudentAcademic(student) {
 			continue
 		}
 		rowNo := row.RowNo
@@ -173,7 +141,7 @@ func ensureLegacyStudentImportWritable(scope *service.ResolvedUserDataScope, stu
 		return nil
 	}
 	for _, student := range students {
-		if !scopeAllowsStudent(scope, student) {
+		if !scope.AllowsStudentAcademic(student) {
 			return errors.New(studentWriteScopeMessage)
 		}
 	}
@@ -192,7 +160,7 @@ func ensureStudentImportRowsWritable(scope *service.ResolvedUserDataScope, rows 
 			Major:     row.Major,
 			ClassName: row.ClassName,
 		}
-		if !scopeAllowsStudent(scope, student) {
+		if !scope.AllowsStudentAcademic(student) {
 			return errors.New(studentWriteScopeMessage)
 		}
 	}
@@ -234,7 +202,7 @@ func filterAppealsByScope(appeals []model.Appeal, scope *service.ResolvedUserDat
 
 	filtered := make([]model.Appeal, 0, len(appeals))
 	for _, appeal := range appeals {
-		allowStudent := scopeAllowsStudent(scope, &appeal.Student)
+		allowStudent := scope.AllowsStudentAcademic(&appeal.Student)
 		allowDorm := scopeAllowsDorm(scope, appeal.Inspection.Dorm)
 		if allowStudent || allowDorm {
 			filtered = append(filtered, appeal)
@@ -372,7 +340,7 @@ func ensureStudentsWritable(db *gorm.DB, scope *service.ResolvedUserDataScope, i
 		return err
 	}
 	for _, student := range students {
-		if !scopeAllowsStudent(scope, &student) {
+		if !scope.AllowsStudentAcademic(&student) {
 			return errors.New(message)
 		}
 		if requireDormWritable && student.DormID != nil && *student.DormID != "" && !scopeAllowsDorm(scope, student.Dorm) {
@@ -391,7 +359,7 @@ func ensureStudentUpdateWritable(db *gorm.DB, scope *service.ResolvedUserDataSco
 	if err := db.Select("id", "college", "major", "className").First(&existing, "id = ?", studentID).Error; err != nil {
 		return err
 	}
-	if !scopeAllowsStudent(scope, &existing) {
+	if !scope.AllowsStudentAcademic(&existing) {
 		return errors.New(message)
 	}
 
@@ -407,7 +375,7 @@ func ensureStudentUpdateWritable(db *gorm.DB, scope *service.ResolvedUserDataSco
 			next.ClassName = payload.ClassName
 		}
 	}
-	if !scopeAllowsStudent(scope, &next) {
+	if !scope.AllowsStudentAcademic(&next) {
 		return errors.New(message)
 	}
 	return nil
@@ -426,7 +394,7 @@ func ensureBatchCheckoutDormsWritable(db *gorm.DB, scope *service.ResolvedUserDa
 		return err
 	}
 	for _, student := range students {
-		if !scopeAllowsStudent(scope, &student) {
+		if !scope.AllowsStudentAcademic(&student) {
 			return errors.New(studentDormWriteScopeMessage)
 		}
 	}
@@ -475,7 +443,7 @@ func ensureMoveWritable(db *gorm.DB, scope *service.ResolvedUserDataScope, stude
 		First(&student, "id = ?", studentID).Error; err != nil {
 		return err
 	}
-	if !scopeAllowsStudent(scope, &student) {
+	if !scope.AllowsStudentAcademic(&student) {
 		return errors.New(studentDormWriteScopeMessage)
 	}
 	if student.DormID != nil && *student.DormID != "" && !scopeAllowsDorm(scope, student.Dorm) {
@@ -497,7 +465,7 @@ func ensureSwapWritable(db *gorm.DB, scope *service.ResolvedUserDataScope, stude
 		return err
 	}
 	for _, student := range students {
-		if !scopeAllowsStudent(scope, &student) {
+		if !scope.AllowsStudentAcademic(&student) {
 			return errors.New(studentDormWriteScopeMessage)
 		}
 		if student.DormID != nil && *student.DormID != "" && !scopeAllowsDorm(scope, student.Dorm) {
@@ -751,7 +719,7 @@ func collectOccupancyImportScopeIssues(db *gorm.DB, scope *service.ResolvedUserD
 		if !studentOk || !dormOk {
 			continue
 		}
-		if !scopeAllowsStudent(scope, &student) || !scopeAllowsDorm(scope, &dorm) {
+		if !scope.AllowsStudentAcademic(&student) || !scopeAllowsDorm(scope, &dorm) {
 			issues = append(issues, buildOccupancyImportScopeIssue(row.RowNo))
 		}
 	}

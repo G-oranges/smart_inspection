@@ -45,6 +45,10 @@ func operatorFromContext(c *gin.Context) service.OperatorContext {
 func respondUserError(c *gin.Context, err error) {
 	var forbidden *service.ForbiddenError
 	switch {
+	case errors.Is(err, service.ErrIdentityConflict):
+		c.JSON(http.StatusConflict, gin.H{"message": service.ErrIdentityConflict.Error()})
+	case errors.Is(err, service.ErrStudentProfileNotFound):
+		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
 	case errors.Is(err, service.ErrUserNotFound), errors.Is(err, gorm.ErrRecordNotFound):
 		c.JSON(http.StatusNotFound, gin.H{"message": "用户不存在"})
 	case errors.As(err, &forbidden):
@@ -84,20 +88,13 @@ func (ctrl *UserController) UpdateMe(c *gin.Context) {
 	userId, _ := c.Get("userId")
 	userIdStr := userId.(string)
 
-	// 个人资料只允许修改联系方式；部门、用户类型属于身份信息，只能由管理员修改
-	var req struct {
-		Phone *string `json:"phone"`
-		Email *string `json:"email"`
-	}
+	var req service.SelfContactRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "参数错误"})
 		return
 	}
 
-	if err := ctrl.service.UpdateUser(userIdStr, service.UpdateUserRequest{
-		Phone: req.Phone,
-		Email: req.Email,
-	}); err != nil {
+	if err := ctrl.service.UpdateMyContact(userIdStr, req, false); err != nil {
 		respondUserError(c, err)
 		return
 	}
@@ -184,18 +181,21 @@ func (ctrl *UserController) GetUsers(c *gin.Context) {
 		}
 
 		items = append(items, gin.H{
-			"id":         u.ID,
-			"username":   u.Username,
-			"fullName":   u.FullName,
-			"email":      u.Email,
-			"phone":      u.Phone,
-			"department": u.Department,
-			"userType":   u.UserType,
-			"isDisabled": u.IsDisabled,
-			"role":       u.Role,
-			"roleName":   roleName,
-			"roles":      roles,
-			"createdAt":  u.CreatedAt,
+			"id":          u.ID,
+			"username":    u.Username,
+			"fullName":    u.FullName,
+			"email":       u.Email,
+			"phone":       u.Phone,
+			"department":  u.Department,
+			"userType":    u.UserType,
+			"isDisabled":  u.IsDisabled,
+			"role":        u.Role,
+			"roleName":    roleName,
+			"roles":       roles,
+			"createdAt":   u.CreatedAt,
+			"profileType": u.ProfileType,
+			"profileId":   u.ProfileID,
+			"profileNo":   u.ProfileNo,
 		})
 	}
 
@@ -298,11 +298,8 @@ func (ctrl *UserController) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	if err := ctrl.service.AuthorizeUserUpdate(operatorFromContext(c), id, req); err != nil {
-		respondUserError(c, err)
-		return
-	}
-	if err := ctrl.service.UpdateUser(id, req); err != nil {
+	changes, err := ctrl.service.UpdateManagedUser(id, req, operatorFromContext(c))
+	if err != nil {
 		respondUserError(c, err)
 		return
 	}
@@ -333,13 +330,20 @@ func (ctrl *UserController) UpdateUser(c *gin.Context) {
 			description = fmt.Sprintf("启用用户 %s", targetName)
 		}
 	}
+	var oldValue any
+	var newValue any = req
+	if changes.NewValue != nil {
+		oldValue = map[string]any{"profile": changes.OldValue}
+		newValue = map[string]any{"user": req, "profile": changes.NewValue}
+	}
 	service.LogAudit(service.AuditLogParams{
 		Action:       action,
 		Module:       service.AuditModuleUser,
 		TargetID:     id,
 		TargetName:   targetName,
 		Description:  description,
-		NewValue:     req,
+		OldValue:     oldValue,
+		NewValue:     newValue,
 		OperatorID:   fmt.Sprintf("%v", operatorID),
 		OperatorName: fmt.Sprintf("%v", operatorName),
 		IPAddress:    ipAddress,
@@ -365,11 +369,7 @@ func (ctrl *UserController) DeleteUsers(c *gin.Context) {
 	}
 
 	currentUserId, _ := c.Get("userId")
-	if err := ctrl.service.AuthorizeUserDelete(operatorFromContext(c), req.Ids); err != nil {
-		respondUserError(c, err)
-		return
-	}
-	if err := ctrl.service.DeleteUsers(req.Ids, currentUserId.(string)); err != nil {
+	if err := ctrl.service.DeleteUsers(req.Ids, operatorFromContext(c)); err != nil {
 		respondUserError(c, err)
 		return
 	}

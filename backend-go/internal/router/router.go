@@ -76,11 +76,11 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	avatarController := controller.NewAvatarController(db)
 
 	studentRepo := repository.NewStudentRepository(db)
-	studentService := service.NewStudentService(studentRepo, db)
-	studentController := controller.NewStudentController(db, studentService)
+	studentService := service.NewStudentService(studentRepo, db, permissionService.InvalidateCacheForUsers)
+	studentController := controller.NewStudentController(db, studentService, userService)
 
 	teacherRepo := repository.NewTeacherRepository(db)
-	teacherService := service.NewTeacherService(teacherRepo, db)
+	teacherService := service.NewTeacherService(teacherRepo, db, permissionService.InvalidateCacheForUsers)
 	teacherController := controller.NewTeacherController(db, teacherService)
 
 	buildingController := controller.NewBuildingController(db, infraService)

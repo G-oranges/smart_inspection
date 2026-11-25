@@ -5,6 +5,7 @@ import { ReloadOutlined } from '@ant-design/icons';
 
 import { flattenRoleMap } from './utils';
 import { buildOverrides } from './overrideUtils';
+import { getLinkedProfileLabel } from './accountPermissionSchema';
 import { confirmDangerCountdown } from '../../utils/confirm';
 
 import type {
@@ -163,7 +164,7 @@ async function runBulkDelete({
 
   const finalConfirmed = await confirmDangerCountdown({
     title: `确定删除选中的 ${selectionCount} 个用户吗？`,
-    content: '删除后无法恢复，将同时清除这些用户的关联权限和数据。',
+    content: '删除后无法恢复，将清除所选用户的关联权限；已关联的学生或教职工档案将保留并解除绑定。',
     okText: '删除用户',
   });
   if (!finalConfirmed) {
@@ -356,9 +357,12 @@ async function runDeleteSingleUser({
     return;
   }
 
+  const profileLabel = getLinkedProfileLabel(user.profileType);
   const finalConfirmed = await confirmDangerCountdown({
     title: `确定删除用户「${user.fullName}（${user.username}）」吗？`,
-    content: '删除后无法恢复，将同时清除该用户的关联权限和数据。',
+    content: profileLabel
+      ? `删除后无法恢复，将清除该用户的关联权限，并解除与${profileLabel}的绑定（档案本身保留）。`
+      : '删除后无法恢复，将同时清除该用户的关联权限和数据。',
     okText: '删除用户',
   });
   if (!finalConfirmed) {
@@ -641,6 +645,7 @@ async function runContinueNonConflicts({
 async function runFormSubmit({
   createUser,
   editingId,
+  editingUser,
   event,
   form,
   onSuccess,
@@ -650,6 +655,7 @@ async function runFormSubmit({
 }: {
   createUser: AccountPermissionActions['createUser'];
   editingId: EntityId | null;
+  editingUser?: AccountUser | null;
   event: FormEvent<HTMLFormElement>;
   form: UserFormState;
   onSuccess?: () => void;
@@ -669,10 +675,13 @@ async function runFormSubmit({
   }
 
   const isEdit = Boolean(editingId);
+  const profileLabel = getLinkedProfileLabel(editingUser?.profileType);
   const confirmed = await confirmModal({
     title: isEdit ? '确定更新用户吗？' : '确定新增用户吗？',
     content: isEdit
-      ? `确定更新用户「${form.fullName || form.username || '未命名'}」的信息吗？`
+      ? profileLabel
+        ? `确定更新用户「${form.fullName || form.username || '未命名'}」的信息吗？姓名、学院、联系电话将同步更新至关联的${profileLabel}。`
+        : `确定更新用户「${form.fullName || form.username || '未命名'}」的信息吗？`
       : `确定新增用户「${form.fullName || form.username || '未命名'}」吗？`,
     okText: isEdit ? '保存' : '新增用户',
   });
@@ -935,6 +944,9 @@ export function useAccountActions({
       runFormSubmit({
         createUser,
         editingId,
+        editingUser: editingId
+          ? tableData.items.find((item) => item.id === editingId) ?? null
+          : null,
         event,
         form,
         onSuccess,
@@ -942,7 +954,7 @@ export function useAccountActions({
         setUserMessage,
         updateUser,
       }),
-    [createUser, setReloadFlag, setUserMessage, updateUser],
+    [createUser, setReloadFlag, setUserMessage, tableData.items, updateUser],
   );
 
   return {

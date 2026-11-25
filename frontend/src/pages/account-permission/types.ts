@@ -19,7 +19,13 @@ export type BatchPermissionState = Record<string, PermissionMode>;
 export type RolePermissionMap = Map<EntityId, Set<EntityId>>;
 export type SetState<T> = Dispatch<SetStateAction<T>>;
 
-export interface AccountUser extends UserLike {
+export interface LinkedProfileSummary {
+  profileType?: string | null;
+  profileId?: EntityId | null;
+  profileNo?: string | null;
+}
+
+export interface AccountUser extends UserLike, LinkedProfileSummary {
   id?: EntityId;
   department?: string;
   userType?: string;

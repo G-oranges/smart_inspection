@@ -113,6 +113,9 @@ func initDB() {
 	}
 	ensureUserColumns(DB)
 	ensureUserRoleColumnIsText(DB)
+	if err := service.EnsureIdentityBindings(DB); err != nil {
+		log.Fatalf("Failed to migrate profile identity bindings: %v", err)
+	}
 	// Appeal references existing business tables. Avoid migrating those tables as associations.
 	if err := DB.AutoMigrate(&model.Appeal{}, &model.SystemSettings{}); err != nil {
 		log.Fatalf("Failed to migrate appeal schema: %v", err)

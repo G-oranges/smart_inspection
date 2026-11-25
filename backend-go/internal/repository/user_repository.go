@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"maps"
+
 	"github.com/my-project/backend-go/internal/model"
 	"github.com/my-project/backend-go/pkg/utils"
 	"gorm.io/gorm"
@@ -226,73 +228,57 @@ func (r *userRepository) Create(user *model.User, roleIds []string) error {
 }
 
 // Update 更新用户信息
-func (r *userRepository) Update(id string, updates map[string]interface{}, roleIds []string) error {
-	return r.db.Transaction(func(tx *gorm.DB) error {
-		// 更新用户基本信息
-		if len(updates) > 0 {
-			// 处理 tokenVersion 递增的特殊标记
-			if _, hasTokenVersion := updates["tokenVersion"]; hasTokenVersion {
-				delete(updates, "tokenVersion")
-				// 先执行普通字段更新
-				if len(updates) > 0 {
-					if err := tx.Model(&model.User{}).Where("id = ?", id).Updates(updates).Error; err != nil {
-						return err
-					}
-				}
-				// 再单独递增 tokenVersion（原子操作）
-				if err := tx.Model(&model.User{}).Where("id = ?", id).
-					Update("tokenVersion", gorm.Expr("tokenVersion + 1")).Error; err != nil {
-					return err
-				}
-				// 清理用户状态缓存
-				go func() {
-					// 异步清理，不阻塞主流程
-					_ = delUserStatusCache(id)
-				}()
-			} else {
-				if err := tx.Model(&model.User{}).Where("id = ?", id).Updates(updates).Error; err != nil {
-					return err
-				}
-			}
-		}
-		// 如果提供了角色列表且有有效角色，则重新设置角色关联
-		// 空数组表示不修改角色，nil 也表示不修改
-		if len(roleIds) > 0 {
-			// 过滤掉空字符串
-			validRoleIds := make([]string, 0, len(roleIds))
-			for _, roleId := range roleIds {
-				if roleId != "" {
-					validRoleIds = append(validRoleIds, roleId)
-				}
-			}
-			// 只有存在有效角色 ID 时才执行更新
-			if len(validRoleIds) > 0 {
-				// 删除现有角色关联
-				if err := tx.Exec("DELETE FROM _roleentitytouser WHERE B = ?", id).Error; err != nil {
-					return err
-				}
-				// 添加新的角色关联
-				for _, roleId := range validRoleIds {
-					if err := tx.Exec("INSERT INTO _roleentitytouser (A, B) VALUES (?, ?)", roleId, id).Error; err != nil {
-						return err
-					}
-				}
-			}
-		}
-		return nil
+func (r *userRepository) Update(id string, updates map[string]interface{}, roleIDs []string) error {
+	_, statusChanged := updates["tokenVersion"]
+	if statusChanged {
+		updates = maps.Clone(updates)
+		updates["tokenVersion"] = gorm.Expr("tokenVersion + 1")
+	}
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		return UpdateUserInTransaction(tx, id, updates, roleIDs)
 	})
+	if err == nil && statusChanged {
+		_ = utils.DelCache("user:status:" + id)
+	}
+	return err
 }
 
-// delUserStatusCache 清理用户状态缓存（辅助函数）
-func delUserStatusCache(userID string) error {
-	// 清理用户状态缓存（如果存在）
-	utils.DelCache("user:status:" + userID)
+func UpdateUserInTransaction(tx *gorm.DB, id string, updates map[string]interface{}, roleIDs []string) error {
+	if len(updates) > 0 {
+		if err := tx.Model(&model.User{}).Where("id = ?", id).Updates(updates).Error; err != nil {
+			return err
+		}
+	}
+	var validRoleIDs []string
+	for _, roleID := range roleIDs {
+		if roleID != "" {
+			validRoleIDs = append(validRoleIDs, roleID)
+		}
+	}
+	if len(validRoleIDs) == 0 {
+		return nil
+	}
+	if err := tx.Exec("DELETE FROM _roleentitytouser WHERE B = ?", id).Error; err != nil {
+		return err
+	}
+	for _, roleID := range validRoleIDs {
+		if err := tx.Exec("INSERT INTO _roleentitytouser (A, B) VALUES (?, ?)", roleID, id).Error; err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 // Delete 批量删除用户
 func (r *userRepository) Delete(ids []string) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
+		for _, profile := range []any{&model.Student{}, &model.Teacher{}} {
+			if tx.Migrator().HasTable(profile) {
+				if err := tx.Model(profile).Where("userId IN ?", ids).UpdateColumn("userId", nil).Error; err != nil {
+					return err
+				}
+			}
+		}
 		// 删除角色关联
 		if err := tx.Exec("DELETE FROM _roleentitytouser WHERE B IN ?", ids).Error; err != nil {
 			return err

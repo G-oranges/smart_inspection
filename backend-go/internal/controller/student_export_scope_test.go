@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	gormsqlite "github.com/glebarez/sqlite"
 	"github.com/gin-gonic/gin"
+	gormsqlite "github.com/glebarez/sqlite"
 	"github.com/google/uuid"
 	"github.com/my-project/backend-go/internal/model"
 	"github.com/my-project/backend-go/internal/service"
@@ -84,7 +84,7 @@ func TestExportStudents_RespectsAcademicScope(t *testing.T) {
 		t.Fatalf("seed out-of-scope student failed: %v", err)
 	}
 
-	controller := NewStudentController(db, nil)
+	controller := NewStudentController(db, nil, nil)
 	resolvedScope, err := service.ResolveUserDataScopeByUserID(db, user.ID)
 	if err != nil {
 		t.Fatalf("resolve scope failed: %v", err)

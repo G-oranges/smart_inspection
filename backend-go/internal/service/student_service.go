@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -8,6 +9,7 @@ import (
 	"github.com/my-project/backend-go/internal/repository"
 	"github.com/my-project/backend-go/pkg/utils"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type BatchMonitorResult struct {
@@ -30,13 +32,13 @@ type MonitorConflict struct {
 type StudentService interface {
 	CreateStudent(student *model.Student) error
 	UpdateStudent(id string, student *model.Student) error
-	DeleteStudents(ids []string) error
+	DeleteStudents(ids []string, op OperatorContext) (ProfileDeletion, error)
 	GetStudentByID(id string) (*model.Student, error)
 	GetStudentByNo(studentNo string) (*model.Student, error)
 	BatchMonitor(studentIds []string, replaceExisting *bool) (*BatchMonitorResult, error)
 	// PreviewImport 预览导入数据，检查冲突和格式
 	PreviewImport(rows []map[string]string) (*model.ImportPreviewResult, error)
-	// BatchImport 批量导入学生，使用单一事务提升性能，支持冲突解决策略
+	// BatchImport 批量导入学生，支持冲突解决策略
 	BatchImport(students []*model.Student, resolution string) (successCount int, failedCount int, err error)
 	// PreviewImportV2 V2版本预览导入，与 ImportWizard 兼容
 	PreviewImportV2(items []model.StudentImportRow) (*model.StudentImportPreviewResponse, error)
@@ -47,189 +49,110 @@ type StudentService interface {
 }
 
 type studentService struct {
-	repo repository.StudentRepository
-	db   *gorm.DB
+	repo                  repository.StudentRepository
+	db                    *gorm.DB
+	invalidatePermissions func(...string)
 }
 
-func NewStudentService(repo repository.StudentRepository, db *gorm.DB) StudentService {
-	return &studentService{repo: repo, db: db}
+func NewStudentService(repo repository.StudentRepository, db *gorm.DB, invalidatePermissions func(...string)) StudentService {
+	return &studentService{repo: repo, db: db, invalidatePermissions: invalidatePermissions}
 }
 
-func (s *studentService) CreateStudent(student *model.Student) error {
-	if student.ID == "" {
-		student.ID = uuid.New().String()
-	}
-
-	// Phase 1 防御性处理：空字符串视为无宿舍，避免外键约束失败
-	if student.DormID != nil && *student.DormID == "" {
-		student.DormID = nil
-	}
-	if student.DormBuilding != nil && *student.DormBuilding == "" {
-		student.DormBuilding = nil
-	}
-	if student.DormRoomNo != nil && *student.DormRoomNo == "" {
-		student.DormRoomNo = nil
-	}
-	if student.BedNo != nil && *student.BedNo == "" {
-		student.BedNo = nil
-	}
-
-	return s.db.Transaction(func(tx *gorm.DB) error {
-		// 检查是否存在相同学号的记录（Upsert 模式）
-		if student.StudentNo != nil && *student.StudentNo != "" {
-			var existing model.Student
-			if err := tx.Where("studentNo = ?", *student.StudentNo).First(&existing).Error; err == nil {
-				// 存在相同学号的记录，更新现有记录（排除住宿字段）
-				student.ID = existing.ID
-				if err := tx.Model(&model.Student{}).Where("id = ?", existing.ID).
-					Omit("dormId", "building", "roomNo", "bedNo").
-					Updates(student).Error; err != nil {
-					return err
-				}
-				// 重新获取更新后的数据用于同步
-				var updated model.Student
-				tx.First(&updated, "id = ?", existing.ID)
-				return s.syncUserAccountForStudent(tx, &updated, ptrToStr(existing.StudentNo))
-			}
-		}
-
-		// 不存在则创建新记录（Phase 3: 排除住宿冗余字段，住宿变更应由专有接口处理）
-		if err := tx.Omit("dormId", "building", "roomNo", "bedNo").Create(student).Error; err != nil {
-			return err
-		}
-		return s.syncUserAccountForStudent(tx, student, "")
-	})
+func (s *studentService) CreateStudent(profile *model.Student) error {
+	_, _, err := s.writeStudent(profile, false, nil, false)
+	return err
 }
 
-func (s *studentService) UpdateStudent(id string, student *model.Student) error {
-	// Phase 1 防御性处理：空字符串视为无宿舍，避免外键约束失败
-	if student.DormID != nil && *student.DormID == "" {
-		student.DormID = nil
-	}
-	if student.DormBuilding != nil && *student.DormBuilding == "" {
-		student.DormBuilding = nil
-	}
-	if student.DormRoomNo != nil && *student.DormRoomNo == "" {
-		student.DormRoomNo = nil
-	}
-	if student.BedNo != nil && *student.BedNo == "" {
-		student.BedNo = nil
-	}
-
+func (s *studentService) UpdateStudent(id string, profile *model.Student) error {
+	normalizeStudentPhone(profile)
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		var existing model.Student
-		if err := tx.First(&existing, "id = ?", id).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Take(&existing, "id = ?", id).Error; err != nil {
 			return err
 		}
-
-		// 排除住宿字段的写入，住宿变更应由专有接口处理
-		if err := tx.Model(&model.Student{}).Where("id = ?", id).
-			Omit("dormId", "building", "roomNo", "bedNo").
-			Updates(student).Error; err != nil {
-			return err
-		}
-
-		// 重新获取更新后的数据用于同步
-		var updated model.Student
-		tx.First(&updated, "id = ?", id)
-		return s.syncUserAccountForStudent(tx, &updated, ptrToStr(existing.StudentNo))
+		return updateStudentIdentity(tx, &existing, profile, nil, false)
 	})
 }
 
-func (s *studentService) syncUserAccountForStudent(tx *gorm.DB, student *model.Student, previousStudentNo string) error {
-	studentNo := ptrToStr(student.StudentNo)
-	if studentNo == "" {
-		return nil
-	}
-
-	var user model.User
-	// 尝试通过 userId 或用户名找到现有 User
-	found := false
-	if student.UserID != nil && *student.UserID != "" {
-		if err := tx.Where("id = ?", *student.UserID).First(&user).Error; err == nil {
-			found = true
-		}
-	}
-	if !found {
-		if err := tx.Where("username = ?", studentNo).First(&user).Error; err == nil {
-			found = true
-		}
-	}
-	if !found && previousStudentNo != "" && previousStudentNo != studentNo {
-		if err := tx.Where("username = ?", previousStudentNo).First(&user).Error; err == nil {
-			found = true
-		}
-	}
-
-	// 如果 User 角色不是 STUDENT 且已存在，则不进行同步（保持安全）
-	if found && user.Role != "STUDENT" {
-		return nil
-	}
-
-	if found {
-		// 更新现有 User
-		updates := map[string]interface{}{
-			"fullName":   student.FullName,
-			"department": student.College,
-			"role":       "STUDENT",
-			"userType":   "STUDENT",
-			"phone":      student.Phone,
-			"dormId":     student.DormID,
-		}
-		// 如果学号变更且不冲突，更新用户名
-		if user.Username != studentNo {
-			var conflict model.User
-			if err := tx.Where("username = ?", studentNo).First(&conflict).Error; err != nil {
-				updates["username"] = studentNo
+func (s *studentService) writeStudent(profile *model.Student, skip bool, monitor *bool, legacyDormFields bool) (created, skipped bool, err error) {
+	normalizeStudentPhone(profile)
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		if number := ptrToStr(profile.StudentNo); number != "" {
+			var existing model.Student
+			err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Take(&existing, "studentNo = ?", number).Error
+			if err == nil {
+				if skip {
+					skipped = true
+					return nil
+				}
+				if err := updateStudentIdentity(tx, &existing, profile, monitor, legacyDormFields); err != nil {
+					return err
+				}
+				profile.ID, profile.UserID = existing.ID, existing.UserID
+				return nil
+			}
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
 			}
 		}
-		if err := tx.Model(&user).Updates(updates).Error; err != nil {
+		created = true
+		if profile.ID == "" {
+			profile.ID = uuid.NewString()
+		}
+		profile.UserID = nil
+		if err := tx.Omit(studentIdentityOmissions(legacyDormFields)...).Create(profile).Error; err != nil {
 			return err
 		}
-	} else {
-		// 创建新 User - 使用配置化的默认初始密码；首次登录会被要求修改
-		hashedPassword, err := utils.HashDefaultInitialPassword()
-		if err != nil {
+		if !legacyDormFields {
+			profile.DormID, profile.DormBuilding, profile.DormRoomNo, profile.BedNo = nil, nil, nil, nil
+		}
+		return (IdentitySyncService{}).SyncUserFromStudent(tx, profile, "")
+	})
+	return
+}
+
+func normalizeStudentPhone(student *model.Student) {
+	if student.Mobile == nil && student.Phone == nil {
+		return
+	}
+	phone := student.Mobile
+	if phone == nil || (ptrToStr(phone) == "" && student.Phone != nil) {
+		phone = student.Phone
+	}
+	student.Mobile, student.Phone = phone, phone
+}
+
+func studentIdentityOmissions(legacyDormFields bool) []string {
+	fields := []string{clause.Associations}
+	if !legacyDormFields {
+		fields = append(fields, "DormID", "DormBuilding", "DormRoomNo", "BedNo")
+	}
+	return fields
+}
+
+func updateStudentIdentity(tx *gorm.DB, existing, profile *model.Student, monitor *bool, legacyDormFields bool) error {
+	previousNo := ptrToStr(existing.StudentNo)
+	if err := tx.Model(&model.Student{}).Where("id = ?", existing.ID).
+		Omit(append(studentIdentityOmissions(legacyDormFields), "ID", "UserID", "CreatedAt")...).Updates(profile).Error; err != nil {
+		return err
+	}
+
+	if monitor != nil {
+		if err := tx.Model(existing).Update("isMonitor", *monitor).Error; err != nil {
 			return err
-		}
-		user = model.User{
-			ID:                 uuid.New().String(),
-			Username:           studentNo,
-			Password:           hashedPassword,
-			FullName:           student.FullName,
-			Department:         student.College,
-			Role:               "STUDENT",
-			UserType:           ptr("STUDENT"),
-			Phone:              student.Phone,
-			DormID:             student.DormID,
-			IsDisabled:         false,
-			TokenVersion:       1, // 显式设置初始版本号
-			MustChangePassword: true,
-		}
-		if err := tx.Create(&user).Error; err != nil {
-			return err
-		}
-		// 关联默认角色
-		var role model.RoleEntity
-		if err := tx.Where("code = ?", "STUDENT").First(&role).Error; err == nil {
-			tx.Exec("INSERT INTO _roleentitytouser (A, B) VALUES (?, ?)", role.ID, user.ID)
 		}
 	}
 
-	// 确保学生记录关联了 UserID
-	if student.UserID == nil || *student.UserID != user.ID {
-		if err := tx.Model(student).Update("userId", user.ID).Error; err != nil {
-			return err
-		}
+	if err := tx.Take(existing, "id = ?", existing.ID).Error; err != nil {
+		return err
 	}
-
-	return nil
+	return (IdentitySyncService{}).SyncUserFromStudent(tx, existing, previousNo)
 }
 
 func ptr(s string) *string { return &s }
 
-func (s *studentService) DeleteStudents(ids []string) error {
-	return s.repo.Delete(ids)
+func (s *studentService) DeleteStudents(ids []string, op OperatorContext) (ProfileDeletion, error) {
+	return deleteIdentityProfiles(s.db, studentIdentity, ids, op, s.invalidatePermissions)
 }
 
 func (s *studentService) GetStudentByID(id string) (*model.Student, error) {
@@ -545,50 +468,17 @@ func (s *studentService) PreviewImport(rows []map[string]string) (*model.ImportP
 	return result, nil
 }
 
-// BatchImport 批量导入学生，使用单一事务提升性能
-func (s *studentService) BatchImport(students []*model.Student, resolution string) (successCount int, failedCount int, err error) {
-	if len(students) == 0 {
-		return 0, 0, nil
-	}
-
-	err = s.db.Transaction(func(tx *gorm.DB) error {
-		for _, student := range students {
-			if student.ID == "" {
-				student.ID = uuid.New().String()
-			}
-
-			if student.StudentNo != nil && *student.StudentNo != "" {
-				var existing model.Student
-				if findErr := tx.Where("studentNo = ?", *student.StudentNo).First(&existing).Error; findErr == nil {
-					// 冲突处理
-					if resolution == "skip" {
-						continue
-					}
-					// 默认或 overwrite 模式则执行更新
-					student.ID = existing.ID
-					if updateErr := tx.Model(&model.Student{}).Where("id = ?", existing.ID).Updates(student).Error; updateErr != nil {
-						failedCount++
-						continue
-					}
-					var updated model.Student
-					tx.First(&updated, "id = ?", existing.ID)
-					s.syncUserAccountForStudent(tx, &updated, ptrToStr(existing.StudentNo))
-					successCount++
-					continue
-				}
-			}
-
-			if createErr := tx.Create(student).Error; createErr != nil {
-				failedCount++
-				continue
-			}
-			s.syncUserAccountForStudent(tx, student, "")
+// BatchImport 批量导入学生
+func (s *studentService) BatchImport(profiles []*model.Student, resolution string) (successCount, failedCount int, err error) {
+	for _, profile := range profiles {
+		_, skipped, err := s.writeStudent(profile, resolution == "skip", nil, true)
+		if err != nil {
+			failedCount++
+		} else if !skipped {
 			successCount++
 		}
-		return nil
-	})
-
-	return successCount, failedCount, err
+	}
+	return successCount, failedCount, nil
 }
 
 // PreviewImportV2 V2版本预览导入，与 ImportWizard 兼容
@@ -741,212 +631,87 @@ func (s *studentService) PreviewImportV2(items []model.StudentImportRow) (*model
 
 // BatchImportV2 V2版本批量导入
 func (s *studentService) BatchImportV2(items []model.StudentImportRow, strategy string) (*model.StudentImportExecuteResponse, error) {
-	resp := &model.StudentImportExecuteResponse{
-		TotalCount: len(items),
-		FailedRows: []model.StudentImportIssue{},
-	}
-
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		for _, item := range items {
-			// 后端兜底校验
-			if item.StudentNo == nil || *item.StudentNo == "" ||
-				item.FullName == nil || *item.FullName == "" ||
-				item.Gender == nil || *item.Gender == "" {
-				resp.FailedCount++
-				resp.FailedRows = append(resp.FailedRows, model.StudentImportIssue{
-					RowNo:     item.RowNo,
-					ErrorType: "E",
-					ErrorCode: "MISSING_REQUIRED_FIELD",
-					Reason:    "必填字段缺失（后端兜底校验）",
-				})
-				continue
-			}
-
-			// 构造学生对象
-			student := &model.Student{
-				StudentNo:       item.StudentNo,
-				FullName:        *item.FullName,
-				Gender:          item.Gender,
-				Grade:           item.Grade,
-				College:         item.College,
-				Major:           item.Major,
-				ClassName:       item.ClassName,
-				EducationLevel:  item.EducationLevel,
-				Status:          item.Status,
-				Mobile:          item.Mobile,
-				IDType:          item.IDType,
-				IDNumber:        item.IDNumber,
-				PoliticalStatus: item.PoliticalStatus,
-				Ethnicity:       item.Ethnicity,
-				NativePlace:     item.NativePlace,
-				HomeAddress:     item.HomeAddress,
-				Phone:           item.Phone,
-				QQ:              item.QQ,
-			}
-
-			// 处理 IsMonitor
-			if item.IsMonitor != nil {
-				student.IsMonitor = *item.IsMonitor
-			}
-
-			// 检查冲突
-			var existing model.Student
-			err := tx.Where("studentNo = ?", *item.StudentNo).First(&existing).Error
-
-			if err == nil {
-				// 冲突处理
-				if strategy == "SKIP" {
-					resp.SkippedCount++
-					continue
-				}
-				// 覆盖策略 (OVERWRITE)
-				student.ID = existing.ID
-				if err := tx.Save(student).Error; err != nil {
-					resp.FailedCount++
-					resp.FailedRows = append(resp.FailedRows, model.StudentImportIssue{
-						RowNo:     item.RowNo,
-						ErrorCode: "SAVE_ERROR",
-						Reason:    err.Error(),
-					})
-				} else {
-					// 同步用户账号
-					s.syncUserAccountForStudent(tx, student, ptrToStr(existing.StudentNo))
-					resp.UpdatedCount++
-					resp.SuccessCount++
-				}
-			} else {
-				// 新增导入
-				student.ID = uuid.New().String()
-				if err := tx.Create(student).Error; err != nil {
-					resp.FailedCount++
-					resp.FailedRows = append(resp.FailedRows, model.StudentImportIssue{
-						RowNo:     item.RowNo,
-						ErrorCode: "CREATE_ERROR",
-						Reason:    err.Error(),
-					})
-				} else {
-					// 同步用户账号
-					s.syncUserAccountForStudent(tx, student, "")
-					resp.CreatedCount++
-					resp.SuccessCount++
-				}
-			}
-		}
-		return nil
-	})
-
-	return resp, err
+	return s.BatchImportV2WithProgress(items, strategy, "", nil)
 }
 
-// BatchImportV2WithProgress V2版本批量导入（支持进度回传）
-func (s *studentService) BatchImportV2WithProgress(items []model.StudentImportRow, strategy string, jobId string, taskService ImportTaskService) (*model.StudentImportExecuteResponse, error) {
+// BatchImportV2WithProgress reports completed rows, including skips and failures.
+func (s *studentService) BatchImportV2WithProgress(items []model.StudentImportRow, strategy string, jobID string, taskService ImportTaskService) (*model.StudentImportExecuteResponse, error) {
 	resp := &model.StudentImportExecuteResponse{
 		TotalCount: len(items),
 		FailedRows: []model.StudentImportIssue{},
 	}
-
-	// 进度更新频率：每处理 10 行或 5% 更新一次
-	updateInterval := len(items) / 20
-	if updateInterval < 1 {
-		updateInterval = 1
-	}
-	if updateInterval > 10 {
-		updateInterval = 10
-	}
-
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		for i, item := range items {
-			// 更新进度
-			if i%updateInterval == 0 || i == len(items)-1 {
-				taskService.UpdateProgress(jobId, i+1)
-			}
-
-			// 后端兜底校验
-			if item.StudentNo == nil || *item.StudentNo == "" ||
-				item.FullName == nil || *item.FullName == "" ||
-				item.Gender == nil || *item.Gender == "" {
-				resp.FailedCount++
-				resp.FailedRows = append(resp.FailedRows, model.StudentImportIssue{
-					RowNo:     item.RowNo,
-					ErrorType: "E",
-					ErrorCode: "MISSING_REQUIRED_FIELD",
-					Reason:    "必填字段缺失（后端兜底校验）",
-				})
-				continue
-			}
-
-			// 构造学生对象
-			student := &model.Student{
-				StudentNo:       item.StudentNo,
-				FullName:        *item.FullName,
-				Gender:          item.Gender,
-				Grade:           item.Grade,
-				College:         item.College,
-				Major:           item.Major,
-				ClassName:       item.ClassName,
-				EducationLevel:  item.EducationLevel,
-				Status:          item.Status,
-				Mobile:          item.Mobile,
-				IDType:          item.IDType,
-				IDNumber:        item.IDNumber,
-				PoliticalStatus: item.PoliticalStatus,
-				Ethnicity:       item.Ethnicity,
-				NativePlace:     item.NativePlace,
-				HomeAddress:     item.HomeAddress,
-				Phone:           item.Phone,
-				QQ:              item.QQ,
-			}
-
-			// 处理 IsMonitor
-			if item.IsMonitor != nil {
-				student.IsMonitor = *item.IsMonitor
-			}
-
-			// 检查冲突
-			var existing model.Student
-			err := tx.Where("studentNo = ?", *item.StudentNo).First(&existing).Error
-
-			if err == nil {
-				// 冲突处理
-				if strategy == "SKIP" {
-					resp.SkippedCount++
-					continue
-				}
-				// 覆盖策略 (OVERWRITE)
-				student.ID = existing.ID
-				if err := tx.Save(student).Error; err != nil {
-					resp.FailedCount++
-					resp.FailedRows = append(resp.FailedRows, model.StudentImportIssue{
-						RowNo:     item.RowNo,
-						ErrorCode: "SAVE_ERROR",
-						Reason:    err.Error(),
-					})
-				} else {
-					// 同步用户账号
-					s.syncUserAccountForStudent(tx, student, ptrToStr(existing.StudentNo))
-					resp.UpdatedCount++
-					resp.SuccessCount++
-				}
-			} else {
-				// 新增导入
-				student.ID = uuid.New().String()
-				if err := tx.Create(student).Error; err != nil {
-					resp.FailedCount++
-					resp.FailedRows = append(resp.FailedRows, model.StudentImportIssue{
-						RowNo:     item.RowNo,
-						ErrorCode: "CREATE_ERROR",
-						Reason:    err.Error(),
-					})
-				} else {
-					// 同步用户账号
-					s.syncUserAccountForStudent(tx, student, "")
-					resp.CreatedCount++
-					resp.SuccessCount++
-				}
-			}
+	interval := min(10, max(1, len(items)/20))
+	for i, item := range items {
+		s.importStudentRow(resp, item, strategy == "SKIP")
+		if taskService != nil && ((i+1)%interval == 0 || i+1 == len(items)) {
+			taskService.UpdateProgress(jobID, i+1)
 		}
-		return nil
-	})
+	}
+	return resp, nil
+}
 
-	return resp, err
+func (s *studentService) importStudentRow(resp *model.StudentImportExecuteResponse, item model.StudentImportRow, skip bool) {
+	// 后端兜底校验
+	if item.StudentNo == nil || *item.StudentNo == "" ||
+		item.FullName == nil || *item.FullName == "" ||
+		item.Gender == nil || *item.Gender == "" {
+		resp.FailedCount++
+		resp.FailedRows = append(resp.FailedRows, model.StudentImportIssue{
+			RowNo:     item.RowNo,
+			ErrorType: "E",
+			ErrorCode: "MISSING_REQUIRED_FIELD",
+			Reason:    "必填字段缺失（后端兜底校验）",
+		})
+		return
+	}
+
+	// 构造学生对象
+	student := &model.Student{
+		StudentNo:       item.StudentNo,
+		FullName:        *item.FullName,
+		Gender:          item.Gender,
+		Grade:           item.Grade,
+		College:         item.College,
+		Major:           item.Major,
+		ClassName:       item.ClassName,
+		EducationLevel:  item.EducationLevel,
+		Status:          item.Status,
+		Mobile:          item.Mobile,
+		IDType:          item.IDType,
+		IDNumber:        item.IDNumber,
+		PoliticalStatus: item.PoliticalStatus,
+		Ethnicity:       item.Ethnicity,
+		NativePlace:     item.NativePlace,
+		HomeAddress:     item.HomeAddress,
+		Phone:           item.Phone,
+		QQ:              item.QQ,
+	}
+
+	// 处理 IsMonitor
+	if item.IsMonitor != nil {
+		student.IsMonitor = *item.IsMonitor
+	}
+
+	created, skipped, err := s.writeStudent(student, skip, item.IsMonitor, false)
+	if err != nil {
+		code := "SAVE_ERROR"
+		if created {
+			code = "CREATE_ERROR"
+		}
+		resp.FailedCount++
+		resp.FailedRows = append(resp.FailedRows, model.StudentImportIssue{
+			RowNo: item.RowNo, ErrorCode: code, Reason: err.Error(),
+		})
+		return
+	}
+	if skipped {
+		resp.SkippedCount++
+		return
+	}
+	if created {
+		resp.CreatedCount++
+	} else {
+		resp.UpdatedCount++
+	}
+	resp.SuccessCount++
 }

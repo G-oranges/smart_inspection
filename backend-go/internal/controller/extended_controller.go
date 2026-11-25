@@ -56,10 +56,11 @@ var buildingSortableFields = utils.GetSortableFields(buildingSortConfig)
 type StudentController struct {
 	db      *gorm.DB
 	service service.StudentService
+	users   service.UserService
 }
 
-func NewStudentController(db *gorm.DB, s service.StudentService) *StudentController {
-	return &StudentController{db: db, service: s}
+func NewStudentController(db *gorm.DB, s service.StudentService, users service.UserService) *StudentController {
+	return &StudentController{db: db, service: s, users: users}
 }
 
 // GetStudents 获取学生列表（全量，用于下拉）
@@ -282,6 +283,10 @@ func (c *StudentController) CreateStudent(ctx *gin.Context) {
 	}
 
 	if err := c.service.CreateStudent(&student); err != nil {
+		if errors.Is(err, service.ErrIdentityConflict) {
+			respondUserError(ctx, err)
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "创建学生失败: " + err.Error()})
 		return
 	}
@@ -327,6 +332,10 @@ func (c *StudentController) UpdateStudent(ctx *gin.Context) {
 	}
 
 	if err := c.service.UpdateStudent(id, &student); err != nil {
+		if errors.Is(err, service.ErrIdentityConflict) {
+			respondUserError(ctx, err)
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "更新学生失败: " + err.Error()})
 		return
 	}
@@ -391,7 +400,8 @@ func (c *StudentController) DeleteStudents(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.service.DeleteStudents(targetIds); err != nil {
+	accounts, err := c.service.DeleteStudents(targetIds, operatorFromContext(ctx))
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "删除学生失败: " + err.Error()})
 		return
 	}
@@ -403,7 +413,7 @@ func (c *StudentController) DeleteStudents(ctx *gin.Context) {
 		Action:       service.AuditActionDelete,
 		Module:       service.AuditModuleStudent,
 		Description:  fmt.Sprintf("批量删除 %d 个学生", len(targetIds)),
-		NewValue:     map[string]interface{}{"deletedCount": len(targetIds)},
+		NewValue:     map[string]interface{}{"deletedCount": len(targetIds), "accounts": accounts},
 		OperatorID:   fmt.Sprintf("%v", operatorID),
 		OperatorName: fmt.Sprintf("%v", operatorName),
 		IPAddress:    ctx.ClientIP(),
@@ -514,59 +524,17 @@ func (c *StudentController) GetMe(ctx *gin.Context) {
 	})
 }
 
-// UpdateMyContact 学生更新联系方式
-// 同时更新 Student 表和 User 表，确保数据一致性
+// UpdateMyContact keeps the student contact API compatible with existing clients.
 func (c *StudentController) UpdateMyContact(ctx *gin.Context) {
-	userId, _ := ctx.Get("userId")
-	userIdStr := userId.(string)
-
-	// 检查系统设置是否允许学生编辑联系方式
-	var settings model.SystemSettings
-	if err := c.db.First(&settings).Error; err == nil {
-		if !settings.StudentContactEditable {
-			ctx.JSON(http.StatusForbidden, gin.H{"message": "系统当前不允许学生自行修改联系方式"})
-			return
-		}
-	}
-
-	var req struct {
-		Mobile string `json:"mobile"`
-		Phone  string `json:"phone"`
-		QQ     string `json:"qq"`
-	}
+	var req service.SelfContactRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "无效的请求数据"})
 		return
 	}
-
-	// 使用事务同时更新 Student 表和 User 表
-	tx := c.db.Begin()
-
-	// 1. 更新 Student 表
-	if err := tx.Model(&model.Student{}).Where("userId = ?", userIdStr).Updates(map[string]interface{}{
-		"mobile": req.Mobile,
-		"phone":  req.Phone,
-		"qq":     req.QQ,
-	}).Error; err != nil {
-		tx.Rollback()
-		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "更新联系方式失败"})
+	if err := c.users.UpdateMyContact(ctx.GetString("userId"), req, true); err != nil {
+		respondUserError(ctx, err)
 		return
 	}
-
-	// 2. 同步更新 User 表的 phone 字段（优先使用 phone，其次 mobile）
-	userPhone := req.Phone
-	if userPhone == "" {
-		userPhone = req.Mobile
-	}
-	if userPhone != "" {
-		if err := tx.Model(&model.User{}).Where("id = ?", userIdStr).Update("phone", userPhone).Error; err != nil {
-			tx.Rollback()
-			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "同步用户联系方式失败"})
-			return
-		}
-	}
-
-	tx.Commit()
 	ctx.JSON(http.StatusOK, gin.H{"message": "更新成功"})
 }
 
@@ -1255,6 +1223,10 @@ func (c *TeacherController) CreateTeacher(ctx *gin.Context) {
 	}
 
 	if err := c.service.Create(&teacher); err != nil {
+		if errors.Is(err, service.ErrIdentityConflict) {
+			respondUserError(ctx, err)
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "创建教工失败: " + err.Error()})
 		return
 	}
@@ -1272,6 +1244,10 @@ func (c *TeacherController) UpdateTeacher(ctx *gin.Context) {
 	}
 
 	if err := c.service.Update(id, &teacher); err != nil {
+		if errors.Is(err, service.ErrIdentityConflict) {
+			respondUserError(ctx, err)
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "更新教工信息失败: " + err.Error()})
 		return
 	}
@@ -1303,7 +1279,8 @@ func (c *TeacherController) DeleteTeachers(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.service.Delete(req.Ids); err != nil {
+	accounts, err := c.service.Delete(req.Ids, operatorFromContext(ctx))
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "删除教工失败: " + err.Error()})
 		return
 	}
@@ -1315,7 +1292,7 @@ func (c *TeacherController) DeleteTeachers(ctx *gin.Context) {
 		Action:       service.AuditActionDelete,
 		Module:       service.AuditModuleTeacher,
 		Description:  fmt.Sprintf("删除 %d 个教工", len(req.Ids)),
-		NewValue:     map[string]interface{}{"deletedIds": req.Ids, "count": len(req.Ids)},
+		NewValue:     map[string]interface{}{"deletedIds": req.Ids, "count": len(req.Ids), "accounts": accounts},
 		OperatorID:   fmt.Sprintf("%v", operatorID),
 		OperatorName: fmt.Sprintf("%v", operatorName),
 		IPAddress:    ctx.ClientIP(),

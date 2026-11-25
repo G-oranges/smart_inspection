@@ -201,7 +201,28 @@ export const USER_TYPE_OPTIONS: UserOption[] = [
   { value: "ADMIN", label: "管理员" },
   { value: "TEACHER", label: "教职工" },
   { value: "STUDENT", label: "学生" },
+  { value: "OTHER", label: "其他" },
 ];
+
+export function deriveUserTypeFromRole(roleCode?: string | null): string {
+  switch ((roleCode || "").trim().toUpperCase()) {
+    case "ADMIN":
+      return "ADMIN";
+    case "COUNSELOR":
+      return "TEACHER";
+    case "STUDENT":
+    case "LEADER":
+      return "STUDENT";
+    default:
+      return "OTHER";
+  }
+}
+
+export function getLinkedProfileLabel(profileType?: string | null): string {
+  if (profileType === "STUDENT") return "学生档案";
+  if (profileType === "TEACHER") return "教职工档案";
+  return "";
+}
 
 // 用户状态选项
 export const USER_STATUS_OPTIONS: UserOption[] = [

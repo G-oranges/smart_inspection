@@ -10,6 +10,7 @@ import (
 	"github.com/my-project/backend-go/internal/repository"
 	"github.com/my-project/backend-go/pkg/utils"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // 管理员新建账号和重置密码时生成一次性随机密码（仅返回一次），用户首次登录必须修改。
@@ -24,14 +25,14 @@ type UserService interface {
 	// CreateUser 返回新账号及其一次性初始密码
 	CreateUser(req CreateUserRequest) (*model.User, string, error)
 	UpdateUser(id string, req UpdateUserRequest) error
-	DeleteUsers(ids []string, currentUserId string) error
+	UpdateManagedUser(id string, req UpdateUserRequest, op OperatorContext) (IdentityAudit, error)
+	UpdateMyContact(id string, req SelfContactRequest, requireStudent bool) error
+	DeleteUsers(ids []string, op OperatorContext) error
 	// ResetPassword 返回新生成的一次性密码
 	ResetPassword(id string) (string, error)
 	GenerateTemporaryPassword(id string) (string, error)
 
 	AuthorizeUserCreate(op OperatorContext, req CreateUserRequest) error
-	AuthorizeUserUpdate(op OperatorContext, targetID string, req UpdateUserRequest) error
-	AuthorizeUserDelete(op OperatorContext, ids []string) error
 	AuthorizeCredentialReset(op OperatorContext, targetID string) error
 }
 
@@ -100,7 +101,7 @@ func (s *userService) GetUsers(page, pageSize int, filters map[string]interface{
 	if err := s.attachExplicitRoles(users); err != nil {
 		return nil, 0, err
 	}
-	if err := s.normalizeUserDepartments(users); err != nil {
+	if err := s.attachProfileSummaries(users); err != nil {
 		return nil, 0, err
 	}
 
@@ -121,10 +122,9 @@ func (s *userService) CreateUser(req CreateUserRequest) (*model.User, string, er
 		return nil, "", err
 	}
 
-	// 检查用户名是否已存在
-	existing, _ := s.repo.GetByUsername(req.Username)
-	if existing != nil {
-		return nil, "", errors.New("用户名已存在")
+	userType, err := normalizeUserType(req.UserType, normalizedPrimaryRoleCode)
+	if err != nil {
+		return nil, "", err
 	}
 
 	initialPassword := utils.GenerateRandomPassword(generatedPasswordLength)
@@ -141,108 +141,241 @@ func (s *userService) CreateUser(req CreateUserRequest) (*model.User, string, er
 		Email:              &req.Email,
 		Phone:              &req.Phone,
 		Department:         &req.Department,
-		UserType:           &req.UserType,
+		UserType:           &userType,
 		IsDisabled:         req.IsDisabled,
 		Role:               normalizedPrimaryRoleCode,
 		MustChangePassword: true,
 	}
 
-	if err := s.repo.Create(user, validatedRoleIDs); err != nil {
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		if err := checkIdentityUsername(tx, user.Username, ""); err != nil {
+			return err
+		}
+		if err := ensureIndependentUsername(tx, user.Username); err != nil {
+			return err
+		}
+		return repository.NewUserRepository(tx).Create(user, validatedRoleIDs)
+	}); err != nil {
 		return nil, "", err
 	}
 
 	return user, initialPassword, nil
 }
 
-// UpdateUser 更新用户信息
+func normalizeUserType(value, role string) (string, error) {
+	value = strings.ToUpper(strings.TrimSpace(value))
+	if value == "" {
+		switch role {
+		case "ADMIN":
+			return "ADMIN", nil
+		case "COUNSELOR":
+			return "TEACHER", nil
+		case "STUDENT", "LEADER":
+			return "STUDENT", nil
+		default:
+			return "OTHER", nil
+		}
+	}
+	switch value {
+	case "ADMIN", "TEACHER", "STUDENT", "OTHER":
+		return value, nil
+	default:
+		return "", errors.New("无效的账号类型")
+	}
+}
+
+type SelfContactRequest struct {
+	Phone  *string `json:"phone"`
+	Mobile *string `json:"mobile"`
+	Email  *string `json:"email"`
+	QQ     *string `json:"qq"`
+}
+
+type IdentityAudit struct {
+	OldValue map[string]any
+	NewValue map[string]any
+}
+
 func (s *userService) UpdateUser(id string, req UpdateUserRequest) error {
-	currentUser, err := s.repo.GetByID(id)
-	if err != nil {
-		return ErrUserNotFound
-	}
+	_, err := s.updateUser(id, req, nil, false, false, nil)
+	return err
+}
 
-	// 如果请求包含 isDisabled，需要检查是否实际变更
-	var needIncrementTokenVersion bool
-	if req.IsDisabled != nil {
-		if currentUser.IsDisabled != *req.IsDisabled {
-			needIncrementTokenVersion = true
+func (s *userService) UpdateManagedUser(id string, req UpdateUserRequest, op OperatorContext) (IdentityAudit, error) {
+	return s.updateUser(id, req, &op, false, false, nil)
+}
+
+func (s *userService) UpdateMyContact(id string, req SelfContactRequest, requireStudent bool) error {
+	phone := req.Phone
+	var qq *string
+	if requireStudent {
+		if req.Mobile != nil && (ptrToStr(req.Mobile) != "" || phone == nil) {
+			phone = req.Mobile
 		}
+		qq = req.QQ
 	}
+	_, err := s.updateUser(id, UpdateUserRequest{Phone: phone, Email: req.Email}, nil, true, requireStudent, qq)
+	return err
+}
 
-	nextPrimaryRoleCode := currentUser.Role
-	if req.Role != nil {
-		nextPrimaryRoleCode = strings.TrimSpace(*req.Role)
-	}
-
-	// 未提交角色字段时不改动角色关联（传 nil 给仓储层），避免编辑资料时丢失附加角色
-	var nextRoleIDs []string
-	rolesTouched := req.Role != nil || req.Roles != nil
-	if rolesTouched {
-		nextRoleIDs, _, err = s.resolveNextRoleIDs(currentUser, s.currentRoleIDs(currentUser), req)
-		if err != nil {
-			return errors.New("所选主角色不存在")
+func (s *userService) updateUser(id string, req UpdateUserRequest, op *OperatorContext, self, requireStudent bool, qq *string) (IdentityAudit, error) {
+	var audit IdentityAudit
+	var rolesTouched, statusChanged bool
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		var user model.User
+		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Preload("Roles").Take(&user, "id = ?", id).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ErrUserNotFound
 		}
-		validatedPrimaryRoleCode, validatedRoleIDs, err := s.validateAssignedRoles(nextRoleIDs, nextPrimaryRoleCode)
 		if err != nil {
 			return err
 		}
-		nextPrimaryRoleCode = validatedPrimaryRoleCode
-		nextRoleIDs = validatedRoleIDs
-	}
-
-	updates := make(map[string]interface{})
-
-	if req.FullName != nil {
-		updates["fullName"] = *req.FullName
-	}
-	if req.Email != nil {
-		updates["email"] = *req.Email
-	}
-	if req.Phone != nil {
-		updates["phone"] = *req.Phone
-	}
-	if req.Department != nil {
-		updates["department"] = *req.Department
-	}
-	if req.UserType != nil {
-		updates["userType"] = *req.UserType
-	}
-	if req.IsDisabled != nil {
-		updates["isDisabled"] = *req.IsDisabled
-		// 仅在状态实际变化时递增 tokenVersion，使旧 Token 失效
-		if needIncrementTokenVersion {
-			updates["tokenVersion"] = "tokenVersion + 1" // 标记需要递增
+		txService := &userService{db: tx, repo: repository.NewUserRepository(tx)}
+		if op != nil {
+			if err := txService.AuthorizeUserUpdate(*op, id, req); err != nil {
+				return err
+			}
 		}
-	}
-	if req.Role != nil && nextPrimaryRoleCode != "" {
-		updates["role"] = nextPrimaryRoleCode
-	}
 
-	if err := s.repo.Update(id, updates, nextRoleIDs); err != nil {
+		updates := make(map[string]any)
+		shared := make(map[string]any)
+		if req.FullName != nil && *req.FullName != user.FullName {
+			shared["fullName"] = *req.FullName
+		}
+		if req.Department != nil && (user.Department == nil || *req.Department != *user.Department) {
+			shared["department"] = *req.Department
+		}
+		if req.Phone != nil && (user.Phone == nil || *req.Phone != *user.Phone) {
+			shared["phone"] = *req.Phone
+		}
+		for key, value := range shared {
+			updates[key] = value
+		}
+
+		var profile *identityProfile
+		if self || len(shared) > 0 {
+			profile, err = findIdentityProfile(tx, &user, true, true)
+			if err != nil {
+				return err
+			}
+		}
+		if self {
+			if user.IsDisabled {
+				return newForbiddenError("用户已停用")
+			}
+			student := profile != nil && profile.Kind.code == studentIdentity.code
+			if requireStudent && !student {
+				return ErrStudentProfileNotFound
+			}
+			if student || studentIdentity.matchesLegacy(&user) || strings.EqualFold(user.Role, "STUDENT") {
+				if err := requireStudentContactEditable(tx); err != nil {
+					return err
+				}
+			}
+			if qq != nil {
+				shared["qq"] = *qq
+			}
+		}
+		if op != nil && profile != nil && profile.Kind.code == studentIdentity.code {
+			if department, changed := shared["department"]; changed {
+				if err := authorizeStudentCollegeUpdate(tx, op.UserID, profile.ID, department.(string)); err != nil {
+					return err
+				}
+			}
+		}
+		if op != nil && profile != nil && len(shared) > 0 {
+			audit = profile.identityAudit(shared)
+		}
+
+		if req.Email != nil {
+			updates["email"] = *req.Email
+		}
+		if req.UserType != nil {
+			updates["userType"] = *req.UserType
+		}
+		if req.IsDisabled != nil && user.IsDisabled != *req.IsDisabled {
+			statusChanged = true
+			updates["isDisabled"] = *req.IsDisabled
+			updates["tokenVersion"] = gorm.Expr("tokenVersion + 1")
+		}
+
+		nextPrimaryRoleCode := user.Role
+		if req.Role != nil {
+			nextPrimaryRoleCode = strings.TrimSpace(*req.Role)
+		}
+
+		// 未提交角色字段时不改动角色关联（传 nil 给仓储层），避免编辑资料时丢失附加角色
+		var nextRoleIDs []string
+		rolesTouched = req.Role != nil || req.Roles != nil
+		if rolesTouched {
+			nextRoleIDs, _, err = txService.resolveNextRoleIDs(&user, txService.currentRoleIDs(&user), req)
+			if err != nil {
+				return errors.New("所选主角色不存在")
+			}
+			validatedPrimaryRoleCode, validatedRoleIDs, err := txService.validateAssignedRoles(nextRoleIDs, nextPrimaryRoleCode)
+			if err != nil {
+				return err
+			}
+			nextPrimaryRoleCode = validatedPrimaryRoleCode
+			nextRoleIDs = validatedRoleIDs
+		}
+
+		if req.Role != nil {
+			updates["role"] = nextPrimaryRoleCode
+		}
+		if err := repository.UpdateUserInTransaction(tx, id, updates, nextRoleIDs); err != nil {
+			return err
+		}
+		return (IdentitySyncService{}).SyncProfileFromUser(tx, profile, id, shared)
+	})
+	if err != nil {
+		return IdentityAudit{}, err
+	}
+	if statusChanged {
+		_ = utils.DelCache("user:status:" + id)
+	}
+	if rolesTouched || statusChanged {
+		s.invalidate(id)
+	}
+	return audit, nil
+}
+
+var ErrStudentProfileNotFound = errors.New("未找到学生档案")
+
+func requireStudentContactEditable(tx *gorm.DB) error {
+	var settings model.SystemSettings
+	err := tx.First(&settings).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
-	if rolesTouched || needIncrementTokenVersion {
-		s.invalidate(id)
+	if !settings.StudentContactEditable {
+		return newForbiddenError("系统当前不允许学生自行修改联系方式")
 	}
 	return nil
 }
 
 // DeleteUsers 批量删除用户
-func (s *userService) DeleteUsers(ids []string, currentUserId string) error {
+func (s *userService) DeleteUsers(ids []string, op OperatorContext) error {
 	if len(ids) == 0 {
 		return errors.New("请选择要删除的用户")
 	}
 
-	// 禁止删除自己
-	for _, id := range ids {
-		if id == currentUserId {
-			return errors.New("不能删除当前登录用户")
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		var targets []model.User
+		if err := tx.Select("id").Where("id IN ?", ids).Order("id").
+			Clauses(clause.Locking{Strength: "UPDATE"}).Find(&targets).Error; err != nil {
+			return err
 		}
-	}
-
-	if err := s.repo.Delete(ids); err != nil {
+		repo := repository.NewUserRepository(tx)
+		guard := &userService{db: tx, repo: repo}
+		if err := guard.AuthorizeUserDelete(op, ids); err != nil {
+			return err
+		}
+		return repo.Delete(ids)
+	}); err != nil {
 		return err
 	}
+	clearAccountStatus(ids)
 	s.invalidate(ids...)
 	return nil
 }
@@ -397,148 +530,30 @@ func (s *userService) attachExplicitRoles(users []model.User) error {
 	return nil
 }
 
-func (s *userService) normalizeUserDepartments(users []model.User) error {
-	userIDs := make([]string, 0, len(users))
-	usernames := make([]string, 0, len(users))
-	for _, user := range users {
-		if user.ID != "" {
-			userIDs = append(userIDs, user.ID)
-		}
-		if username := strings.TrimSpace(user.Username); username != "" {
-			usernames = append(usernames, username)
-		}
+func (s *userService) attachProfileSummaries(users []model.User) error {
+	byID := make(map[string]*model.User, len(users))
+	ids := make([]string, 0, len(users))
+	for i := range users {
+		user := &users[i]
+		byID[user.ID] = user
+		ids = append(ids, user.ID)
 	}
-
-	studentDepartmentsByUserID, studentDepartmentsByUsername, err := s.loadStudentDepartments(userIDs, usernames)
-	if err != nil {
-		return err
-	}
-	teacherDepartmentsByUsername, err := s.loadTeacherDepartments(usernames)
-	if err != nil {
-		return err
-	}
-
-	pendingUpdates := make(map[string]string)
-	for index := range users {
-		user := &users[index]
-		username := strings.TrimSpace(user.Username)
-		currentDepartment := strings.TrimSpace(ptrToStr(user.Department))
-		resolvedDepartment := currentDepartment
-
-		if college, ok := studentDepartmentsByUserID[user.ID]; ok && college != "" {
-			resolvedDepartment = college
-		} else if college, ok := studentDepartmentsByUsername[username]; ok && college != "" && isStudentLike(user) {
-			resolvedDepartment = college
-		} else if department, ok := teacherDepartmentsByUsername[username]; ok && department != "" {
-			resolvedDepartment = department
+	for _, kind := range identityKinds {
+		var rows []identityProfile
+		err := kind.query(s.db).Where("userId IN ?", ids).Scan(&rows).Error
+		if isMissingTableError(err) {
+			continue
 		}
-
-		if resolvedDepartment == "" {
-			user.Department = nil
-		} else {
-			user.Department = ptr(resolvedDepartment)
-		}
-
-		if user.ID != "" && resolvedDepartment != "" && currentDepartment != resolvedDepartment {
-			pendingUpdates[user.ID] = resolvedDepartment
-		}
-	}
-
-	for userID, department := range pendingUpdates {
-		if err := s.db.Model(&model.User{}).Where("id = ?", userID).Update("department", department).Error; err != nil {
+		if err != nil {
 			return err
 		}
+		for _, row := range rows {
+			user := byID[ptrToStr(row.UserID)]
+			if user.ProfileID != nil {
+				return ErrIdentityConflict
+			}
+			user.ProfileType, user.ProfileID, user.ProfileNo = ptr(kind.code), ptr(row.ID), row.Number
+		}
 	}
-
 	return nil
-}
-
-func (s *userService) loadStudentDepartments(userIDs []string, usernames []string) (map[string]string, map[string]string, error) {
-	byUserID := make(map[string]string)
-	byUsername := make(map[string]string)
-	if len(userIDs) == 0 && len(usernames) == 0 {
-		return byUserID, byUsername, nil
-	}
-
-	type studentDepartmentRow struct {
-		UserID    *string `gorm:"column:userId"`
-		StudentNo *string `gorm:"column:studentNo"`
-		College   *string `gorm:"column:college"`
-	}
-
-	query := s.db.Model(&model.Student{}).
-		Select("userId", "studentNo", "college").
-		Where("college IS NOT NULL AND college <> ''")
-	if len(userIDs) > 0 && len(usernames) > 0 {
-		query = query.Where("(userId IN ? OR studentNo IN ?)", userIDs, usernames)
-	} else if len(userIDs) > 0 {
-		query = query.Where("userId IN ?", userIDs)
-	} else {
-		query = query.Where("studentNo IN ?", usernames)
-	}
-
-	var rows []studentDepartmentRow
-	if err := query.Scan(&rows).Error; err != nil {
-		return nil, nil, err
-	}
-
-	for _, row := range rows {
-		college := strings.TrimSpace(ptrToStr(row.College))
-		if college == "" {
-			continue
-		}
-		if row.UserID != nil && strings.TrimSpace(*row.UserID) != "" {
-			byUserID[strings.TrimSpace(*row.UserID)] = college
-		}
-		if row.StudentNo != nil && strings.TrimSpace(*row.StudentNo) != "" {
-			byUsername[strings.TrimSpace(*row.StudentNo)] = college
-		}
-	}
-
-	return byUserID, byUsername, nil
-}
-
-func (s *userService) loadTeacherDepartments(usernames []string) (map[string]string, error) {
-	departmentsByUsername := make(map[string]string)
-	if len(usernames) == 0 {
-		return departmentsByUsername, nil
-	}
-
-	type teacherDepartmentRow struct {
-		EmployeeNo *string `gorm:"column:employeeNo"`
-		Department *string `gorm:"column:department"`
-	}
-
-	var rows []teacherDepartmentRow
-	err := s.db.Model(&model.Teacher{}).
-		Select("employeeNo", "department").
-		Where("employeeNo IN ?", usernames).
-		Where("department IS NOT NULL AND department <> ''").
-		Scan(&rows).Error
-	if err != nil {
-		return nil, err
-	}
-
-	for _, row := range rows {
-		employeeNo := strings.TrimSpace(ptrToStr(row.EmployeeNo))
-		department := strings.TrimSpace(ptrToStr(row.Department))
-		if employeeNo == "" || department == "" {
-			continue
-		}
-		departmentsByUsername[employeeNo] = department
-	}
-
-	return departmentsByUsername, nil
-}
-
-func isStudentLike(user *model.User) bool {
-	if user == nil {
-		return false
-	}
-
-	if strings.EqualFold(strings.TrimSpace(ptrToStr(user.UserType)), "STUDENT") {
-		return true
-	}
-
-	return strings.EqualFold(strings.TrimSpace(user.Role), "STUDENT")
 }

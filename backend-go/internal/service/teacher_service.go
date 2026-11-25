@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -9,12 +10,13 @@ import (
 	"github.com/my-project/backend-go/internal/repository"
 	"github.com/my-project/backend-go/pkg/utils"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type TeacherService interface {
 	Create(teacher *model.Teacher) error
 	Update(id string, teacher *model.Teacher) error
-	Delete(ids []string) error
+	Delete(ids []string, op OperatorContext) (ProfileDeletion, error)
 	Search(page, pageSize int, search string, departments []string) ([]model.Teacher, int64, error)
 	// PreviewImport 预览导入教工数据
 	PreviewImport(rows []map[string]string) (*model.ImportPreviewResult, error)
@@ -29,134 +31,78 @@ type TeacherService interface {
 }
 
 type teacherService struct {
-	repo repository.TeacherRepository
-	db   *gorm.DB
+	repo                  repository.TeacherRepository
+	db                    *gorm.DB
+	invalidatePermissions func(...string)
 }
 
-func NewTeacherService(repo repository.TeacherRepository, db *gorm.DB) TeacherService {
-	return &teacherService{repo: repo, db: db}
+func NewTeacherService(repo repository.TeacherRepository, db *gorm.DB, invalidatePermissions func(...string)) TeacherService {
+	return &teacherService{repo: repo, db: db, invalidatePermissions: invalidatePermissions}
 }
 
-func (s *teacherService) Create(teacher *model.Teacher) error {
-	if teacher.ID == "" {
-		teacher.ID = uuid.New().String()
-	}
-
-	return s.db.Transaction(func(tx *gorm.DB) error {
-		// 检查是否存在相同工号的记录（Upsert 模式）
-		if teacher.EmployeeNo != nil && *teacher.EmployeeNo != "" {
-			var existing model.Teacher
-			if err := tx.Where("employeeNo = ?", *teacher.EmployeeNo).First(&existing).Error; err == nil {
-				// 存在相同工号的记录，更新现有记录
-				teacher.ID = existing.ID
-				if err := tx.Model(&model.Teacher{}).Where("id = ?", existing.ID).Updates(teacher).Error; err != nil {
-					return err
-				}
-				// 获取更新后的数据用于同步
-				var updated model.Teacher
-				tx.First(&updated, "id = ?", existing.ID)
-				return s.syncUserAccountForTeacher(tx, &updated, ptrToStr(existing.EmployeeNo))
-			}
-		}
-
-		// 不存在则创建新记录
-		if err := tx.Create(teacher).Error; err != nil {
-			return err
-		}
-		return s.syncUserAccountForTeacher(tx, teacher, "")
-	})
+func (s *teacherService) Create(profile *model.Teacher) error {
+	_, _, err := s.writeTeacher(profile, false)
+	return err
 }
 
-func (s *teacherService) Update(id string, teacher *model.Teacher) error {
+func (s *teacherService) Update(id string, profile *model.Teacher) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		var existing model.Teacher
-		if err := tx.First(&existing, "id = ?", id).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Take(&existing, "id = ?", id).Error; err != nil {
 			return err
 		}
-
-		if err := tx.Model(&model.Teacher{}).Where("id = ?", id).Updates(teacher).Error; err != nil {
-			return err
-		}
-
-		// 获取更新后的数据用于同步
-		var updated model.Teacher
-		tx.First(&updated, "id = ?", id)
-		return s.syncUserAccountForTeacher(tx, &updated, ptrToStr(existing.EmployeeNo))
+		return updateTeacherIdentity(tx, &existing, profile)
 	})
 }
 
-func (s *teacherService) syncUserAccountForTeacher(tx *gorm.DB, teacher *model.Teacher, previousEmployeeNo string) error {
-	employeeNo := ptrToStr(teacher.EmployeeNo)
-	if employeeNo == "" {
-		return nil
-	}
-
-	var user model.User
-	found := false
-	if err := tx.Where("username = ?", employeeNo).First(&user).Error; err == nil {
-		found = true
-	} else if previousEmployeeNo != "" && previousEmployeeNo != employeeNo {
-		if err := tx.Where("username = ?", previousEmployeeNo).First(&user).Error; err == nil {
-			found = true
-		}
-	}
-
-	// 如果 User 角色不是管理员/辅导员，且已存在，则不进行同步以保安全
-	if found && user.Role != "COUNSELOR" && user.Role != "ADMIN" {
-		return nil
-	}
-
-	if found {
-		updates := map[string]interface{}{
-			"fullName":   teacher.FullName,
-			"department": teacher.Department,
-			"phone":      teacher.Mobile,
-			"userType":   "TEACHER",
-			"role":       "COUNSELOR",
-		}
-		if user.Username != employeeNo {
-			var conflict model.User
-			if err := tx.Where("username = ?", employeeNo).First(&conflict).Error; err != nil {
-				updates["username"] = employeeNo
+func (s *teacherService) writeTeacher(profile *model.Teacher, skip bool) (created, skipped bool, err error) {
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		if number := ptrToStr(profile.EmployeeNo); number != "" {
+			var existing model.Teacher
+			err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Take(&existing, "employeeNo = ?", number).Error
+			if err == nil {
+				if skip {
+					skipped = true
+					return nil
+				}
+				if err := updateTeacherIdentity(tx, &existing, profile); err != nil {
+					return err
+				}
+				profile.ID, profile.UserID = existing.ID, existing.UserID
+				return nil
+			}
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
 			}
 		}
-		if err := tx.Model(&user).Updates(updates).Error; err != nil {
+		created = true
+		if profile.ID == "" {
+			profile.ID = uuid.NewString()
+		}
+		profile.UserID = nil
+		if err := tx.Omit(clause.Associations).Create(profile).Error; err != nil {
 			return err
 		}
-	} else {
-		// 创建新 User - 使用配置化的默认初始密码；首次登录会被要求修改
-		hashedPassword, err := utils.HashDefaultInitialPassword()
-		if err != nil {
-			return err
-		}
-		user = model.User{
-			ID:                 uuid.New().String(),
-			Username:           employeeNo,
-			Password:           hashedPassword,
-			FullName:           teacher.FullName,
-			Department:         teacher.Department,
-			Phone:              teacher.Mobile,
-			Role:               "COUNSELOR",
-			UserType:           ptr("TEACHER"),
-			IsDisabled:         false,
-			TokenVersion:       1, // 显式设置初始版本号
-			MustChangePassword: true,
-		}
-		if err := tx.Create(&user).Error; err != nil {
-			return err
-		}
-		// 关联 COUNSELOR 角色
-		var role model.RoleEntity
-		if err := tx.Where("code = ?", "COUNSELOR").First(&role).Error; err == nil {
-			tx.Exec("INSERT INTO _roleentitytouser (A, B) VALUES (?, ?)", role.ID, user.ID)
-		}
-	}
-
-	return nil
+		return (IdentitySyncService{}).SyncUserFromTeacher(tx, profile, "")
+	})
+	return
 }
 
-func (s *teacherService) Delete(ids []string) error {
-	return s.repo.Delete(ids)
+func updateTeacherIdentity(tx *gorm.DB, existing, profile *model.Teacher) error {
+	previousNo := ptrToStr(existing.EmployeeNo)
+	if err := tx.Model(&model.Teacher{}).Where("id = ?", existing.ID).
+		Omit(clause.Associations, "ID", "UserID", "CreatedAt").Updates(profile).Error; err != nil {
+		return err
+	}
+
+	if err := tx.Take(existing, "id = ?", existing.ID).Error; err != nil {
+		return err
+	}
+	return (IdentitySyncService{}).SyncUserFromTeacher(tx, existing, previousNo)
+}
+
+func (s *teacherService) Delete(ids []string, op OperatorContext) (ProfileDeletion, error) {
+	return deleteIdentityProfiles(s.db, teacherIdentity, ids, op, s.invalidatePermissions)
 }
 
 func (s *teacherService) Search(page, pageSize int, search string, departments []string) ([]model.Teacher, int64, error) {
@@ -294,48 +240,17 @@ func (s *teacherService) PreviewImport(rows []map[string]string) (*model.ImportP
 	return result, nil
 }
 
-// BatchImport 批量导入教工，使用单一事务提升性能
-func (s *teacherService) BatchImport(teachers []*model.Teacher, resolution string) (successCount int, failedCount int, err error) {
-	if len(teachers) == 0 {
-		return 0, 0, nil
-	}
-
-	err = s.db.Transaction(func(tx *gorm.DB) error {
-		for _, teacher := range teachers {
-			if teacher.ID == "" {
-				teacher.ID = uuid.New().String()
-			}
-
-			if teacher.EmployeeNo != nil && *teacher.EmployeeNo != "" {
-				var existing model.Teacher
-				if findErr := tx.Where("employeeNo = ?", *teacher.EmployeeNo).First(&existing).Error; findErr == nil {
-					if resolution == "skip" {
-						continue
-					}
-					teacher.ID = existing.ID
-					if updateErr := tx.Model(&model.Teacher{}).Where("id = ?", existing.ID).Updates(teacher).Error; updateErr != nil {
-						failedCount++
-						continue
-					}
-					var updated model.Teacher
-					tx.First(&updated, "id = ?", existing.ID)
-					s.syncUserAccountForTeacher(tx, &updated, ptrToStr(existing.EmployeeNo))
-					successCount++
-					continue
-				}
-			}
-
-			if createErr := tx.Create(teacher).Error; createErr != nil {
-				failedCount++
-				continue
-			}
-			s.syncUserAccountForTeacher(tx, teacher, "")
+// BatchImport 批量导入教工
+func (s *teacherService) BatchImport(profiles []*model.Teacher, resolution string) (successCount, failedCount int, err error) {
+	for _, profile := range profiles {
+		_, skipped, err := s.writeTeacher(profile, resolution == "skip")
+		if err != nil {
+			failedCount++
+		} else if !skipped {
 			successCount++
 		}
-		return nil
-	})
-
-	return successCount, failedCount, err
+	}
+	return successCount, failedCount, nil
 }
 
 // PreviewImportV2 V2版本预览导入，与 ImportWizard 兼容
@@ -421,162 +336,76 @@ func (s *teacherService) PreviewImportV2(items []model.TeacherImportRow) (*model
 
 // BatchImportV2 V2版本批量导入
 func (s *teacherService) BatchImportV2(items []model.TeacherImportRow, strategy string) (*model.TeacherImportExecuteResponse, error) {
-	resp := &model.TeacherImportExecuteResponse{
-		TotalCount: len(items),
-		FailedRows: []model.TeacherImportIssue{},
-	}
-
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		for _, item := range items {
-			employeeNo := ""
-			if item.EmployeeNo != nil {
-				employeeNo = strings.TrimSpace(*item.EmployeeNo)
-			}
-			fullName := ""
-			if item.FullName != nil {
-				fullName = strings.TrimSpace(*item.FullName)
-			}
-
-			if employeeNo == "" || fullName == "" {
-				resp.FailedCount++
-				resp.FailedRows = append(resp.FailedRows, model.TeacherImportIssue{
-					RowNo:     item.RowNo,
-					ErrorType: "E",
-					ErrorCode: "MISSING_REQUIRED_FIELD",
-					Reason:    "必填字段缺失（后端兜底校验）",
-				})
-				continue
-			}
-
-			employeeNoValue := employeeNo
-			teacher := &model.Teacher{
-				FullName:   fullName,
-				EmployeeNo: &employeeNoValue,
-				Gender:     item.Gender,
-				Department: item.Department,
-				Mobile:     item.Mobile,
-				Classes:    item.Classes,
-			}
-
-			var existing model.Teacher
-			err := tx.Where("employeeNo = ?", employeeNo).First(&existing).Error
-			if err == nil {
-				if strategy == "SKIP" {
-					resp.SkippedCount++
-					continue
-				}
-				teacher.ID = existing.ID
-				if err := tx.Model(&model.Teacher{}).Where("id = ?", existing.ID).Updates(teacher).Error; err != nil {
-					resp.FailedCount++
-					resp.FailedRows = append(resp.FailedRows, model.TeacherImportIssue{
-						RowNo: item.RowNo, ErrorCode: "SAVE_ERROR", Reason: err.Error(),
-					})
-				} else {
-					var updated model.Teacher
-					tx.First(&updated, "id = ?", existing.ID)
-					s.syncUserAccountForTeacher(tx, &updated, ptrToStr(existing.EmployeeNo))
-					resp.UpdatedCount++
-					resp.SuccessCount++
-				}
-			} else {
-				teacher.ID = uuid.New().String()
-				if err := tx.Create(teacher).Error; err != nil {
-					resp.FailedCount++
-					resp.FailedRows = append(resp.FailedRows, model.TeacherImportIssue{
-						RowNo: item.RowNo, ErrorCode: "CREATE_ERROR", Reason: err.Error(),
-					})
-				} else {
-					s.syncUserAccountForTeacher(tx, teacher, "")
-					resp.CreatedCount++
-					resp.SuccessCount++
-				}
-			}
-		}
-		return nil
-	})
-
-	return resp, err
+	return s.BatchImportV2WithProgress(items, strategy, "", nil)
 }
 
-// BatchImportV2WithProgress V2版本批量导入（支持进度回传）
-func (s *teacherService) BatchImportV2WithProgress(items []model.TeacherImportRow, strategy string, jobId string, taskService ImportTaskService) (*model.TeacherImportExecuteResponse, error) {
+// BatchImportV2WithProgress reports completed rows, including skips and failures.
+func (s *teacherService) BatchImportV2WithProgress(items []model.TeacherImportRow, strategy string, jobID string, taskService ImportTaskService) (*model.TeacherImportExecuteResponse, error) {
 	resp := &model.TeacherImportExecuteResponse{
 		TotalCount: len(items),
 		FailedRows: []model.TeacherImportIssue{},
 	}
-
-	err := s.db.Transaction(func(tx *gorm.DB) error {
-		for i, item := range items {
-			if taskService != nil {
-				taskService.UpdateProgress(jobId, i+1)
-			}
-
-			employeeNo := ""
-			if item.EmployeeNo != nil {
-				employeeNo = strings.TrimSpace(*item.EmployeeNo)
-			}
-			fullName := ""
-			if item.FullName != nil {
-				fullName = strings.TrimSpace(*item.FullName)
-			}
-
-			if employeeNo == "" || fullName == "" {
-				resp.FailedCount++
-				resp.FailedRows = append(resp.FailedRows, model.TeacherImportIssue{
-					RowNo:     item.RowNo,
-					ErrorType: "E",
-					ErrorCode: "MISSING_REQUIRED_FIELD",
-					Reason:    "必填字段缺失（后端兜底校验）",
-				})
-				continue
-			}
-
-			employeeNoValue := employeeNo
-			teacher := &model.Teacher{
-				FullName:   fullName,
-				EmployeeNo: &employeeNoValue,
-				Gender:     item.Gender,
-				Department: item.Department,
-				Mobile:     item.Mobile,
-				Classes:    item.Classes,
-			}
-
-			var existing model.Teacher
-			err := tx.Where("employeeNo = ?", employeeNo).First(&existing).Error
-			if err == nil {
-				if strategy == "SKIP" {
-					resp.SkippedCount++
-					continue
-				}
-				teacher.ID = existing.ID
-				if err := tx.Model(&model.Teacher{}).Where("id = ?", existing.ID).Updates(teacher).Error; err != nil {
-					resp.FailedCount++
-					resp.FailedRows = append(resp.FailedRows, model.TeacherImportIssue{
-						RowNo: item.RowNo, ErrorCode: "SAVE_ERROR", Reason: err.Error(),
-					})
-				} else {
-					var updated model.Teacher
-					tx.First(&updated, "id = ?", existing.ID)
-					s.syncUserAccountForTeacher(tx, &updated, ptrToStr(existing.EmployeeNo))
-					resp.UpdatedCount++
-					resp.SuccessCount++
-				}
-			} else {
-				teacher.ID = uuid.New().String()
-				if err := tx.Create(teacher).Error; err != nil {
-					resp.FailedCount++
-					resp.FailedRows = append(resp.FailedRows, model.TeacherImportIssue{
-						RowNo: item.RowNo, ErrorCode: "CREATE_ERROR", Reason: err.Error(),
-					})
-				} else {
-					s.syncUserAccountForTeacher(tx, teacher, "")
-					resp.CreatedCount++
-					resp.SuccessCount++
-				}
-			}
+	interval := min(10, max(1, len(items)/20))
+	for i, item := range items {
+		s.importTeacherRow(resp, item, strategy == "SKIP")
+		if taskService != nil && ((i+1)%interval == 0 || i+1 == len(items)) {
+			taskService.UpdateProgress(jobID, i+1)
 		}
-		return nil
-	})
+	}
+	return resp, nil
+}
 
-	return resp, err
+func (s *teacherService) importTeacherRow(resp *model.TeacherImportExecuteResponse, item model.TeacherImportRow, skip bool) {
+	employeeNo := ""
+	if item.EmployeeNo != nil {
+		employeeNo = strings.TrimSpace(*item.EmployeeNo)
+	}
+	fullName := ""
+	if item.FullName != nil {
+		fullName = strings.TrimSpace(*item.FullName)
+	}
+
+	if employeeNo == "" || fullName == "" {
+		resp.FailedCount++
+		resp.FailedRows = append(resp.FailedRows, model.TeacherImportIssue{
+			RowNo:     item.RowNo,
+			ErrorType: "E",
+			ErrorCode: "MISSING_REQUIRED_FIELD",
+			Reason:    "必填字段缺失（后端兜底校验）",
+		})
+		return
+	}
+
+	employeeNoValue := employeeNo
+	teacher := &model.Teacher{
+		FullName:   fullName,
+		EmployeeNo: &employeeNoValue,
+		Gender:     item.Gender,
+		Department: item.Department,
+		Mobile:     item.Mobile,
+		Classes:    item.Classes,
+	}
+
+	created, skipped, err := s.writeTeacher(teacher, skip)
+	if err != nil {
+		code := "SAVE_ERROR"
+		if created {
+			code = "CREATE_ERROR"
+		}
+		resp.FailedCount++
+		resp.FailedRows = append(resp.FailedRows, model.TeacherImportIssue{
+			RowNo: item.RowNo, ErrorCode: code, Reason: err.Error(),
+		})
+		return
+	}
+	if skipped {
+		resp.SkippedCount++
+		return
+	}
+	if created {
+		resp.CreatedCount++
+	} else {
+		resp.UpdatedCount++
+	}
+	resp.SuccessCount++
 }

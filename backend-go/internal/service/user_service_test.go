@@ -82,7 +82,7 @@ func TestUserServiceCreateUserRoleValidation(t *testing.T) {
 	}
 }
 
-func TestUserServiceGetUsersNormalizesDepartmentsAndRoles(t *testing.T) {
+func TestUserServiceGetUsersReturnsRolesAndProfilesWithoutWriting(t *testing.T) {
 	db := openServiceTestDB(t)
 	if err := db.AutoMigrate(&model.User{}, &model.RoleEntity{}, &model.Student{}, &model.Teacher{}); err != nil {
 		t.Fatalf("migrate failed: %v", err)
@@ -97,12 +97,13 @@ func TestUserServiceGetUsersNormalizesDepartmentsAndRoles(t *testing.T) {
 	}
 
 	studentUser := model.User{
-		ID:       uuid.NewString(),
-		Username: "2024001",
-		Password: "x",
-		Role:     "STUDENT",
-		FullName: "学生甲",
-		UserType: testStringPtr("STUDENT"),
+		ID:         uuid.NewString(),
+		Username:   "2024001",
+		Password:   "x",
+		Role:       "STUDENT",
+		FullName:   "学生甲",
+		UserType:   testStringPtr("STUDENT"),
+		Department: testStringPtr("账号学院"),
 	}
 	teacherUser := model.User{
 		ID:       uuid.NewString(),
@@ -138,6 +139,7 @@ func TestUserServiceGetUsersNormalizesDepartmentsAndRoles(t *testing.T) {
 		EmployeeNo: testStringPtr(teacherUser.Username),
 		FullName:   teacherUser.FullName,
 		Department: testStringPtr("外国语学院"),
+		UserID:     &teacherUser.ID,
 	}).Error; err != nil {
 		t.Fatalf("seed teacher failed: %v", err)
 	}
@@ -165,11 +167,14 @@ func TestUserServiceGetUsersNormalizesDepartmentsAndRoles(t *testing.T) {
 		usersByUsername[user.Username] = user
 	}
 
-	if got := ptrToStr(usersByUsername["2024001"].Department); got != "计算机学院" {
-		t.Fatalf("expected student department to be 计算机学院, got %q", got)
+	if got := ptrToStr(usersByUsername["2024001"].Department); got != "账号学院" {
+		t.Fatalf("expected stored user department, got %q", got)
 	}
-	if got := ptrToStr(usersByUsername["T001"].Department); got != "外国语学院" {
-		t.Fatalf("expected teacher department to be 外国语学院, got %q", got)
+	for username, kind := range map[string]string{"2024001": "STUDENT", "T001": "TEACHER"} {
+		user := usersByUsername[username]
+		if ptrToStr(user.ProfileType) != kind || ptrToStr(user.ProfileNo) != username || user.ProfileID == nil {
+			t.Fatalf("missing profile summary for %s: %+v", username, user)
+		}
 	}
 	if len(usersByUsername["seed-admin"].Roles) != 2 {
 		t.Fatalf("expected seed-admin to have 2 roles, got %d", len(usersByUsername["seed-admin"].Roles))
@@ -179,16 +184,16 @@ func TestUserServiceGetUsersNormalizesDepartmentsAndRoles(t *testing.T) {
 	if err := db.First(&persistedStudentUser, "id = ?", studentUser.ID).Error; err != nil {
 		t.Fatalf("reload student user failed: %v", err)
 	}
-	if got := ptrToStr(persistedStudentUser.Department); got != "计算机学院" {
-		t.Fatalf("expected persisted student department to be backfilled, got %q", got)
+	if got := ptrToStr(persistedStudentUser.Department); got != "账号学院" {
+		t.Fatalf("list query changed student account department to %q", got)
 	}
 
 	var persistedTeacherUser model.User
 	if err := db.First(&persistedTeacherUser, "id = ?", teacherUser.ID).Error; err != nil {
 		t.Fatalf("reload teacher user failed: %v", err)
 	}
-	if got := ptrToStr(persistedTeacherUser.Department); got != "外国语学院" {
-		t.Fatalf("expected persisted teacher department to be backfilled, got %q", got)
+	if persistedTeacherUser.Department != nil {
+		t.Fatalf("list query changed teacher account department to %q", *persistedTeacherUser.Department)
 	}
 }
 

@@ -283,26 +283,12 @@ func ResolveUserCollege(db *gorm.DB, user *model.User) (string, error) {
 	if department := strings.TrimSpace(ptrToString(user.Department)); department != "" {
 		return department, nil
 	}
-	var colleges []string
-	query := db.Model(&model.Student{}).Where("userId = ?", user.ID)
-	if strings.TrimSpace(user.Username) != "" {
-		query = query.Or("studentNo = ?", user.Username)
-	}
-	if err := query.Limit(1).Pluck("college", &colleges).Error; err != nil && !isMissingTableError(err) {
+	profile, err := findIdentityProfile(db, user, true, false)
+	if err != nil {
 		return "", err
 	}
-	if len(colleges) > 0 && strings.TrimSpace(colleges[0]) != "" {
-		return strings.TrimSpace(colleges[0]), nil
-	}
-	if strings.TrimSpace(user.Username) == "" {
-		return "", nil
-	}
-	var departments []string
-	if err := db.Model(&model.Teacher{}).Where("employeeNo = ?", user.Username).Limit(1).Pluck("department", &departments).Error; err != nil && !isMissingTableError(err) {
-		return "", err
-	}
-	if len(departments) > 0 {
-		return strings.TrimSpace(departments[0]), nil
+	if profile != nil {
+		return strings.TrimSpace(ptrToString(profile.Department)), nil
 	}
 	return "", nil
 }
@@ -521,6 +507,38 @@ func ApplyDormitoryScopeToDormQuery(query *gorm.DB, scope *ResolvedUserDataScope
 		return query.Where("1 = 0")
 	}
 	return query.Where(condition)
+}
+
+func (scope *ResolvedUserDataScope) AllowsStudentAcademic(student *model.Student) bool {
+	if scope == nil || scope.All {
+		return true
+	}
+	if student == nil || !scope.HasAcademicAccess() {
+		return false
+	}
+
+	college := strings.TrimSpace(ptrToString(student.College))
+	if college != "" {
+		if _, ok := scope.Academic.Colleges[college]; ok {
+			return true
+		}
+	}
+
+	major := strings.TrimSpace(ptrToString(student.Major))
+	if major != "" {
+		if _, ok := scope.Academic.Majors[major]; ok {
+			return true
+		}
+	}
+
+	className := strings.TrimSpace(ptrToString(student.ClassName))
+	if className != "" {
+		if _, ok := scope.Academic.ClassNames[className]; ok {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *ResolvedUserDataScope) HasAcademicAccess() bool {

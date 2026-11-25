@@ -20,12 +20,15 @@ func TestUserControllerGetUsersReturnsAllLinkedRoles(t *testing.T) {
 	controller := NewUserController(userServiceStub{
 		users: []model.User{
 			{
-				ID:         uuid.NewString(),
-				Username:   "multi-role",
-				FullName:   "多角色用户",
-				Role:       roleA.Code,
-				Department: userControllerStringPtr("学生工作部"),
-				Roles:      []model.RoleEntity{roleA, roleB},
+				ID:          uuid.NewString(),
+				Username:    "multi-role",
+				FullName:    "多角色用户",
+				Role:        roleA.Code,
+				Department:  userControllerStringPtr("学生工作部"),
+				Roles:       []model.RoleEntity{roleA, roleB},
+				ProfileType: userControllerStringPtr("TEACHER"),
+				ProfileID:   userControllerStringPtr("teacher-id"),
+				ProfileNo:   userControllerStringPtr("T01"),
 			},
 		},
 		total: 1,
@@ -43,8 +46,11 @@ func TestUserControllerGetUsersReturnsAllLinkedRoles(t *testing.T) {
 
 	var response struct {
 		Items []struct {
-			Department *string `json:"department"`
-			Roles      []struct {
+			Department  *string `json:"department"`
+			ProfileType string  `json:"profileType"`
+			ProfileID   string  `json:"profileId"`
+			ProfileNo   string  `json:"profileNo"`
+			Roles       []struct {
 				Code string `json:"code"`
 			} `json:"roles"`
 		} `json:"items"`
@@ -62,6 +68,10 @@ func TestUserControllerGetUsersReturnsAllLinkedRoles(t *testing.T) {
 	}
 	if got := userControllerPtrToStr(response.Items[0].Department); got != "学生工作部" {
 		t.Fatalf("expected department 学生工作部, got %q", got)
+	}
+	item := response.Items[0]
+	if item.ProfileType != "TEACHER" || item.ProfileID != "teacher-id" || item.ProfileNo != "T01" {
+		t.Fatalf("missing profile summary: %+v", item)
 	}
 }
 
@@ -91,7 +101,15 @@ func (s userServiceStub) UpdateUser(id string, req service.UpdateUserRequest) er
 	return nil
 }
 
-func (s userServiceStub) DeleteUsers(ids []string, currentUserId string) error {
+func (s userServiceStub) UpdateManagedUser(id string, req service.UpdateUserRequest, op service.OperatorContext) (service.IdentityAudit, error) {
+	return service.IdentityAudit{}, nil
+}
+
+func (s userServiceStub) UpdateMyContact(id string, req service.SelfContactRequest, requireStudent bool) error {
+	return nil
+}
+
+func (s userServiceStub) DeleteUsers(ids []string, op service.OperatorContext) error {
 	return nil
 }
 
@@ -100,14 +118,6 @@ func (s userServiceStub) ResetPassword(id string) (string, error) {
 }
 
 func (s userServiceStub) AuthorizeUserCreate(op service.OperatorContext, req service.CreateUserRequest) error {
-	return nil
-}
-
-func (s userServiceStub) AuthorizeUserUpdate(op service.OperatorContext, targetID string, req service.UpdateUserRequest) error {
-	return nil
-}
-
-func (s userServiceStub) AuthorizeUserDelete(op service.OperatorContext, ids []string) error {
 	return nil
 }
 

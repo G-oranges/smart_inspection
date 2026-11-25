@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	gormsqlite "github.com/glebarez/sqlite"
 	"github.com/gin-gonic/gin"
+	gormsqlite "github.com/glebarez/sqlite"
 	"github.com/google/uuid"
 	"github.com/my-project/backend-go/internal/model"
 	"github.com/my-project/backend-go/internal/repository"
@@ -21,7 +21,7 @@ import (
 func TestPreviewImportStudentsV2_AppendsScopeIssues(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db, user := openStudentImportScopeTestDB(t)
-	controller := NewStudentController(db, service.NewStudentService(repository.NewStudentRepository(db), db))
+	controller := NewStudentController(db, service.NewStudentService(repository.NewStudentRepository(db), db, nil), nil)
 
 	studentNo := "2024001"
 	fullName := "李四"
@@ -63,7 +63,7 @@ func TestPreviewImportStudentsV2_AppendsScopeIssues(t *testing.T) {
 func TestImportStudentsV2_ReturnsForbiddenForOutOfScopeRows(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db, user := openStudentImportScopeTestDB(t)
-	controller := NewStudentController(db, service.NewStudentService(repository.NewStudentRepository(db), db))
+	controller := NewStudentController(db, service.NewStudentService(repository.NewStudentRepository(db), db, nil), nil)
 
 	studentNo := "2024002"
 	fullName := "李四"

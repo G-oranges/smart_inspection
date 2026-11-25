@@ -807,6 +807,9 @@ const AppLayout = () => {
       }
 
       await refreshUser?.();
+      if (activeRole?.code === "STUDENT" || myProfile) {
+        await layoutActions.fetchMyProfile?.();
+      }
       setIsEditingPhone(false);
       setIsEditingEmail(false);
       antMessage.success("联系方式已更新");

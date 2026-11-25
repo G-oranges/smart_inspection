@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/my-project/backend-go/internal/model"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // ErrUserNotFound 目标用户不存在。
@@ -230,14 +232,13 @@ func (s *userService) ensureAdminRemains(excludedIDs []string) error {
 	} else {
 		query = query.Where("role = ?", model.RoleAdmin)
 	}
-	var remaining int64
-	if err := query.Count(&remaining).Error; err != nil {
-		return err
-	}
-	if remaining == 0 {
+	// Lock a remaining administrator so concurrent updates cannot both remove the last one.
+	var remaining model.User
+	err := query.Select("id").Order("id").Clauses(clause.Locking{Strength: "UPDATE"}).Take(&remaining).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return newForbiddenError("至少需要保留一个启用中的管理员账号")
 	}
-	return nil
+	return err
 }
 
 func (s *userService) roleIDByCode(code string) (string, error) {
